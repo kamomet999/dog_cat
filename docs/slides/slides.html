@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>いぬねこ図鑑 — アプリ紹介</title>
+<style>
+  :root {
+    --bg1: #fdf6ec; --bg2: #f6e7d8; --card: #fff;
+    --ink: #4a3f35; --soft: #8a7d6d;
+    --accent: #ff9a76; --accent-d: #f47b54; --coin: #f2b134;
+    --good: #7ac77a; --bad: #e06464;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif; color: var(--ink); }
+  .slide {
+    width: 1280px; height: 720px; position: relative; overflow: hidden;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    padding: 56px 72px; page-break-after: always; display: flex; flex-direction: column;
+  }
+  .kicker { font-size: 18px; font-weight: 800; color: var(--accent-d); letter-spacing: .12em; margin-bottom: 10px; }
+  h1 { font-size: 64px; font-weight: 800; line-height: 1.25; }
+  h2 { font-size: 40px; font-weight: 800; margin-bottom: 26px; }
+  .sub { color: var(--soft); font-size: 22px; margin-top: 14px; line-height: 1.7; }
+  .page-num { position: absolute; bottom: 22px; right: 36px; color: var(--soft); font-size: 14px; font-weight: 700; }
+  .brand { position: absolute; bottom: 22px; left: 36px; color: var(--soft); font-size: 14px; font-weight: 700; }
+  .row { display: flex; gap: 32px; flex: 1; align-items: center; }
+  .col { flex: 1; }
+  .card {
+    background: var(--card); border-radius: 24px; padding: 26px 30px;
+    box-shadow: 0 8px 24px rgba(120,90,60,.14);
+  }
+  .shot { border-radius: 22px; box-shadow: 0 12px 32px rgba(120,90,60,.25); }
+  .pill {
+    display: inline-block; background: #ffe9d6; color: var(--accent-d);
+    font-weight: 800; border-radius: 999px; padding: 6px 18px; font-size: 18px; margin: 0 6px 10px 0;
+  }
+  .big-num { font-size: 54px; font-weight: 800; color: var(--accent-d); line-height: 1; }
+  .step { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 22px; }
+  .step .n {
+    width: 44px; height: 44px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-d));
+    color: #fff; font-weight: 800; font-size: 22px; display: flex; align-items: center; justify-content: center;
+  }
+  .step b { font-size: 24px; display: block; margin-bottom: 4px; }
+  .step p { color: var(--soft); font-size: 18px; line-height: 1.55; }
+  table { border-collapse: collapse; width: 100%; font-size: 19px; }
+  th { text-align: left; color: var(--soft); font-size: 16px; padding: 8px 14px; border-bottom: 2px solid #e8dcc9; }
+  td { padding: 11px 14px; border-bottom: 1px solid #efe6da; line-height: 1.5; }
+  td.hl { font-weight: 800; color: var(--accent-d); }
+  .check li { list-style: none; font-size: 22px; margin-bottom: 16px; line-height: 1.55; }
+  .check li::before { content: "🐾 "; }
+  .muted { color: var(--soft); }
+</style>
+</head>
+<body>
+
+<!-- 1. タイトル -->
+<section class="slide" style="justify-content:center; align-items:center; text-align:center;">
+  <img src="img/icon.png" width="148" height="148" style="border-radius:34px; box-shadow:0 12px 32px rgba(244,123,84,.35); margin-bottom:30px;">
+  <h1>いぬねこ図鑑</h1>
+  <div class="sub" style="font-size:28px; margin-top:18px;">スマホをはなれて、そだてるたまごっち</div>
+  <div style="margin-top:34px;">
+    <span class="pill">デジタルデトックス</span>
+    <span class="pill">放置育成</span>
+    <span class="pill">図鑑コレクション</span>
+    <span class="pill">広告ゼロ</span>
+  </div>
+  <div class="page-num">1</div>
+</section>
+
+<!-- 2. 課題 -->
+<section class="slide">
+  <div class="kicker">BACKGROUND</div>
+  <h2>「スマホを見すぎている」——8割が自覚している</h2>
+  <div class="row">
+    <div class="col card" style="text-align:center; padding:40px;">
+      <div class="big-num">約8割</div>
+      <p class="sub">スマホ依存を自覚<br><span class="muted" style="font-size:16px;">（MMD研究所調査）</span></p>
+    </div>
+    <div class="col card" style="text-align:center; padding:40px;">
+      <div class="big-num">67.6%</div>
+      <p class="sub">若者が「SNS時間を<br>減らしたい」<br><span class="muted" style="font-size:16px;">（SHIBUYA109 lab.）</span></p>
+    </div>
+    <div class="col card" style="text-align:center; padding:40px;">
+      <div class="big-num" style="font-size:34px; line-height:1.3;">アテンション・<br>デトックス</div>
+      <p class="sub">Z世代トレンド2026に選出。<br>条例・専門外来も登場</p>
+    </div>
+  </div>
+  <p class="sub" style="text-align:center;">「やめたい」気持ちはあるのに、我慢だけでは続かない。<br><b style="color:var(--ink);">続けたくなる「ごほうび」が必要。</b></p>
+  <div class="brand">いぬねこ図鑑</div><div class="page-num">2</div>
+</section>
+
+<!-- 3. コンセプト -->
+<section class="slide">
+  <div class="kicker">CONCEPT</div>
+  <h2>スマホを置くと、犬や猫が育つ。</h2>
+  <div class="row">
+    <div class="col">
+      <div class="step"><div class="n">＝</div><div><b>Forest の気持ちよさ</b><p>スマホを触らない時間が、目に見える成長になる</p></div></div>
+      <div class="step"><div class="n">＋</div><div><b>ねこあつめ の集める喜び</b><p>柴犬からベンガルまで、30種の品種図鑑を埋めていく</p></div></div>
+      <div class="step"><div class="n">＋</div><div><b>たまごっち の愛着</b><p>たまご→あかちゃん→こども→せいたい。育てて、巣立たせて、図鑑に殿堂入り</p></div></div>
+      <p class="sub">失敗しても死なない・責めない、<b style="color:var(--ink);">「がんばらないデトックス」</b>。</p>
+    </div>
+    <div style="flex:none;"><img class="shot" src="img/sl_home.png" width="300"></div>
+  </div>
+  <div class="brand">いぬねこ図鑑</div><div class="page-num">3</div>
+</section>
+
+<!-- 4. あそびかた -->
+<section class="slide">
+  <div class="kicker">HOW IT WORKS</div>
+  <h2>あそびかたは、置くだけ。</h2>
+  <div class="row" style="align-items:flex-start; gap:22px;">
+    <div class="col" style="text-align:center;">
+      <img class="shot" src="img/sl_picker.png" width="208">
+      <p class="sub" style="font-size:19px; margin-top:10px;"><b style="color:var(--ink);">① 時間をえらぶ</b><br>30分・1時間・2時間</p>
+    </div>
+    <div class="col" style="text-align:center;">
+      <img class="shot" src="img/sl_walking.png" width="208">
+      <p class="sub" style="font-size:19px; margin-top:10px;"><b style="color:var(--ink);">② スマホをふせる</b><br>とちゅうで開くと失敗…！</p>
+    </div>
+    <div class="col" style="text-align:center;">
+      <img class="shot" src="img/sl_success.png" width="208">
+      <p class="sub" style="font-size:19px; margin-top:10px;"><b style="color:var(--ink);">③ ごほうび＆成長</b><br>れんぞく成功でボーナスUP</p>
+    </div>
+  </div>
+  <div class="brand">いぬねこ図鑑</div><div class="page-num">4</div>
+</section>
+
+<!-- 5. 図鑑 -->
+<section class="slide">
+  <div class="kicker">COLLECTION</div>
+  <h2>30種の図鑑を、ぜんぶ無料でコンプできる。</h2>
+  <div class="row">
+    <div style="flex:none;"><img class="shot" src="img/sl_dex.png" width="300"></div>
+    <div class="col">
+      <ul class="check">
+        <li>犬15種×猫15種。レアリティ5段階（コモン〜レジェンド）</li>
+        <li>未発見はシルエット表示——「つぎはどの子？」</li>
+        <li>はじめて出会った日・育てた数を記録</li>
+        <li>おさんぽの連続成功で、レアな子に出会いやすく</li>
+        <li><b>広告ゼロ・課金ゼロでも全種コンプ可能</b>（このジャンルでは唯一）</li>
+      </ul>
+    </div>
+  </div>
+  <div class="brand">いぬねこ図鑑</div><div class="page-num">5</div>
+</section>
+
+<!-- 6. 競合とポジション -->
+<section class="slide">
+  <div class="kicker">MARKET</div>
+  <h2>実証済みの市場 × 空いているポジション</h2>
+  <table class="card" style="padding:0;">
+    <tr><th>アプリ</th><th>実績</th><th>弱点</th><th>いぬねこ図鑑は</th></tr>
+    <tr><td><b>Forest</b>（木）</td><td>200万人・136カ国1位</td><td>木に愛着が湧きにくい／iOS有料</td><td class="hl">犬猫の情緒＋無料</td></tr>
+    <tr><td><b>スマやめ</b>（魚）</td><td>日本でレビュー1.5万件</td><td>広告過多・コンプに課金必須</td><td class="hl">広告ゼロ・無課金コンプ</td></tr>
+    <tr><td><b>Focus Friend</b>（豆）</td><td>米App Store総合1位(2025)</td><td>キャラ1体・図鑑なし</td><td class="hl">30種を集める継続動機</td></tr>
+    <tr><td><b>Pokémon Sleep</b></td><td>収益の70%が日本</td><td>—（参照例）</td><td class="hl">「行動×図鑑」は日本で最強</td></tr>
+  </table>
+  <p class="sub" style="margin-top:20px;">「犬・猫の品種図鑑」を核にした日本語デトックスアプリは<b style="color:var(--ink);">まだ存在しない</b>（2026年6月 調査時点）。</p>
+  <div class="brand">いぬねこ図鑑</div><div class="page-num">6</div>
+</section>
+
+<!-- 7. 安心設計 -->
+<section class="slide">
+  <div class="kicker">TRUST &amp; TECH</div>
+  <h2>ぜんぶ端末の中だけ。だから安心。</h2>
+  <div class="row">
+    <div class="col card">
+      <h3 style="font-size:24px; margin-bottom:14px;">🔒 プライバシー</h3>
+      <ul class="check" style="font-size:19px;">
+        <li>個人情報の収集ゼロ・登録不要</li>
+        <li>通信なし・完全オフライン動作</li>
+        <li>広告SDK・解析SDKなし</li>
+      </ul>
+    </div>
+    <div class="col card">
+      <h3 style="font-size:24px; margin-bottom:14px;">⚙ 品質</h3>
+      <ul class="check" style="font-size:19px;">
+        <li>iOS / Android 両対応（単一コード）</li>
+        <li>コアロジックは自動テスト20件で保証</li>
+        <li>ビルド〜配信はCIで自動化</li>
+      </ul>
+    </div>
+  </div>
+  <div class="brand">いぬねこ図鑑</div><div class="page-num">7</div>
+</section>
+
+<!-- 8. ロードマップ -->
+<section class="slide">
+  <div class="kicker">ROADMAP</div>
+  <h2>6/22 プログラム完成 → 順次ストア公開</h2>
+  <div class="card" style="margin-bottom:22px;">
+    <table>
+      <tr><td style="width:160px;"><b>6/10</b></td><td>主要機能ぜんぶ実装済み（おさんぽ・図鑑30種・アイコン・ストア文書）✅</td></tr>
+      <tr><td><b>6/12〜15</b></td><td>実機テスト → リリース候補ビルド</td></tr>
+      <tr><td><b>6/22</b></td><td><b>プログラム完成（v1.0.0）</b></td></tr>
+      <tr><td><b>7月〜</b></td><td>App Store / Google Play 公開（審査・テスト期間を経て）</td></tr>
+    </table>
+  </div>
+  <div>
+    <span class="pill">v1.1 ホーム画面ウィジェット</span>
+    <span class="pill">v1.1 シェア画像生成</span>
+    <span class="pill">v2 品種50種→100種</span>
+    <span class="pill">v2 保護犬猫チャリティ</span>
+  </div>
+  <p class="sub" style="margin-top:26px; text-align:center; font-size:26px;">スマホとちょっと距離を置きたいあなたへ。<b style="color:var(--ink);">かわいい相棒と、すこしずつ。</b></p>
+  <div class="brand">いぬねこ図鑑</div><div class="page-num">8</div>
+</section>
+
+</body>
+</html>
