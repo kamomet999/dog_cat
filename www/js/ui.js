@@ -270,37 +270,67 @@
   function openDex() {
     var prog = Engine.dexProgress();
     var st = Engine.getState();
+    var pct = Math.floor(prog.found / prog.total * 100);
     function grid(species) {
       return Breeds.ofSpecies(species).map(function (b) {
         var d = st.dex[b.id];
         if (d) {
           var R = Breeds.RARITY[b.rarity];
-          return '<div class="dex-cell found">' +
+          return '<button class="dex-cell found" data-dex="' + b.id + '">' +
             (d.unseen ? '<span class="new-dot">NEW</span>' : '') +
+            (d.count > 1 ? '<span class="count-dot">×' + d.count + '</span>' : '') +
             '<div class="thumb">' + Art.thumbSVG(b) + '</div>' +
             '<div class="dn">' + b.name + '</div>' +
-            '<div class="stars" style="color:' + R.color + '">' + star(R.stars) + '</div></div>';
+            '<div class="stars" style="color:' + R.color + '">' + star(R.stars) + '</div></button>';
         }
+        // 未発見はシルエットで「いる気配」だけ見せる
         return '<div class="dex-cell locked">' +
-          '<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:34px">❓</div>' +
+          '<div class="thumb silhouette">' + Art.thumbSVG(b) + '</div>' +
           '<div class="dn">？？？</div><div class="stars">&nbsp;</div></div>';
       }).join('');
     }
     var html = '<h2>📖 いぬねこ図鑑</h2>' +
       '<div class="dex-stats">' +
-      '<span class="dex-pill">ぜんぶ ' + prog.found + ' / ' + prog.total + '</span>' +
+      '<span class="dex-pill">たっせい ' + pct + '%（' + prog.found + '/' + prog.total + '）</span>' +
       '<span class="dex-pill">🐶 ' + prog.dogFound + '/' + prog.dogTotal + '</span>' +
       '<span class="dex-pill">🐱 ' + prog.catFound + '/' + prog.catTotal + '</span>' +
       '</div>' +
+      '<div class="grow-bar"><div class="grow-fill" style="width:' + pct + '%"></div></div>' +
       '<div class="dex-section-title">🐶 いぬ</div><div class="dex-grid">' + grid('dog') + '</div>' +
       '<div class="dex-section-title">🐱 ねこ</div><div class="dex-grid">' + grid('cat') + '</div>';
-    openModal(html, {
+    var m = openModal(html, {
       onClose: function () {
         // 見たのでNEWを消す
         Object.keys(st.dex).forEach(function (id) { if (st.dex[id].unseen) Engine.markSeen(id); });
         renderFoot();
       }
     });
+    Array.prototype.forEach.call(m.root.querySelectorAll('[data-dex]'), function (cell) {
+      cell.addEventListener('click', function () { openDexDetail(cell.getAttribute('data-dex')); });
+    });
+  }
+
+  // 図鑑の詳細ページ（閉じると図鑑にもどる）
+  function openDexDetail(breedId) {
+    var b = Breeds.get(breedId);
+    var st = Engine.getState();
+    var d = st.dex[breedId];
+    if (!b || !d) return;
+    var R = Breeds.RARITY[b.rarity];
+    var first = new Date(d.firstAt);
+    var firstStr = first.getFullYear() + '/' + (first.getMonth() + 1) + '/' + first.getDate();
+    var html = '<div class="center">' +
+      '<div class="hatch-art">' + Art.thumbSVG(b) + '</div>' +
+      '<div class="hatch-name">' + b.name + '</div>' +
+      '<div class="hatch-rare"><span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' +
+      ' <span class="dex-pill">' + (b.species === 'dog' ? '🐶 いぬ' : '🐱 ねこ') + '</span></div>' +
+      '<div class="hatch-desc mt12">' + b.desc + '</div>' +
+      '<hr class="soft">' +
+      '<p class="muted">そだてた数：<b>' + d.count + '</b>ひき' + (d.count >= 3 ? ' 🏆' : '') +
+      '<br>はじめて出会った日：<b>' + firstStr + '</b></p>' +
+      '</div>';
+    Engine.markSeen(breedId);
+    openModal(html, { onClose: openDex });
   }
 
   // 設定

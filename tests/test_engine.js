@@ -50,6 +50,41 @@ const rnd0 = () => 0.0;   // 常に先頭（コモン）を引く決定論的rnd
 
 // ---------------------------------------------------------------
 
+console.log('# 図鑑データ');
+
+test('品種は30種以上で、定義が揃っている', () => {
+  const w = freshWorld();
+  const B = w.Breeds;
+  assert.ok(B.ALL.length >= 30, `品種数 ${B.ALL.length}`);
+  const ids = new Set();
+  const ears = ['prick', 'flop', 'round', 'fold'];
+  const pats = ['solid', 'tan', 'patch', 'spot', 'tabby', 'calico', 'tuxedo', 'point'];
+  for (const b of B.ALL) {
+    assert.ok(!ids.has(b.id), `id重複: ${b.id}`);
+    ids.add(b.id);
+    assert.ok(['dog', 'cat'].includes(b.species), b.id);
+    assert.ok(B.RARITY[b.rarity], `${b.id}: rarity ${b.rarity}`);
+    assert.ok(b.name && b.desc, b.id);
+    assert.ok(ears.includes(b.art.ear), `${b.id}: ear ${b.art.ear}`);
+    assert.ok(pats.includes(b.art.pattern), `${b.id}: pattern ${b.art.pattern}`);
+    assert.match(b.art.color, /^#[0-9a-f]{6}$/i, `${b.id}: color`);
+    assert.match(b.art.eye, /^#[0-9a-f]{6}$/i, `${b.id}: eye`);
+    assert.strictEqual(b.art.base, b.species, `${b.id}: base と species の不一致`);
+  }
+  const dogs = B.ofSpecies('dog').length, cats = B.ofSpecies('cat').length;
+  assert.ok(dogs >= 15 && cats >= 15, `dog=${dogs} cat=${cats}`);
+});
+
+test('全品種が抽選で出現しうる（重み>0）', () => {
+  const w = freshWorld();
+  const seen = new Set();
+  // [0,1) を細かく走査して全品種に到達できることを確認
+  for (let i = 0; i < 5000; i++) {
+    seen.add(w.Breeds.roll(() => i / 5000, 0).id);
+  }
+  assert.strictEqual(seen.size, w.Breeds.ALL.length);
+});
+
 console.log('# 新規ゲームとセーブ');
 
 test('newGame で v2 の初期状態ができる', () => {

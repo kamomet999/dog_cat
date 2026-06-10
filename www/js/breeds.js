@@ -76,6 +76,21 @@
       desc: '野生の血を引く誇り高き存在。ごく稀に現れる。',
       art: { base: 'dog', ear: 'prick', color: '#5b626b', color2: '#d7dade', pattern: 'patch', eye: '#e8c84a', fluffy: true }
     },
+    {
+      id: 'kurolab', species: 'dog', name: '黒ラブラドール', rarity: 'common',
+      desc: 'つやつやの黒い毛。かしこくて家族おもい。',
+      art: { base: 'dog', ear: 'flop', color: '#3a3531', color2: '#5a5048', pattern: 'solid', eye: '#7a5a32', fluffy: false }
+    },
+    {
+      id: 'beagle', species: 'dog', name: 'ビーグル', rarity: 'uncommon',
+      desc: 'はなぺこ名探偵。三色のしましまボディ。',
+      art: { base: 'dog', ear: 'flop', color: '#d9a35c', color2: '#fbf3e8', pattern: 'patch', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'samoyed', species: 'dog', name: 'サモエド', rarity: 'epic',
+      desc: 'まっしろもふもふ。サモエドスマイルにいやされる。',
+      art: { base: 'dog', ear: 'prick', color: '#f5f1e8', color2: '#ffffff', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
 
     // ---------------- 猫 ----------------
     {
@@ -137,6 +152,21 @@
       id: 'bengal', species: 'cat', name: 'ベンガル', rarity: 'legendary',
       desc: '豹のようなロゼット柄。野性の宝石。',
       art: { base: 'cat', ear: 'prick', color: '#cf9a4f', color2: '#3a2c14', pattern: 'spot', eye: '#e8a83a', fluffy: false }
+    },
+    {
+      id: 'munchkin', species: 'cat', name: 'マンチカン', rarity: 'uncommon',
+      desc: 'みじかいあんよでトコトコ。あまえんぼう。',
+      art: { base: 'cat', ear: 'prick', color: '#e0c08a', color2: '#fbf2e6', pattern: 'solid', eye: '#7ab3e0', fluffy: false }
+    },
+    {
+      id: 'ragdoll', species: 'cat', name: 'ラグドール', rarity: 'rare',
+      desc: 'だっこが大すき。ぬいぐるみみたいな長毛猫。',
+      art: { base: 'cat', ear: 'prick', color: '#ece5d8', color2: '#8a7460', pattern: 'point', eye: '#7ab3e0', fluffy: true }
+    },
+    {
+      id: 'sphynx', species: 'cat', name: 'スフィンクス', rarity: 'epic',
+      desc: '毛のないふしぎな猫。じつはとても人なつっこい。',
+      art: { base: 'cat', ear: 'prick', color: '#d8b59a', color2: '#b08a6a', pattern: 'solid', eye: '#9bd24a', fluffy: false }
     }
   ];
 
