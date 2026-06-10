@@ -14,6 +14,28 @@
 #       branch trigger は付けていないので、最初は手動実行（Start new build）で確認する。
 
 workflows:
+  android-debug:
+    # 実機テスト用。署名設定もPlay Consoleも不要。
+    # 成果物のAPKをダウンロードしてAndroid実機にそのままインストールできる
+    # （実機側で「提供元不明のアプリ」のインストール許可が必要）
+    name: Android デバッグAPK（実機テスト用・署名不要）
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      java: 17
+      node: 22
+    scripts:
+      - name: 依存インストール
+        script: npm ci
+      - name: エンジン単体テスト
+        script: npm test
+      - name: Capacitor 同期
+        script: npx cap sync android
+      - name: APK ビルド
+        script: cd android && ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+
   android-release:
     name: Android リリースAAB（Play 内部テスト用）
     max_build_duration: 30
