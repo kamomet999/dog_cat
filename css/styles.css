@@ -207,3 +207,26 @@ body {
 
 .muted { color: var(--ink-soft); font-size: 12px; }
 hr.soft { border: none; border-top: 1px dashed #e3d6c4; margin: 14px 0; }
+
+/* ---- おさんぽ ---- */
+.walk-btn { width: 100%; padding: 16px; font-size: 16px; }
+#walkOverlay { display: none; }
+.walk-screen {
+  position: fixed; inset: 0; z-index: 60;
+  background: linear-gradient(170deg, #2e4a3a, #1d3328 70%);
+  color: #f2f7ee;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 28px; text-align: center;
+}
+.walk-emoji { font-size: 56px; animation: walkfloat 2.4s ease-in-out infinite; }
+@keyframes walkfloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.walk-title { font-size: 20px; font-weight: 800; margin-top: 10px; }
+.walk-timer {
+  font-size: 56px; font-weight: 800; letter-spacing: .04em;
+  font-variant-numeric: tabular-nums; margin: 8px 0 2px;
+}
+.walk-msg { font-size: 13px; color: #cfe3cf; line-height: 1.7; margin: 4px 0 0; }
+.walk-screen .big-btn.ghost { background: rgba(255,255,255,.12); color: #f2f7ee; box-shadow: none; }

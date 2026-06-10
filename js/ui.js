@@ -68,6 +68,7 @@
     $('petArt').addEventListener('click', onPet);
     $('dexBtn').addEventListener('click', openDex);
     $('actBtn').addEventListener('click', onAct);
+    $('walkBtn').addEventListener('click', openWalkPicker);
     $('settingsBtn').addEventListener('click', openSettings);
   }
 
@@ -212,7 +213,14 @@
     var bg = root.querySelector('.modal-bg');
     requestAnimationFrame(function () { bg.classList.add('show'); });
     var closeBtn = root.querySelector('.modal-close');
-    function close() { bg.classList.remove('show'); setTimeout(function () { root.innerHTML = ''; if (opts.onClose) opts.onClose(); }, 200); }
+    function close() {
+      bg.classList.remove('show');
+      setTimeout(function () {
+        // すでに次のモーダルが開いていたら消さない（200ms以内の連続オープン対策）
+        if (bg.parentNode === root) root.innerHTML = '';
+        if (opts.onClose) opts.onClose();
+      }, 200);
+    }
     if (closeBtn) closeBtn.addEventListener('click', close);
     if (opts.closable !== false) bg.addEventListener('click', function (e) { if (e.target === bg) close(); });
     return { root: root, close: close };
@@ -298,10 +306,12 @@
   // 設定
   function openSettings() {
     var st = Engine.getState();
+    var ws = st.walkStats || { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 };
     var html = '<h2>⚙ せってい</h2>' +
-      '<p class="sub">「いぬねこ図鑑」 v1.0 — 放置でそだてるたまごっち</p>' +
-      '<p class="muted">アプリを閉じているあいだも時間がすすみ、コインがたまって少しずつ成長します（最大24時間ぶんまで）。世話をするほど早く育ち、機嫌もよくなります。</p>' +
+      '<p class="sub">「いぬねこ図鑑」 v2.0 — スマホをはなれて、そだてるたまごっち</p>' +
+      '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「おさんぽ」で計画的にスマホからはなれると、もっと早く育って ごほうびがもらえます。</p>' +
       '<hr class="soft">' +
+      '<p class="muted">おさんぽ成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ デトックス合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
       '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種</p>' +
       '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--bad)">🗑 データをリセット</button>';
     var m = openModal(html);
@@ -341,6 +351,114 @@
     if (ok) ok.addEventListener('click', m.close);
   }
 
+  // ---------- おさんぽ（Forest型セッション） ----------
+  function fmtMMSS(ms) {
+    var t = Math.max(0, Math.ceil(ms / 1000));
+    var m = Math.floor(t / 60), s = t % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  function fmtMin(min) { return min >= 60 ? (min / 60) + 'じかん' : min + 'ぷん'; }
+
+  function openWalkPicker() {
+    if (Engine.walk()) return;
+    var btns = Engine.WALK_OPTIONS.map(function (min) {
+      return '<button class="care-btn" data-min="' + min + '" style="padding:14px 4px">' +
+        '<span class="emo">' + (min <= 30 ? '🐾' : min <= 60 ? '🌳' : '⛰') + '</span>' +
+        '<span class="lbl">' + fmtMin(min) + '</span></button>';
+    }).join('');
+    var html = '<h2>🐾 おさんぽにでかける</h2>' +
+      '<p class="sub">スマホをとじて、そのあいだは もどってこないでね。<br>' +
+      'ぶじに帰ってこられたら ぐんと育って、ごほうびがもらえるよ。<br>' +
+      '<b>とちゅうでアプリをひらくと失敗</b>しちゃう…！</p>' +
+      '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:12px">' + btns + '</div>' +
+      '<p class="muted mt12">ながく でかけるほど ごほうびアップ。れんぞく成功でさらにアップ！<br>※はじめてから60秒いないなら、もどってもセーフだよ。</p>';
+    var m = openModal(html);
+    Array.prototype.forEach.call(m.root.querySelectorAll('[data-min]'), function (btn) {
+      btn.addEventListener('click', function () {
+        var min = parseInt(btn.getAttribute('data-min'), 10);
+        Engine.startWalk(min, now());
+        m.close();
+        syncWalk();
+      });
+    });
+  }
+
+  function renderWalkOverlay(r) {
+    var ov = $('walkOverlay');
+    if (!ov.firstChild) {
+      ov.innerHTML = '<div class="walk-screen">' +
+        '<div class="walk-emoji">🐕🐈</div>' +
+        '<div class="walk-title">おさんぽちゅう…</div>' +
+        '<div id="walkTimer" class="walk-timer"></div>' +
+        '<p id="walkMsg" class="walk-msg"></p>' +
+        '<button id="walkCancel" class="big-btn ghost" style="margin-top:18px">あきらめる</button>' +
+        '</div>';
+      ov.querySelector('#walkCancel').addEventListener('click', function () {
+        var res = Engine.cancelWalk(now());
+        hideWalkOverlay();
+        lastArtKey = '';
+        render();
+        if (res) showWalkFail(res);
+      });
+    }
+    ov.querySelector('#walkTimer').textContent = fmtMMSS(r.remainMs);
+    ov.querySelector('#walkMsg').innerHTML = r.inGrace ?
+      'いまのうちにスマホをとじてね（あと' + Math.ceil(r.graceRemainMs / 1000) + '秒はセーフ）' :
+      'スマホをふせて、まっててね';
+    ov.style.display = 'block';
+  }
+
+  function hideWalkOverlay() {
+    var ov = $('walkOverlay');
+    ov.innerHTML = '';
+    ov.style.display = 'none';
+  }
+
+  /** おさんぽ状態を判定して画面に反映。起動時・復帰時・毎秒ループから呼ぶ */
+  function syncWalk() {
+    if (!Engine.walk()) { hideWalkOverlay(); return null; }
+    var visible = document.visibilityState !== 'hidden';
+    var r = Engine.checkWalk(now(), visible);
+    if (!r) { hideWalkOverlay(); return null; }
+    if (r.result === 'ongoing') { renderWalkOverlay(r); return r; }
+    hideWalkOverlay();
+    lastArtKey = '';
+    render();
+    if (r.result === 'success') showWalkSuccess(r); else showWalkFail(r);
+    return r;
+  }
+
+  function showWalkSuccess(r) {
+    happyUntil = now() + 2000;
+    var html = '<div class="center pop">' +
+      '<h2>🎉 おさんぽ せいこう！</h2>' +
+      '<p class="sub">' + fmtMin(r.minutes) + ' スマホからはなれられたよ。えらい！</p>' +
+      '<div style="font-size:56px;margin:4px">🐾</div>' +
+      '<div style="font-weight:800;color:var(--coin);font-size:18px">＋' + r.coinGain + ' コイン</div>' +
+      '<div style="font-weight:800;color:var(--accent-d)">なかよし ＋' + r.xpGain + '</div>' +
+      '<p class="mt12">れんぞく成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（じこしんきろく！）' : '') + '</p>' +
+      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800">✨ おさんぽのあいだに大きくなった！</p>' : '') +
+      '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button></div>';
+    var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
+    var ok = m.root.querySelector('#walkOk');
+    if (ok) ok.addEventListener('click', m.close);
+  }
+
+  function showWalkFail(r) {
+    var gentle = r.reason === 'cancel';
+    var html = '<div class="center">' +
+      '<h2>' + (gentle ? 'おさんぽをやめたよ' : 'あっ…！') + '</h2>' +
+      '<p class="sub">' + (gentle ?
+        'またこんど、いっしょにでかけようね。' :
+        'とちゅうでスマホをひらいちゃった…。<br>おさんぽは失敗。ちょっとしょんぼりしてる…') + '</p>' +
+      '<div style="font-size:56px;margin:4px">' + (gentle ? '🐾' : '💧') + '</div>' +
+      '<p class="muted">れんぞく成功はリセット。つぎはきっとだいじょうぶ！</p>' +
+      '<button id="walkNg" class="big-btn primary mt12" style="width:100%">うん…</button></div>';
+    var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
+    var ng = m.root.querySelector('#walkNg');
+    if (ng) ng.addEventListener('click', m.close);
+  }
+
   // ---------- トースト ----------
   var toastTimer = null;
   function showToast(msg, ms) {
@@ -358,6 +476,7 @@
     var pre = Engine.stage();
     Engine.tick(now());
     var post = Engine.stage();
+    syncWalk();
     render();
     if (post > pre) celebrateGrowth(post);
   }
@@ -371,8 +490,17 @@
     } else {
       var rep = Engine.applyOffline(now());
       render();
-      showReturn(rep);
+      // おさんぽの結果（成功/失敗/継続）があればそちらを優先表示
+      var wr = syncWalk();
+      if (!wr) showReturn(rep);
     }
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') {
+        Engine.applyOffline(now());
+        syncWalk();
+        render();
+      }
+    });
     setInterval(loop, 1000);
   }
 

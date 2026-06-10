@@ -7,9 +7,19 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 1;
+  var VERSION = 2;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H;
+
+  // ----- おさんぽ（Forest型セッション）-----
+  // 開始後はアプリを閉じて過ごす。満了前にアプリへ戻ると失敗（開始直後の猶予あり）。
+  var WALK_GRACE = 60000;            // 開始から60秒は戻っても失敗にしない（誤タップ救済）
+  var WALK_OPTIONS = [30, 60, 120];  // 選べる長さ（分）
+  var WALK_XP_PER_H = 36;            // 成功ボーナスxp/時（通常放置18/hの2倍を上乗せ）
+  var WALK_COIN_PER_H = 60;          // 成功ボーナスコイン/時
+  var WALK_LUCK = 0.03;              // 成功ごとのレア運上昇
+  var WALK_MOOD = 20;                // 成功時の機嫌アップ
+  var WALK_FAIL_MOOD = -12;          // 失敗時の機嫌ダウン
 
   // 成長に必要な累積なかよし度（xp）。index=到達stage
   var GROW = [0, 12, 70, 180]; // 0:卵 1:赤ちゃん 2:子 3:成体
@@ -56,7 +66,9 @@
       current: null,        // 種選択後に設定
       dex: {},              // breedId -> { count, firstAt, unseen }
       lastSavedAt: now,
-      graduates: 0
+      graduates: 0,
+      walk: null,           // { startedAt, endsAt, minutes } おさんぽ中のみ
+      walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }
     };
   }
 
@@ -66,11 +78,21 @@
       var raw = global.localStorage && global.localStorage.getItem(SAVE_KEY);
       if (!raw) return null;
       var s = JSON.parse(raw);
-      if (!s || s.version !== VERSION || !s.current) return s && s.version === VERSION ? s : (s ? migrate(s) : null);
-      return s;
+      if (!s) return null;
+      return s.version === VERSION ? s : migrate(s);
     } catch (e) { return null; }
   }
-  function migrate(s) { return s; } // 将来のスキーマ変更用
+  function migrate(s) {
+    if (s.version === 1) {
+      s = {
+        ...s,
+        version: 2,
+        walk: null,
+        walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }
+      };
+    }
+    return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
+  }
 
   function persist(state) {
     try {
@@ -166,6 +188,7 @@
       if (!s || !s.current) return;
       var ms = now - s.lastSavedAt;
       if (ms < 0) ms = 0;
+      if (ms > MAX_OFFLINE) ms = MAX_OFFLINE; // タブ放置などの巨大ギャップもオフライン上限に揃える
       var r = advance(s, ms);
       this._state = { ...r.state, lastSavedAt: now };
       persist(this._state);
@@ -206,6 +229,102 @@
     },
 
     canGraduate: function () { return this.stage() >= 3; },
+
+    // ===== おさんぽ（Forest型セッション） =====
+    WALK_OPTIONS: WALK_OPTIONS,
+    WALK_GRACE: WALK_GRACE,
+
+    walk: function () { return this._state ? this._state.walk : null; },
+
+    /** おさんぽ開始。アプリを閉じて minutes 分もどらなければ成功 */
+    startWalk: function (minutes, now) {
+      var s = this._state;
+      if (!s || !s.current || s.walk) return null;
+      if (WALK_OPTIONS.indexOf(minutes) < 0) return null;
+      var ns = { ...s, walk: { startedAt: now, endsAt: now + minutes * 60000, minutes: minutes }, lastSavedAt: now };
+      this._state = ns;
+      persist(ns);
+      return ns.walk;
+    },
+
+    /**
+     * おさんぽ状態の判定。起動時・復帰時・毎秒ループから呼ぶ。
+     * activeUse: 画面が見えている（=スマホを触っている）か
+     * 返り値: null / {result:'success',...} / {result:'fail',...} / {result:'ongoing', remainMs, inGrace}
+     */
+    checkWalk: function (now, activeUse) {
+      var s = this._state;
+      if (!s || !s.walk) return null;
+      var w = s.walk;
+      if (now >= w.endsAt) return this._finishWalk(now, true, 'done');
+      if (activeUse && now - w.startedAt > WALK_GRACE) return this._finishWalk(now, false, 'returned');
+      return {
+        result: 'ongoing',
+        remainMs: w.endsAt - now,
+        inGrace: now - w.startedAt <= WALK_GRACE,
+        graceRemainMs: Math.max(0, WALK_GRACE - (now - w.startedAt)),
+        minutes: w.minutes
+      };
+    },
+
+    /** あきらめる（失敗扱い・streakリセット） */
+    cancelWalk: function (now) {
+      var s = this._state;
+      if (!s || !s.walk) return null;
+      return this._finishWalk(now, false, 'cancel');
+    },
+
+    _finishWalk: function (now, success, reason) {
+      var s = this._state;
+      var w = s.walk;
+      var st = s.walkStats || { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 };
+      var p = s.current;
+      var hours = w.minutes / 60;
+      var res;
+
+      if (success) {
+        var streak = st.streak + 1;
+        var mult = 1 + 0.08 * Math.min(streak - 1, 5); // 連続成功で最大+40%
+        var xpGain = WALK_XP_PER_H * hours * mult;
+        var coinGain = Math.floor(WALK_COIN_PER_H * hours * mult);
+        var stageBefore = stageOf(p.xp);
+        var np = { ...p, xp: p.xp + xpGain, mood: clamp(p.mood + WALK_MOOD, 0, 100) };
+        var ns = {
+          ...s,
+          current: np,
+          coin: s.coin + coinGain,
+          luck: clamp(s.luck + WALK_LUCK, 0, 2),
+          walk: null,
+          walkStats: {
+            success: st.success + 1, fail: st.fail,
+            streak: streak, best: Math.max(st.best, streak),
+            totalMin: st.totalMin + w.minutes
+          },
+          lastSavedAt: now
+        };
+        this._state = ns;
+        persist(ns);
+        res = {
+          result: 'success', minutes: w.minutes, coinGain: coinGain,
+          xpGain: Math.floor(xpGain), streak: streak,
+          isBest: streak > st.best,
+          stageBefore: stageBefore, stageAfter: stageOf(np.xp)
+        };
+      } else {
+        var np2 = { ...p, mood: clamp(p.mood + WALK_FAIL_MOOD, 0, 100) };
+        var ns2 = {
+          ...s,
+          current: np2,
+          walk: null,
+          walkStats: { ...st, fail: st.fail + 1, streak: 0 },
+          lastSavedAt: now
+        };
+        this._state = ns2;
+        persist(ns2);
+        res = { result: 'fail', minutes: w.minutes, reason: reason };
+      }
+      return res;
+    },
 
     /** 成体を巣立たせ図鑑に登録 → 次の卵を抽選 */
     graduate: function (now, rnd) {
