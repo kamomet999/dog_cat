@@ -1,0 +1,19 @@
+{
+  "name": "inuneko-dex",
+  "version": "2.0.0",
+  "description": "いぬねこ図鑑 — スマホをはなれて、そだてるたまごっち",
+  "private": true,
+  "scripts": {
+    "test": "node tests/test_engine.js",
+    "sync": "cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/haptics": "^6.0.3",
+    "@capacitor/ios": "^6.2.1",
+    "@capacitor/local-notifications": "^6.1.3"
+  }
+}

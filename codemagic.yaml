@@ -1,0 +1,67 @@
+# Codemagic CI/CD 設定
+#
+# 事前準備（Codemagic の Web UI で行う・各5分）:
+#   [Android]
+#     1. Teams > Code signing identities > Android で
+#        「Generate new keystore」→ reference name を `inuneko_upload_key` にする
+#     2. これだけでこのファイルの android_signing が有効になる
+#   [iOS]（Apple Developer Program 登録後）
+#     1. App Store Connect で API キーを発行（Users and Access > Integrations）
+#     2. Codemagic > Teams > Integrations > App Store Connect に登録し、
+#        名前を `inuneko_asc_key` にする
+#
+# 実行: リポジトリを Codemagic に接続するとワークフローを選んでビルドできる。
+#       branch trigger は付けていないので、最初は手動実行（Start new build）で確認する。
+
+workflows:
+  android-release:
+    name: Android リリースAAB（Play 内部テスト用）
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      android_signing:
+        - inuneko_upload_key
+      java: 17
+      node: 22
+    scripts:
+      - name: 依存インストール
+        script: npm ci
+      - name: エンジン単体テスト
+        script: npm test
+      - name: Capacitor 同期
+        script: npx cap sync android
+      - name: AAB ビルド
+        script: cd android && ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+
+  ios-release:
+    name: iOS リリース（TestFlight 配信）
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: inuneko_asc_key
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.kamomet.inuneko
+      node: 22
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: 依存インストール
+        script: npm ci
+      - name: エンジン単体テスト
+        script: npm test
+      - name: Capacitor 同期（pod install 込み）
+        script: npx cap sync ios
+      - name: 証明書・プロファイル適用
+        script: xcode-project use-profiles
+      - name: IPA ビルド
+        script: xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

@@ -376,7 +376,8 @@
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-min]'), function (btn) {
       btn.addEventListener('click', function () {
         var min = parseInt(btn.getAttribute('data-min'), 10);
-        Engine.startWalk(min, now());
+        var w = Engine.startWalk(min, now());
+        if (w && window.Native) Native.walkStarted(w);
         m.close();
         syncWalk();
       });
@@ -395,6 +396,7 @@
         '</div>';
       ov.querySelector('#walkCancel').addEventListener('click', function () {
         var res = Engine.cancelWalk(now());
+        if (window.Native) Native.walkEnded();
         hideWalkOverlay();
         lastArtKey = '';
         render();
@@ -421,10 +423,12 @@
     var r = Engine.checkWalk(now(), visible);
     if (!r) { hideWalkOverlay(); return null; }
     if (r.result === 'ongoing') { renderWalkOverlay(r); return r; }
+    if (window.Native) Native.walkEnded(); // 失敗時の予約通知を破棄（成功後のcancelは無害）
     hideWalkOverlay();
     lastArtKey = '';
     render();
-    if (r.result === 'success') showWalkSuccess(r); else showWalkFail(r);
+    if (r.result === 'success') { if (window.Native) Native.buzz(); showWalkSuccess(r); }
+    else showWalkFail(r);
     return r;
   }
 
@@ -494,13 +498,15 @@
       var wr = syncWalk();
       if (!wr) showReturn(rep);
     }
+    function onResume() {
+      Engine.applyOffline(now());
+      syncWalk();
+      render();
+    }
     document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'visible') {
-        Engine.applyOffline(now());
-        syncWalk();
-        render();
-      }
+      if (document.visibilityState === 'visible') onResume();
     });
+    if (window.Native) Native.init(onResume); // ネイティブアプリの復帰検知
     setInterval(loop, 1000);
   }
 

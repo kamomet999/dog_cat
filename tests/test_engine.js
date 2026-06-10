@@ -27,7 +27,7 @@ function freshWorld(storage) {
   const sandbox = { localStorage: storage || makeStorage() };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
-  for (const f of ['js/breeds.js', 'js/engine.js']) {
+  for (const f of ['www/js/breeds.js', 'www/js/engine.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sandbox, { filename: f });
   }
   return sandbox;
