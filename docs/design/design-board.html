@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px; font-family: "Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+    color: #4a3f35; background: linear-gradient(160deg,#fdf6ec,#f6e7d8); padding: 56px 64px;
+  }
+  h1 { font-size: 40px; margin-bottom: 6px; }
+  .lead { color: #8a7d6d; font-size: 18px; margin-bottom: 36px; }
+  h2 { font-size: 22px; margin: 34px 0 14px; color: #f47b54; letter-spacing: .06em; }
+  .card { background: #fff; border-radius: 20px; padding: 22px 26px; box-shadow: 0 8px 24px rgba(120,90,60,.13); }
+  .row { display: flex; gap: 20px; }
+  .col { flex: 1; }
+  .sw { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip { width: 132px; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(120,90,60,.15); background:#fff; }
+  .chip .c { height: 64px; }
+  .chip .t { font-size: 11px; font-weight: 700; padding: 7px 10px; }
+  .chip .t small { display:block; color:#8a7d6d; font-weight: 600; }
+  p { font-size: 15px; line-height: 1.7; }
+  .muted { color: #8a7d6d; font-size: 13px; }
+  td { font-size: 14px; padding: 6px 10px; vertical-align: top; line-height: 1.6;}
+  .ok { color: #5da05d; font-weight: 800; }
+  .icon-img { width: 150px; height: 150px; border-radius: 34px; box-shadow: 0 8px 20px rgba(120,90,60,.25); }
+  .tag { display:inline-block; background:#ffe9d6; color:#f47b54; font-weight:800; border-radius:999px; padding:3px 12px; font-size:13px; margin-bottom:8px;}
+</style>
+</head>
+<body>
+  <h1>🎨 いぬねこ図鑑 — デザインの方向性</h1>
+  <p class="lead">マーケティング調査にもとづく確定方針：「暖色 × ゆるかわ × 引き算」。緑系（規律・自然）のレッドオーシャンには行かない。</p>
+
+  <h2>1. ポジショニング</h2>
+  <div class="row">
+    <div class="col card" style="opacity:.65">
+      <p style="font-weight:800">🌲 緑・規律ゾーン（行かない）</p>
+      <p class="muted">Forest / Flora / Focus Plant が密集。自然メタファー・ミニマル・ストイック。老舗だらけのレッドオーシャン。</p>
+    </div>
+    <div class="col card" style="border: 3px solid #ff9a76;">
+      <p style="font-weight:800">🧡 暖色・愛着ゾーン（ここで戦う）</p>
+      <p class="muted">Focus Friend（全米1位）/ Finch（ARR $30M）。「罪悪感でなく、かわいい存在への責任感」で行動が変わる側。本アプリは最初からこちら側。</p>
+    </div>
+  </div>
+
+  <h2>2. カラーパレット</h2>
+  <div class="row">
+    <div class="card col">
+      <span class="tag">ひる（メイン）</span>
+      <div class="sw">
+        <div class="chip"><div class="c" style="background:#fdf6ec"></div><div class="t">#fdf6ec<small>背景クリーム</small></div></div>
+        <div class="chip"><div class="c" style="background:#ff9a76"></div><div class="t">#ff9a76<small>アクセント（唯一の強い色）</small></div></div>
+        <div class="chip"><div class="c" style="background:#4a3f35"></div><div class="t">#4a3f35<small>文字（黒は使わない）</small></div></div>
+        <div class="chip"><div class="c" style="background:#f2b134"></div><div class="t">#f2b134<small>コイン・ごほうび</small></div></div>
+      </div>
+    </div>
+    <div class="card" style="width: 320px;">
+      <span class="tag">よる（おさんぽ）</span>
+      <div class="sw">
+        <div class="chip"><div class="c" style="background:linear-gradient(170deg,#2e4a3a,#1d3328)"></div><div class="t">#2e4a3a→#1d3328<small>夜のさんぽ・鎮静</small></div></div>
+        <div class="chip"><div class="c" style="background:#cfe3cf"></div><div class="t">#cfe3cf<small>夜の文字色</small></div></div>
+      </div>
+      <p class="muted" style="margin-top:8px">全画面ダークモードは v1.1（睡眠系ですら非対応だと批判される時代）</p>
+    </div>
+  </div>
+
+  <h2>3. キャラクター — 「ゆるかわ文法」チェックリスト</h2>
+  <div class="row">
+    <div class="card col">
+      <table>
+        <tr><td class="ok">✓</td><td><b>頭身 約2:1・丸フォルム</b> — ベビースキーマで保護本能を刺激</td></tr>
+        <tr><td class="ok">✓</td><td><b>つぶらな目＋ハイライト</b></td></tr>
+        <tr><td class="ok">✓ 新</td><td><b>ほっぺの赤み（常時）</b> — 喜ぶと濃く、しょんぼり時は消える</td></tr>
+        <tr><td class="ok">✓ 新</td><td><b>呼吸アニメ</b> — 何もしなくても3.4秒周期でゆっくり呼吸（Finchの「生きてる感」設計）</td></tr>
+        <tr><td class="ok">✓</td><td><b>なでると反応</b>（揺れ・はずみ）</td></tr>
+        <tr><td>⏩</td><td>手描きの線ゆらぎ・まばたき — v1.1で実験</td></tr>
+      </table>
+    </div>
+    <div class="card" style="width:300px; text-align:center;">
+      <img src="../slides/img/sl_home.png" style="width:230px; border-radius:16px; box-shadow:0 8px 20px rgba(120,90,60,.2)">
+      <p class="muted" style="margin-top:8px">ほっぺ追加後のホーム画面</p>
+    </div>
+  </div>
+
+  <h2>4. アプリアイコン — 顔アイコンを採用</h2>
+  <div class="card">
+    <div class="row" style="align-items:center;">
+      <div style="text-align:center;">
+        <img class="icon-img" src="../../assets/icon.png">
+        <p style="font-weight:800; margin-top:8px;">採用 ✅</p>
+        <p class="muted">柴犬の顔・笑顔・ほっぺ</p>
+      </div>
+      <div style="text-align:center; opacity:.55;">
+        <img class="icon-img" src="../../assets/icon-paw-variant.png">
+        <p style="font-weight:800; margin-top:8px;">控え</p>
+        <p class="muted">肉球はブランドモチーフとして継続</p>
+      </div>
+      <div class="col">
+        <p>調査結果：カジュアル・コンシューマー系アプリでは<b>「フレンドリーなキャラ顔」アイコンの勝率が高い</b>。最小サイズでも表情が読める・支配的要素が1つ、のセオリーにも合致。公開後にストアのA/Bテストで肉球版と比較検証（アイコンはCVRが2桁%動く変数）。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>5. UIコピーの原則</h2>
+  <div class="card">
+    <table>
+      <tr><td>❌ セッション失敗</td><td>⭕ <b>ちょっとしょんぼりしてる…</b></td><td rowspan="3" class="muted" style="width:300px;">ペットの感情を主語にする。命令しない・責めない・つぎを約束する。ひらがな優先。</td></tr>
+      <tr><td>❌ スマホを置いてください</td><td>⭕ <b>スマホをふせて、まっててね</b></td></tr>
+      <tr><td>❌ 連続記録が途切れました</td><td>⭕ <b>つぎはきっとだいじょうぶ！</b></td></tr>
+    </table>
+  </div>
+
+  <h2>6. ストアスクショの公式（最初の3枚が勝負の70%）</h2>
+  <div class="row">
+    <div class="card col"><b>① Value</b><p class="muted">「スマホを置くと、育つ。」<br>ホーム＋大コピー（3〜5語）</p></div>
+    <div class="card col"><b>② Usage</b><p class="muted">「30分の おさんぽから」<br>おさんぽ画面</p></div>
+    <div class="card col"><b>③ Trust</b><p class="muted">「ぜんぶ無料で30種コンプ」<br>図鑑＋広告ゼロ訴求</p></div>
+  </div>
+</body>
+</html>

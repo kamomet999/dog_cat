@@ -88,6 +88,12 @@ body {
   30% { transform: translateY(-14px) scale(1.05); }
   60% { transform: translateY(0) scale(.97); }
 }
+/* 「生きてる感」: なにもしていなくても、ゆっくり呼吸する */
+.pet-stage svg { animation: breathe 3.4s ease-in-out infinite; transform-origin: 50% 92%; }
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.022) scaleX(1.006); }
+}
 .pet-stage.wiggle { animation: wiggle .45s ease; }
 @keyframes wiggle {
   0%,100%{transform:rotate(0)} 25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)}

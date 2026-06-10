@@ -191,8 +191,11 @@
     s += eye(82, 88, mood, a.eye, 8) + eye(118, 88, mood, a.eye, 8);
     // 鼻口
     s += dogNoseMouth(100, 102, mood);
-    // ほっぺ
-    if (mood === 'happy') s += '<circle cx="70" cy="108" r="7" fill="#ffb3a0" opacity=".6"/><circle cx="130" cy="108" r="7" fill="#ffb3a0" opacity=".6"/>';
+    // ほっぺ（常時うっすら=ベビースキーマ。喜ぶと濃くなる。しょんぼり時は消す）
+    if (mood !== 'sad') {
+      var bo = mood === 'happy' ? 0.6 : 0.38;
+      s += '<circle cx="70" cy="108" r="7" fill="#ffb3a0" opacity="' + bo + '"/><circle cx="130" cy="108" r="7" fill="#ffb3a0" opacity="' + bo + '"/>';
+    }
     return s;
   }
 
@@ -218,7 +221,10 @@
     s += eye(82, 90, mood, a.eye, 8.5) + eye(118, 90, mood, a.eye, 8.5);
     // 鼻口ひげ
     s += catNoseMouth(100, 102, mood);
-    if (mood === 'happy') s += '<circle cx="72" cy="106" r="6" fill="#ffb3a0" opacity=".55"/><circle cx="128" cy="106" r="6" fill="#ffb3a0" opacity=".55"/>';
+    if (mood !== 'sad') {
+      var bo = mood === 'happy' ? 0.55 : 0.35;
+      s += '<circle cx="72" cy="106" r="6" fill="#ffb3a0" opacity="' + bo + '"/><circle cx="128" cy="106" r="6" fill="#ffb3a0" opacity="' + bo + '"/>';
+    }
     return s;
   }
 
