@@ -57,7 +57,7 @@ test('品種は30種以上で、定義が揃っている', () => {
   const B = w.Breeds;
   assert.ok(B.ALL.length >= 30, `品種数 ${B.ALL.length}`);
   const ids = new Set();
-  const ears = ['prick', 'flop', 'round', 'fold'];
+  const ears = ['prick', 'bigprick', 'flop', 'round', 'fold'];
   const pats = ['solid', 'tan', 'patch', 'spot', 'tabby', 'calico', 'tuxedo', 'point'];
   for (const b of B.ALL) {
     assert.ok(!ids.has(b.id), `id重複: ${b.id}`);

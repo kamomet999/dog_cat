@@ -6,6 +6,23 @@
 (function (global) {
   'use strict';
 
+  // ===== 画風ノブ（デフォルト=30ペルソナ評価3サイクルで確定した値。docs/ART_STYLE.md §4 が正）=====
+  // 推移: B 26.6 → F 28.0 → H 28.9/35（docs/art/eval-cycle1〜3.md）
+  var STYLE = {
+    outlineWidth: 3.2,                  // やわらか輪郭線（細線2.2は44pxで蒸発・サイクル2で棄却）
+    outlineColor: 'rgba(74,52,30,.5)',  // 輪郭の色（茶系。黒は使わない）
+    eyeStyle: 'softdot',                // 色付き点目（ゆるさ×品種の目色の両立。サイクル2採用）
+    eyeScale: 1.05,                     // 目の大きさ倍率
+    blushBoost: 0.1,                    // ほっぺ不透明度への加算
+    blushShape: 'paw'                   // にくきゅう型ほっぺ＝ブランドのシグネチャー（サイクル3採用）
+  };
+  function setStyle(s) { STYLE = Object.assign({}, STYLE, s || {}); }
+  function olAttr() {
+    return STYLE.outlineWidth > 0
+      ? ' stroke="' + STYLE.outlineColor + '" stroke-width="' + STYLE.outlineWidth + '" stroke-linejoin="round"'
+      : '';
+  }
+
   function darken(hex, amt) {
     var c = hex.replace('#', '');
     if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
@@ -15,19 +32,56 @@
     return 'rgb(' + r + ',' + g + ',' + b + ')';
   }
 
+  /** 体色が暗いか（黒猫・黒ラブ等）。暗色キャラは顔パーツを明るく補正して小サイズでも顔が読めるようにする */
+  function isDark(hex) {
+    var c = hex.replace('#', '');
+    if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+    var r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) < 92;
+  }
+  var LIGHT_INK = '#f0e6d8'; // 暗色キャラ用の明るい描線（クリーム）
+
+  // ----- ほっぺ -----
+  // paw: 肉球のかたちのほっぺ（ブランドモチーフを頬に宿すシグネチャー要素）
+  function blush(x, y, r, o) {
+    if (STYLE.blushShape === 'paw') {
+      return '<g fill="#ffb3a0" opacity="' + o + '">' +
+        '<ellipse cx="' + x + '" cy="' + (y + r * 0.25) + '" rx="' + (r * 0.85) + '" ry="' + (r * 0.62) + '"/>' +
+        '<circle cx="' + (x - r * 0.55) + '" cy="' + (y - r * 0.42) + '" r="' + (r * 0.3) + '"/>' +
+        '<circle cx="' + x + '" cy="' + (y - r * 0.6) + '" r="' + (r * 0.32) + '"/>' +
+        '<circle cx="' + (x + r * 0.55) + '" cy="' + (y - r * 0.42) + '" r="' + (r * 0.3) + '"/></g>';
+    }
+    return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#ffb3a0" opacity="' + o + '"/>';
+  }
+
   // ----- 目 -----
-  function eye(x, y, mood, color, r) {
+  // rim=true（暗色キャラ）: 目のまわりに明るい縁取りを敷き、線目は明色で描く
+  function eye(x, y, mood, color, r, rim) {
+    r = r * STYLE.eyeScale;
+    var ink = rim ? LIGHT_INK : '#2a2018';
+    var backing = rim ? '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 1.18) + '" fill="' + LIGHT_INK + '" opacity=".75"/>' : '';
     if (mood === 'happy') {
       return '<path d="M' + (x - r) + ' ' + y + ' Q' + x + ' ' + (y - r * 1.3) + ' ' + (x + r) + ' ' + y +
-        '" fill="none" stroke="#2a2018" stroke-width="3.2" stroke-linecap="round"/>';
+        '" fill="none" stroke="' + ink + '" stroke-width="3.2" stroke-linecap="round"/>';
     }
     if (mood === 'sad') {
-      return '<circle cx="' + x + '" cy="' + (y + 1) + '" r="' + (r * 0.7) + '" fill="#2a2018"/>' +
+      return backing + '<circle cx="' + x + '" cy="' + (y + 1) + '" r="' + (r * 0.7) + '" fill="#241a12"/>' +
         '<path d="M' + (x - r) + ' ' + (y - r * 0.9) + ' Q' + x + ' ' + (y - r * 1.6) + ' ' + (x + r) + ' ' + (y - r * 0.9) +
-        '" fill="none" stroke="#2a2018" stroke-width="2.4" stroke-linecap="round"/>';
+        '" fill="none" stroke="' + ink + '" stroke-width="2.4" stroke-linecap="round"/>';
     }
-    // normal
-    return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + color + '"/>' +
+    if (STYLE.eyeStyle === 'dot') {
+      // ゆる点目（虹彩なし・小さなハイライトのみ）
+      return backing + '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.72) + '" fill="#241a12"/>' +
+        '<circle cx="' + (x - r * 0.22) + '" cy="' + (y - r * 0.26) + '" r="' + (r * 0.2) + '" fill="#fff" opacity=".9"/>';
+    }
+    if (STYLE.eyeStyle === 'softdot') {
+      // 色付き点目（点目の丸さ×品種の目色のリング。図鑑の描き分けを保ったままゆるくする）
+      return backing + '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.82) + '" fill="' + color + '"/>' +
+        '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.6) + '" fill="#241a12"/>' +
+        '<circle cx="' + (x - r * 0.2) + '" cy="' + (y - r * 0.24) + '" r="' + (r * 0.18) + '" fill="#fff" opacity=".95"/>';
+    }
+    // sparkle（虹彩＋ハイライト）
+    return backing + '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + color + '"/>' +
       '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.62) + '" fill="#241a12"/>' +
       '<circle cx="' + (x - r * 0.28) + '" cy="' + (y - r * 0.34) + '" r="' + (r * 0.26) + '" fill="#fff"/>';
   }
@@ -50,7 +104,7 @@
     return nose + m;
   }
 
-  function catNoseMouth(cx, y, mood) {
+  function catNoseMouth(cx, y, mood, dark) {
     var nose = '<path d="M' + (cx - 5) + ' ' + y + ' L' + (cx + 5) + ' ' + y + ' L' + cx + ' ' + (y + 5) + ' Z" fill="#ef8da0"/>';
     var m;
     if (mood === 'happy') {
@@ -64,7 +118,7 @@
         ' M' + (cx + 7) + ' ' + (y + 12) + ' Q' + cx + ' ' + (y + 15) + ' ' + cx + ' ' + (y + 9) + '" fill="none" stroke="#2a2018" stroke-width="2" stroke-linecap="round"/>';
     }
     // ひげ
-    var w = '<g stroke="rgba(90,70,50,.5)" stroke-width="1.4" stroke-linecap="round">' +
+    var w = '<g stroke="' + (dark ? 'rgba(240,230,216,.65)' : 'rgba(90,70,50,.5)') + '" stroke-width="1.4" stroke-linecap="round">' +
       '<path d="M' + (cx - 8) + ' ' + (y + 2) + ' L' + (cx - 34) + ' ' + (y - 4) + '"/>' +
       '<path d="M' + (cx - 8) + ' ' + (y + 5) + ' L' + (cx - 34) + ' ' + (y + 6) + '"/>' +
       '<path d="M' + (cx + 8) + ' ' + (y + 2) + ' L' + (cx + 34) + ' ' + (y - 4) + '"/>' +
@@ -76,17 +130,24 @@
   function dogEars(a) {
     var c = a.color, d = darken(c, 30);
     if (a.ear === 'flop') {
-      return '<ellipse cx="58" cy="78" rx="16" ry="30" fill="' + d + '" transform="rotate(18 58 78)"/>' +
-        '<ellipse cx="142" cy="78" rx="16" ry="30" fill="' + d + '" transform="rotate(-18 142 78)"/>';
+      return '<ellipse cx="58" cy="78" rx="16" ry="30" fill="' + d + '"' + olAttr() + ' transform="rotate(18 58 78)"/>' +
+        '<ellipse cx="142" cy="78" rx="16" ry="30" fill="' + d + '"' + olAttr() + ' transform="rotate(-18 142 78)"/>';
     }
     if (a.ear === 'round') {
-      return '<circle cx="62" cy="58" r="16" fill="' + c + '"/><circle cx="138" cy="58" r="16" fill="' + c + '"/>' +
+      return '<circle cx="62" cy="58" r="16" fill="' + c + '"' + olAttr() + '/><circle cx="138" cy="58" r="16" fill="' + c + '"' + olAttr() + '/>' +
         '<circle cx="62" cy="58" r="8" fill="' + darken(a.color2 === '#fbf2e6' ? '#e8b9a0' : '#e8b9a0', 0) + '"/>' +
         '<circle cx="138" cy="58" r="8" fill="#e8b9a0"/>';
     }
+    if (a.ear === 'bigprick') {
+      // 大きな立ち耳（コーギー等。柴犬との描き分け用）
+      return '<path d="M52 76 L38 18 L86 54 Z" fill="' + c + '"' + olAttr() + '/>' +
+        '<path d="M148 76 L162 18 L114 54 Z" fill="' + c + '"' + olAttr() + '/>' +
+        '<path d="M56 66 L46 32 L78 52 Z" fill="#f0c2a8"/>' +
+        '<path d="M144 66 L154 32 L122 52 Z" fill="#f0c2a8"/>';
+    }
     // prick（立ち耳）
-    return '<path d="M58 70 L48 30 L82 56 Z" fill="' + c + '"/>' +
-      '<path d="M142 70 L152 30 L118 56 Z" fill="' + c + '"/>' +
+    return '<path d="M58 70 L48 30 L82 56 Z" fill="' + c + '"' + olAttr() + '/>' +
+      '<path d="M142 70 L152 30 L118 56 Z" fill="' + c + '"' + olAttr() + '/>' +
       '<path d="M60 64 L54 42 L74 56 Z" fill="#f0c2a8"/>' +
       '<path d="M140 64 L146 42 L126 56 Z" fill="#f0c2a8"/>';
   }
@@ -94,11 +155,11 @@
   function catEars(a) {
     var c = a.color;
     if (a.ear === 'fold') {
-      return '<path d="M62 62 Q52 44 70 46 Q78 56 74 66 Z" fill="' + c + '"/>' +
-        '<path d="M138 62 Q148 44 130 46 Q122 56 126 66 Z" fill="' + c + '"/>';
+      return '<path d="M62 62 Q52 44 70 46 Q78 56 74 66 Z" fill="' + c + '"' + olAttr() + '/>' +
+        '<path d="M138 62 Q148 44 130 46 Q122 56 126 66 Z" fill="' + c + '"' + olAttr() + '/>';
     }
-    return '<path d="M60 62 L50 26 L84 52 Z" fill="' + c + '"/>' +
-      '<path d="M140 62 L150 26 L116 52 Z" fill="' + c + '"/>' +
+    return '<path d="M60 62 L50 26 L84 52 Z" fill="' + c + '"' + olAttr() + '/>' +
+      '<path d="M140 62 L150 26 L116 52 Z" fill="' + c + '"' + olAttr() + '/>' +
       '<path d="M62 58 L57 38 L76 52 Z" fill="#f3b0c0"/>' +
       '<path d="M138 58 L143 38 L124 52 Z" fill="#f3b0c0"/>';
   }
@@ -171,30 +232,31 @@
     var c = a.color, body = c, belly = a.color2;
     var s = '';
     // 後ろ足/おしり
-    s += '<ellipse cx="100" cy="158" rx="50" ry="42" fill="' + body + '"/>';
+    s += '<ellipse cx="100" cy="158" rx="50" ry="42" fill="' + body + '"' + olAttr() + '/>';
     // おなか明色
     s += '<ellipse cx="100" cy="168" rx="30" ry="26" fill="' + belly + '" opacity="' + (a.pattern === 'solid' ? 0.55 : 0.0) + '"/>';
     // 前足
-    s += '<rect x="74" y="168" width="16" height="30" rx="8" fill="' + body + '"/>';
-    s += '<rect x="110" y="168" width="16" height="30" rx="8" fill="' + body + '"/>';
+    s += '<rect x="74" y="168" width="16" height="30" rx="8" fill="' + body + '"' + olAttr() + '/>';
+    s += '<rect x="110" y="168" width="16" height="30" rx="8" fill="' + body + '"' + olAttr() + '/>';
     // しっぽ
-    s += '<path d="M148 156 Q176 150 168 124 Q160 138 150 138 Z" fill="' + body + '"/>';
+    s += '<path d="M148 156 Q176 150 168 124 Q160 138 150 138 Z" fill="' + body + '"' + olAttr() + '/>';
     // 耳（頭の後ろ）
     s += dogEars(a);
     // 頭
-    s += '<circle cx="100" cy="92" r="48" fill="' + body + '"/>';
-    // 口元
-    s += '<ellipse cx="100" cy="108" rx="24" ry="18" fill="' + belly + '"/>';
+    s += '<circle cx="100" cy="92" r="48" fill="' + body + '"' + olAttr() + '/>';
+    // 口元（暗色キャラは明るい口元に補正＝小サイズで顔が読めるように）
+    var dark = isDark(c);
+    s += '<ellipse cx="100" cy="108" rx="24" ry="18" fill="' + (isDark(belly) ? LIGHT_INK : belly) + '"/>';
     // 模様
     s += dogPattern(a);
     // 目
-    s += eye(82, 88, mood, a.eye, 8) + eye(118, 88, mood, a.eye, 8);
+    s += eye(82, 88, mood, a.eye, 8, dark) + eye(118, 88, mood, a.eye, 8, dark);
     // 鼻口
     s += dogNoseMouth(100, 102, mood);
     // ほっぺ（常時うっすら=ベビースキーマ。喜ぶと濃くなる。しょんぼり時は消す）
     if (mood !== 'sad') {
-      var bo = mood === 'happy' ? 0.6 : 0.38;
-      s += '<circle cx="70" cy="108" r="7" fill="#ffb3a0" opacity="' + bo + '"/><circle cx="130" cy="108" r="7" fill="#ffb3a0" opacity="' + bo + '"/>';
+      var bo = Math.min(0.85, (mood === 'happy' ? 0.6 : 0.38) + STYLE.blushBoost);
+      s += blush(70, 108, 7, bo) + blush(130, 108, 7, bo);
     }
     return s;
   }
@@ -203,27 +265,28 @@
     var c = a.color, body = c, belly = a.color2;
     var s = '';
     // しっぽ（体の右からくるん）
-    s += '<path d="M150 168 Q188 160 184 120 Q180 100 166 108 Q176 120 172 144 Q168 162 148 158 Z" fill="' + body + '"/>';
+    s += '<path d="M150 168 Q188 160 184 120 Q180 100 166 108 Q176 120 172 144 Q168 162 148 158 Z" fill="' + body + '"' + olAttr() + '/>';
     // 体
-    s += '<ellipse cx="100" cy="160" rx="46" ry="42" fill="' + body + '"/>';
+    s += '<ellipse cx="100" cy="160" rx="46" ry="42" fill="' + body + '"' + olAttr() + '/>';
     // 前足
-    s += '<rect x="76" y="170" width="15" height="28" rx="7" fill="' + body + '"/>';
-    s += '<rect x="109" y="170" width="15" height="28" rx="7" fill="' + body + '"/>';
+    s += '<rect x="76" y="170" width="15" height="28" rx="7" fill="' + body + '"' + olAttr() + '/>';
+    s += '<rect x="109" y="170" width="15" height="28" rx="7" fill="' + body + '"' + olAttr() + '/>';
     // 耳
     s += catEars(a);
     // 頭
-    s += '<circle cx="100" cy="92" r="46" fill="' + body + '"/>';
+    s += '<circle cx="100" cy="92" r="46" fill="' + body + '"' + olAttr() + '/>';
     // 模様
     s += catPattern(a);
-    // 口元うっすら
-    s += '<ellipse cx="100" cy="106" rx="16" ry="11" fill="' + belly + '" opacity="' + (a.pattern === 'solid' ? 0.4 : 0.0) + '"/>';
+    // 口元うっすら（暗色キャラは明るい口元に補正）
+    var dark = isDark(c);
+    s += '<ellipse cx="100" cy="106" rx="16" ry="11" fill="' + (dark ? LIGHT_INK : belly) + '" opacity="' + (dark ? 0.85 : (a.pattern === 'solid' ? 0.4 : 0.0)) + '"/>';
     // 目（猫は縦長め＝rやや小、ハイライト大）
-    s += eye(82, 90, mood, a.eye, 8.5) + eye(118, 90, mood, a.eye, 8.5);
-    // 鼻口ひげ
-    s += catNoseMouth(100, 102, mood);
+    s += eye(82, 90, mood, a.eye, 8.5, dark) + eye(118, 90, mood, a.eye, 8.5, dark);
+    // 鼻口ひげ（ひげは体色が暗ければ明るく）
+    s += catNoseMouth(100, 102, mood, dark);
     if (mood !== 'sad') {
-      var bo = mood === 'happy' ? 0.55 : 0.35;
-      s += '<circle cx="72" cy="106" r="6" fill="#ffb3a0" opacity="' + bo + '"/><circle cx="128" cy="106" r="6" fill="#ffb3a0" opacity="' + bo + '"/>';
+      var bo = Math.min(0.85, (mood === 'happy' ? 0.55 : 0.35) + STYLE.blushBoost);
+      s += blush(72, 106, 6, bo) + blush(128, 106, 6, bo);
     }
     return s;
   }
@@ -282,5 +345,5 @@
     return petSVG(breed, 3, 'happy');
   }
 
-  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG };
+  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle };
 })(typeof window !== 'undefined' ? window : this);

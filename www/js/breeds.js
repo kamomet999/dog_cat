@@ -54,7 +54,7 @@
     {
       id: 'corgi', species: 'dog', name: 'コーギー', rarity: 'rare', nature: 'げんきいっぱい',
       desc: '短い脚と大きなおしり。',
-      art: { base: 'dog', ear: 'prick', color: '#e0913f', color2: '#fbf3e8', pattern: 'tan', eye: '#2a1d12', fluffy: false }
+      art: { base: 'dog', ear: 'bigprick', color: '#e0913f', color2: '#fbf3e8', pattern: 'tan', eye: '#2a1d12', fluffy: false }
     },
     {
       id: 'husky', species: 'dog', name: 'ハスキー', rarity: 'rare', nature: 'ぼうけんずき',
