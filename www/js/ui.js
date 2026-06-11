@@ -123,7 +123,7 @@
       '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' +
       (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '');
     if (key !== lastArtKey) {
-      $('petArt').innerHTML = Art.petSVG(breed, stage, mood);
+      Art.mount($('petArt'), Art.petSVG(breed, stage, mood));
       lastArtKey = key;
     }
   }
@@ -229,14 +229,14 @@
 
   // 種選択（初回・閉じられない）
   function openSpeciesPicker() {
-    var dogBundle = Art.bundleSVG({ art: { color: '#e3b76b', color2: '#fff3df' } });
-    var catBundle = Art.bundleSVG({ art: { color: '#9a7b4f', color2: '#e9ddc7' } });
     var html = '<h2>ようこそ！🐾</h2><p class="sub">ねんね中の あかちゃんが まってるよ。<br>どっちの子を おむかえする？</p>' +
       '<div class="care-grid" style="grid-template-columns:1fr 1fr;gap:14px">' +
-      '<button class="care-btn" data-sp="dog" style="padding:14px 4px"><div style="width:90px;height:90px;margin:auto">' + dogBundle + '</div><span class="lbl">いぬの あかちゃん</span></button>' +
-      '<button class="care-btn" data-sp="cat" style="padding:14px 4px"><div style="width:90px;height:90px;margin:auto">' + catBundle + '</div><span class="lbl">ねこの あかちゃん</span></button>' +
+      '<button class="care-btn" data-sp="dog" style="padding:14px 4px"><div id="bundleDog" style="width:96px;height:96px;margin:auto"></div><span class="lbl">いぬの あかちゃん</span></button>' +
+      '<button class="care-btn" data-sp="cat" style="padding:14px 4px"><div id="bundleCat" style="width:96px;height:96px;margin:auto"></div><span class="lbl">ねこの あかちゃん</span></button>' +
       '</div>';
     var m = openModal(html, { closable: false });
+    Art.mount(m.root.querySelector('#bundleDog'), Art.bundleSVG({ art: { color: '#e3b76b', color2: '#fff3df' } }));
+    Art.mount(m.root.querySelector('#bundleCat'), Art.bundleSVG({ art: { color: '#9a7b4f', color2: '#e9ddc7' } }));
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-sp]'), function (btn) {
       btn.addEventListener('click', function () {
         Engine.newGame(btn.getAttribute('data-sp'), now());
@@ -253,7 +253,7 @@
     var b = res.breed, R = Breeds.RARITY[b.rarity];
     var html = '<div class="center pop">' +
       (res.isNew ? '<div class="badge-new" style="display:inline-block;margin-bottom:6px">ずかん NEW!</div>' : '') +
-      '<div class="hatch-art">' + Art.thumbSVG(b) + '</div>' +
+      '<div class="hatch-art">' + Art.slot(b.id) + '</div>' +
       '<div class="hatch-name">' + b.name + ' が巣立ったよ</div>' +
       '<div class="hatch-rare"><span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span></div>' +
       '<div class="hatch-desc">' + b.desc + '</div>' +
@@ -263,6 +263,7 @@
     var m = openModal(html, {
       onClose: function () { lastArtKey = ''; render(); }
     });
+    Art.hydrate(m.root);
     var nb = m.root.querySelector('#nextEgg');
     if (nb) nb.addEventListener('click', m.close);
   }
@@ -280,13 +281,13 @@
           return '<button class="dex-cell found" data-dex="' + b.id + '">' +
             (d.unseen ? '<span class="new-dot">NEW</span>' : '') +
             (d.count > 1 ? '<span class="count-dot">×' + d.count + '</span>' : '') +
-            '<div class="thumb">' + Art.thumbSVG(b) + '</div>' +
+            '<div class="thumb">' + Art.slot(b.id) + '</div>' +
             '<div class="dn">' + b.name + '</div>' +
             '<div class="stars" style="color:' + R.color + '">' + star(R.stars) + '</div></button>';
         }
         // 未発見はシルエットで「いる気配」だけ見せる
         return '<div class="dex-cell locked">' +
-          '<div class="thumb silhouette">' + Art.thumbSVG(b) + '</div>' +
+          '<div class="thumb silhouette">' + Art.slot(b.id) + '</div>' +
           '<div class="dn">？？？</div><div class="stars">&nbsp;</div></div>';
       }).join('');
     }
@@ -306,6 +307,7 @@
         renderFoot();
       }
     });
+    Art.hydrate(m.root);
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-dex]'), function (cell) {
       cell.addEventListener('click', function () { openDexDetail(cell.getAttribute('data-dex')); });
     });
@@ -321,7 +323,7 @@
     var first = new Date(d.firstAt);
     var firstStr = first.getFullYear() + '/' + (first.getMonth() + 1) + '/' + first.getDate();
     var html = '<div class="center">' +
-      '<div class="hatch-art">' + Art.thumbSVG(b) + '</div>' +
+      '<div class="hatch-art">' + Art.slot(b.id) + '</div>' +
       '<div class="hatch-name">' + b.name + '</div>' +
       '<div class="hatch-rare"><span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' +
       ' <span class="dex-pill">' + (b.species === 'dog' ? '🐶 いぬ' : '🐱 ねこ') + '</span></div>' +
@@ -333,7 +335,8 @@
       '<br>はじめて出会った日：<b>' + firstStr + '</b></p>' +
       '</div>';
     Engine.markSeen(breedId);
-    openModal(html, { onClose: openDex });
+    var dm = openModal(html, { onClose: openDex });
+    Art.hydrate(dm.root);
   }
 
   // 設定

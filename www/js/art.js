@@ -17,7 +17,8 @@
     blushShape: 'paw',                  // にくきゅう型ほっぺ＝ブランドのシグネチャー（サイクル3採用）
     body: 'mochi',                      // もちもちブロブ＝スタンプ文法（サイクル4採用。ゆらぎ輪郭mochiwobは44pxにじみで棄却）
     mouthStyle: 'soft',                 // ω口（猫）・へにゃ口（犬）＝スタンプ文法（サイクル4採用）
-    renderer: 'pixel'                   // 'pixel'（本体・発案者決定 2026-06-11）/ 'vector'（スタンプ素材・シェア画像用に保持）
+    renderer: 'pixelate',               // 'pixelate'=ベクター絵を粗グリッドに落とす（本体・必要最低限のドット感）/ 'vector' / 'pixel'(32pxスプライト・棄却済み)
+    pixelGrid: 64                       // pixelate時のラスタライズ解像度（表示192px=3x整数倍）
   };
   function setStyle(s) { STYLE = Object.assign({}, STYLE, s || {}); }
   function olAttr() {
@@ -577,6 +578,7 @@
   /** stage: 0=おくるみ(ねんね),1=赤ちゃん,2=子,3=成体 / mood: happy|normal|sad */
   function petSVG(breed, stage, mood) {
     if (stage <= 0) return STYLE.renderer === 'pixel' ? pixelBundleSVG(breed) : bundleSVG(breed);
+    // pixelate はベクターの絵をそのまま使う（ドット化は Art.mount のキャンバス側で行う）
     mood = mood || 'normal';
     if (STYLE.renderer === 'pixel') return pixelSVG(breed, stage, mood);
     var a = breed.art;
@@ -606,5 +608,42 @@
     return petSVG(breed, 3, 'happy');
   }
 
-  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle };
+  /**
+   * SVG文字列を要素にマウントする。
+   * renderer='pixelate' のときはベクター絵を pixelGrid 解像度のキャンバスに描き、
+   * image-rendering:pixelated で拡大する＝「ちゃんと描けた絵 × 必要最低限のドット感」。
+   */
+  function mount(el, svg, grid) {
+    if (STYLE.renderer !== 'pixelate' || typeof document === 'undefined') { el.innerHTML = svg; return; }
+    var g = grid || STYLE.pixelGrid;
+    var cv = document.createElement('canvas');
+    cv.width = g; cv.height = g;
+    cv.style.cssText = 'width:100%;height:100%;image-rendering:pixelated;display:block;';
+    var img = new Image();
+    img.onload = function () {
+      var ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = true; // 縮小はなめらかに＝絵の質を保ったままドット化
+      ctx.clearRect(0, 0, g, g);
+      ctx.drawImage(img, 0, 0, g, g);
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' +
+      encodeURIComponent(svg.replace('<svg ', '<svg width="200" height="200" '));
+    el.innerHTML = '';
+    el.appendChild(cv);
+  }
+
+  /** HTML文字列内の <span class="art-slot" data-pa="breedId"> に図鑑サムネを流し込む */
+  function hydrate(root) {
+    var slots = root.querySelectorAll('.art-slot');
+    Array.prototype.forEach.call(slots, function (el) {
+      var b = global.Breeds && Breeds.get(el.getAttribute('data-pa'));
+      if (b) mount(el, petSVG(b, 3, 'happy'));
+    });
+  }
+  /** サムネ用プレースホルダ（hydrate で実体化） */
+  function slot(breedId) {
+    return '<span class="art-slot" data-pa="' + breedId + '" style="display:block;width:100%;height:100%"></span>';
+  }
+
+  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle, mount: mount, hydrate: hydrate, slot: slot };
 })(typeof window !== 'undefined' ? window : this);
