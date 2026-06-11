@@ -17,7 +17,7 @@
     { action: 'wash',  emo: '🛁', lbl: 'おそうじ' },
     { action: 'sleep', emo: '💤', lbl: 'ねんね' }
   ];
-  var STAGE_LABEL = ['たまご', 'あかちゃん', 'こども', 'せいたい'];
+  var STAGE_LABEL = ['おくるみ', 'あかちゃん', 'こども', 'せいたい'];
 
   var happyUntil = 0;
   var lastArtKey = '';
@@ -116,11 +116,12 @@
     var stage = Engine.stage();
     var mood = petMood();
     var key = breed.id + '_' + stage + '_' + mood;
-    $('petName').textContent = stage === 0 ? 'たまご' : breed.name;
+    $('petName').textContent = stage === 0 ? 'ねんねちゅう…' : breed.name;
     var R = Breeds.RARITY[breed.rarity];
-    $('petSub').textContent = stage === 0 ? 'なにがうまれるかな…' : (breed.species === 'dog' ? 'いぬ' : 'ねこ') + '・' + STAGE_LABEL[stage];
+    $('petSub').textContent = stage === 0 ? 'どんな子かは めがあいてからの おたのしみ' : (breed.species === 'dog' ? 'いぬ' : 'ねこ') + '・' + STAGE_LABEL[stage];
     $('petRarity').innerHTML = stage === 0 ? '' :
-      '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>';
+      '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' +
+      (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '');
     if (key !== lastArtKey) {
       $('petArt').innerHTML = Art.petSVG(breed, stage, mood);
       lastArtKey = key;
@@ -140,7 +141,7 @@
     } else if (stage === 0) {
       act.className = 'big-btn ghost';
       var afford = st.coin >= Engine.REROLL_COST;
-      act.innerHTML = '🔄 ひきなおす(' + Engine.REROLL_COST + ')';
+      act.innerHTML = '🧺 べつの子にあう(' + Engine.REROLL_COST + ')';
       act.disabled = !afford;
     } else {
       act.className = 'big-btn ghost';
@@ -184,7 +185,7 @@
       if (rr.error) return;
       lastArtKey = '';
       render();
-      showToast('🥚 あたらしいたまご！');
+      showToast('🧺 あたらしい子を おむかえ！');
     }
   }
 
@@ -198,7 +199,7 @@
   function celebrateGrowth(stage) {
     lastArtKey = '';
     bump('bounce');
-    if (stage === 1) showToast('🐣 たまごがかえった！');
+    if (stage === 1) showToast('😊 めがあいた！はじめまして');
     else if (stage === 3) showToast('✨ せいたいに！巣立ちできるよ');
     else showToast('✨ おおきくなった！');
   }
@@ -228,12 +229,12 @@
 
   // 種選択（初回・閉じられない）
   function openSpeciesPicker() {
-    var dogEgg = Art.eggSVG({ art: { color: '#e3b76b', color2: '#fff3df' } });
-    var catEgg = Art.eggSVG({ art: { color: '#9a7b4f', color2: '#e9ddc7' } });
-    var html = '<h2>ようこそ！🐾</h2><p class="sub">どっちのたまごからはじめる？<br>そだてて図鑑をうめていこう。</p>' +
+    var dogBundle = Art.bundleSVG({ art: { color: '#e3b76b', color2: '#fff3df' } });
+    var catBundle = Art.bundleSVG({ art: { color: '#9a7b4f', color2: '#e9ddc7' } });
+    var html = '<h2>ようこそ！🐾</h2><p class="sub">ねんね中の あかちゃんが まってるよ。<br>どっちの子を おむかえする？</p>' +
       '<div class="care-grid" style="grid-template-columns:1fr 1fr;gap:14px">' +
-      '<button class="care-btn" data-sp="dog" style="padding:14px 4px"><div style="width:90px;height:90px;margin:auto">' + dogEgg + '</div><span class="lbl">いぬのたまご</span></button>' +
-      '<button class="care-btn" data-sp="cat" style="padding:14px 4px"><div style="width:90px;height:90px;margin:auto">' + catEgg + '</div><span class="lbl">ねこのたまご</span></button>' +
+      '<button class="care-btn" data-sp="dog" style="padding:14px 4px"><div style="width:90px;height:90px;margin:auto">' + dogBundle + '</div><span class="lbl">いぬの あかちゃん</span></button>' +
+      '<button class="care-btn" data-sp="cat" style="padding:14px 4px"><div style="width:90px;height:90px;margin:auto">' + catBundle + '</div><span class="lbl">ねこの あかちゃん</span></button>' +
       '</div>';
     var m = openModal(html, { closable: false });
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-sp]'), function (btn) {
@@ -242,7 +243,7 @@
         lastArtKey = '';
         m.close();
         render();
-        showToast('🥚 たまごをおむかえした！');
+        showToast('🧺 あかちゃんを おむかえした！');
       });
     });
   }
@@ -325,6 +326,8 @@
       '<div class="hatch-rare"><span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' +
       ' <span class="dex-pill">' + (b.species === 'dog' ? '🐶 いぬ' : '🐱 ねこ') + '</span></div>' +
       '<div class="hatch-desc mt12">' + b.desc + '</div>' +
+      (b.nature ? '<div class="mt12"><span class="nature-chip">せいかく：' + b.nature + '</span>' +
+        '<div class="hatch-desc" style="margin-top:6px">「' + (Breeds.NATURES[b.nature] || '') + '」</div></div>' : '') +
       '<hr class="soft">' +
       '<p class="muted">そだてた数：<b>' + d.count + '</b>ひき' + (d.count >= 3 ? ' 🏆' : '') +
       '<br>はじめて出会った日：<b>' + firstStr + '</b></p>' +
@@ -338,7 +341,7 @@
     var st = Engine.getState();
     var ws = st.walkStats || { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 };
     var html = '<h2>⚙ せってい</h2>' +
-      '<p class="sub">「いぬねこ図鑑」 v2.0 — スマホをはなれて、そだてるたまごっち</p>' +
+      '<p class="sub">「いぬねこ図鑑」 v2.0 — スマホをはなれて、そだてる いぬねこ</p>' +
       '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「おさんぽ」で計画的にスマホからはなれると、もっと早く育って ごほうびがもらえます。</p>' +
       '<hr class="soft">' +
       '<p class="muted">おさんぽ成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ デトックス合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
@@ -371,7 +374,7 @@
       '<p class="muted">※ 放置は24時間ぶんまで反映されます。</p>' : '';
     var html = '<div class="center"><h2>おかえりなさい！🐾</h2>' +
       '<p class="sub">' + fmtDur(rep.elapsedMs) + 'ぶり</p>' +
-      '<div style="font-size:60px;margin:6px">' + (Engine.stage() === 0 ? '🥚' : '🐾') + '</div>' +
+      '<div style="font-size:60px;margin:6px">' + (Engine.stage() === 0 ? '💤' : '🐾') + '</div>' +
       '<div style="font-weight:800;color:var(--coin);font-size:18px">＋' + rep.coinGain + ' コイン</div>' +
       (msgs.length ? '<p class="mt12">' + msgs.join('<br>') + '</p>' : '<p class="mt12 muted">みんな元気にまってたよ</p>') +
       grewNote +

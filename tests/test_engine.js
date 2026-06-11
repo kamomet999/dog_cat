@@ -70,6 +70,7 @@ test('品種は30種以上で、定義が揃っている', () => {
     assert.match(b.art.color, /^#[0-9a-f]{6}$/i, `${b.id}: color`);
     assert.match(b.art.eye, /^#[0-9a-f]{6}$/i, `${b.id}: eye`);
     assert.strictEqual(b.art.base, b.species, `${b.id}: base と species の不一致`);
+    assert.ok(w.Breeds.NATURES[b.nature], `${b.id}: nature「${b.nature}」が NATURES に未定義`);
   }
   const dogs = B.ofSpecies('dog').length, cats = B.ofSpecies('cat').length;
   assert.ok(dogs >= 15 && cats >= 15, `dog=${dogs} cat=${cats}`);
@@ -174,7 +175,7 @@ test('開始 → 満了で成功し、報酬と streak が付く', () => {
   assert.strictEqual(w.Engine.getState().walkStats.totalMin, 30);
 });
 
-test('30分おさんぽ成功で卵がかえる（xp+18 >= 孵化12）', () => {
+test('30分おさんぽ成功で赤ちゃんがめざめる（xp+18 >= めざめ12）', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   w.Engine.startWalk(30, T0);

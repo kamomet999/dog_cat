@@ -22,7 +22,7 @@
   var WALK_FAIL_MOOD = -12;          // 失敗時の機嫌ダウン
 
   // 成長に必要な累積なかよし度（xp）。index=到達stage
-  var GROW = [0, 12, 70, 180]; // 0:卵 1:赤ちゃん 2:子 3:成体
+  var GROW = [0, 12, 70, 180]; // 0:おくるみ(ねんね) 1:赤ちゃん 2:子 3:成体
 
   // 1時間あたりの自然減衰量
   var DECAY = { hunger: 12.5, mood: 8.34, clean: 6.25, energy: 10 };
@@ -140,7 +140,7 @@
       return s;
     },
 
-    /** 初回：種(species)を選んで最初の卵を抽選 */
+    /** 初回：種(species)を選んで最初の子（おくるみ）を抽選 */
     newGame: function (species, now, rnd) {
       rnd = rnd || Math.random;
       var s = newState(now);
@@ -326,7 +326,7 @@
       return res;
     },
 
-    /** 成体を巣立たせ図鑑に登録 → 次の卵を抽選 */
+    /** 成体を巣立たせ図鑑に登録 → 次の子（おくるみ）を抽選 */
     graduate: function (now, rnd) {
       rnd = rnd || Math.random;
       var s = this._state;
@@ -357,7 +357,7 @@
       return { breed: breed, isNew: isNew, reward: reward, next: next };
     },
 
-    /** 卵(stage0)を別品種に引き直す（コイン消費） */
+    /** ねんね中(stage0)のうちは別の子と会い直せる（コイン消費） */
     reroll: function (now, rnd) {
       rnd = rnd || Math.random;
       var s = this._state;

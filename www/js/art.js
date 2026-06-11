@@ -228,21 +228,32 @@
     return s;
   }
 
-  function eggSVG(breed) {
+  /** おくるみ（毛布にくるまってねんね中の赤ちゃん）。色は品種のヒントになる */
+  function bundleSVG(breed) {
     var c = breed ? breed.art.color : '#e8d5b0';
     var hint = breed ? breed.art.color2 : '#fff';
+    var dk = darken(c, 26);
     return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">' +
-      '<ellipse cx="100" cy="170" rx="44" ry="10" fill="rgba(120,90,60,.12)"/>' +
-      '<path d="M100 30 C60 30 50 96 50 122 C50 158 74 178 100 178 C126 178 150 158 150 122 C150 96 140 30 100 30 Z" fill="' + c + '"/>' +
-      '<g fill="' + hint + '" opacity=".5">' +
-      '<circle cx="80" cy="96" r="9"/><circle cx="118" cy="84" r="7"/><circle cx="112" cy="124" r="10"/><circle cx="78" cy="140" r="6"/></g>' +
-      '<path d="M70 108 L88 100 L80 116 L98 110 L90 126" fill="none" stroke="rgba(60,40,20,.35)" stroke-width="3" stroke-linejoin="round"/>' +
+      '<ellipse cx="100" cy="172" rx="48" ry="10" fill="rgba(120,90,60,.12)"/>' +
+      // 毛布のかたまり（しずく型のおくるみ）
+      '<path d="M100 44 C64 44 48 92 48 126 C48 160 70 176 100 176 C130 176 152 160 152 126 C152 92 136 44 100 44 Z" fill="' + c + '"/>' +
+      // 毛布の巻きライン
+      '<path d="M58 110 Q100 132 142 110 M64 84 Q100 104 136 84" fill="none" stroke="' + dk + '" stroke-width="4" stroke-linecap="round" opacity=".55"/>' +
+      // 顔まわりの毛布のふち
+      '<path d="M70 70 Q100 46 130 70 Q132 92 100 96 Q68 92 70 70 Z" fill="' + hint + '" opacity=".9"/>' +
+      // ねんね中の顔（とじた目・ちいさな口・ほっぺ）
+      '<path d="M84 74 Q89 79 94 74 M106 74 Q111 79 116 74" fill="none" stroke="#3a2c1c" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M96 84 Q100 87 104 84" fill="none" stroke="#3a2c1c" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<circle cx="80" cy="82" r="5" fill="#ffb3a0" opacity=".5"/><circle cx="120" cy="82" r="5" fill="#ffb3a0" opacity=".5"/>' +
+      // zzz
+      '<g fill="rgba(90,70,50,.55)" font-family="sans-serif" font-weight="bold">' +
+      '<text x="142" y="58" font-size="18">z</text><text x="154" y="44" font-size="14">z</text><text x="163" y="33" font-size="11">z</text></g>' +
       '</svg>';
   }
 
-  /** stage: 0=卵,1=赤ちゃん,2=子,3=成体 / mood: happy|normal|sad */
+  /** stage: 0=おくるみ(ねんね),1=赤ちゃん,2=子,3=成体 / mood: happy|normal|sad */
   function petSVG(breed, stage, mood) {
-    if (stage <= 0) return eggSVG(breed);
+    if (stage <= 0) return bundleSVG(breed);
     mood = mood || 'normal';
     var a = breed.art;
     var inner = a.base === 'cat' ? buildCat(a, mood) : buildDog(a, mood);
@@ -271,5 +282,5 @@
     return petSVG(breed, 3, 'happy');
   }
 
-  global.Art = { petSVG: petSVG, eggSVG: eggSVG, thumbSVG: thumbSVG };
+  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG };
 })(typeof window !== 'undefined' ? window : this);
