@@ -6,15 +6,17 @@
 (function (global) {
   'use strict';
 
-  // ===== 画風ノブ（デフォルト=30ペルソナ評価3サイクルで確定した値。docs/ART_STYLE.md §4 が正）=====
-  // 推移: B 26.6 → F 28.0 → H 28.9/35（docs/art/eval-cycle1〜3.md）
+  // ===== 画風ノブ（デフォルト=30ペルソナ評価4サイクルで確定した値。docs/ART_STYLE.md §4 が正）=====
+  // 推移: B 26.6 → F 28.0 → H 28.9/35 → M 34.0/40（スタンプ基準E8追加。docs/art/eval-cycle1〜4.md）
   var STYLE = {
     outlineWidth: 3.2,                  // やわらか輪郭線（細線2.2は44pxで蒸発・サイクル2で棄却）
     outlineColor: 'rgba(74,52,30,.5)',  // 輪郭の色（茶系。黒は使わない）
     eyeStyle: 'softdot',                // 色付き点目（ゆるさ×品種の目色の両立。サイクル2採用）
     eyeScale: 1.05,                     // 目の大きさ倍率
     blushBoost: 0.1,                    // ほっぺ不透明度への加算
-    blushShape: 'paw'                   // にくきゅう型ほっぺ＝ブランドのシグネチャー（サイクル3採用）
+    blushShape: 'paw',                  // にくきゅう型ほっぺ＝ブランドのシグネチャー（サイクル3採用）
+    body: 'mochi',                      // もちもちブロブ＝スタンプ文法（サイクル4採用。ゆらぎ輪郭mochiwobは44pxにじみで棄却）
+    mouthStyle: 'soft'                  // ω口（猫）・へにゃ口（犬）＝スタンプ文法（サイクル4採用）
   };
   function setStyle(s) { STYLE = Object.assign({}, STYLE, s || {}); }
   function olAttr() {
@@ -23,12 +25,13 @@
       : '';
   }
 
+  // amt>0 で暗く、amt<0 で明るく（0-255にクランプ）
   function darken(hex, amt) {
     var c = hex.replace('#', '');
     if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
-    var r = Math.max(0, parseInt(c.substr(0, 2), 16) - amt);
-    var g = Math.max(0, parseInt(c.substr(2, 2), 16) - amt);
-    var b = Math.max(0, parseInt(c.substr(4, 2), 16) - amt);
+    var r = Math.min(255, Math.max(0, parseInt(c.substr(0, 2), 16) - amt));
+    var g = Math.min(255, Math.max(0, parseInt(c.substr(2, 2), 16) - amt));
+    var b = Math.min(255, Math.max(0, parseInt(c.substr(4, 2), 16) - amt));
     return 'rgb(' + r + ',' + g + ',' + b + ')';
   }
 
@@ -40,6 +43,42 @@
     return (0.299 * r + 0.587 * g + 0.114 * b) < 92;
   }
   var LIGHT_INK = '#f0e6d8'; // 暗色キャラ用の明るい描線（クリーム）
+
+  // ----- もちもちブロブ体（スタンプ文法: 頭と体の境目をなくした脱力シルエット）-----
+  // mochiwob は左右非対称のゆらぎ入り（手描き感）
+  function mochiPath(wob) {
+    if (wob) {
+      return 'M100 45 C71 46 55 63 53 88 C50 104 45 125 44.5 146 ' +
+        'C44 170 63 183 100 182.5 C138 183 156 169 154.5 145 ' +
+        'C153 124 149.5 103 147 89 C145.5 62 130 44.5 100 45 Z';
+    }
+    return 'M100 45 C72 45 56 62 53 88 C50 104 46 125 45 146 ' +
+      'C44 170 64 183 100 183 C136 183 156 170 155 146 ' +
+      'C154 125 150 104 147 88 C144 62 128 45 100 45 Z';
+  }
+
+  /** もちもちボディ一式（ブロブ＋前足のまるいおてて）。tail/ears/faceは呼び出し側で重ねる */
+  function mochiBody(a) {
+    var s = '';
+    s += '<path d="' + mochiPath(STYLE.body === 'mochiwob') + '" fill="' + a.color + '"' + olAttr() + '/>';
+    // おなか明色（solid のみ）
+    s += '<ellipse cx="100" cy="160" rx="32" ry="28" fill="' + a.color2 + '" opacity="' + (a.pattern === 'solid' ? 0.5 : 0.0) + '"/>';
+    return s;
+  }
+
+  /** まるい前足（おてて）＋指のスジ。ブロブの裾に乗せる。
+      暗色キャラは体と同化しないよう少し明るくする */
+  function mochiPaws(a) {
+    var dark = isDark(a.color);
+    var fill = dark ? darken(a.color, -22) : a.color;
+    var ink = dark ? 'rgba(240,230,216,.55)' : 'rgba(60,42,26,.4)';
+    function paw(cx) {
+      return '<ellipse cx="' + cx + '" cy="176" rx="13" ry="9.5" fill="' + fill + '"' + olAttr() + '/>' +
+        '<path d="M' + (cx - 4) + ' 170 L' + (cx - 4) + ' 177 M' + (cx + 4) + ' 170 L' + (cx + 4) + ' 177"' +
+        ' stroke="' + ink + '" stroke-width="2" stroke-linecap="round" fill="none"/>';
+    }
+    return paw(80) + paw(120);
+  }
 
   // ----- ほっぺ -----
   // paw: 肉球のかたちのほっぺ（ブランドモチーフを頬に宿すシグネチャー要素）
@@ -96,6 +135,11 @@
         '<path d="M' + (cx - 9) + ' ' + (y + 12) + ' Q' + cx + ' ' + (y + 22) + ' ' + (cx + 9) + ' ' + (y + 12) + ' Z" fill="#ef8da0"/>';
     } else if (mood === 'sad') {
       m = '<path d="M' + (cx - 9) + ' ' + (y + 16) + ' Q' + cx + ' ' + (y + 9) + ' ' + (cx + 9) + ' ' + (y + 16) + '" fill="none" stroke="#2a2018" stroke-width="2.6" stroke-linecap="round"/>';
+    } else if (STYLE.mouthStyle === 'soft') {
+      // へにゃ口（くちを閉じたゆる笑い＝スタンプ文法）
+      m = '<path d="M' + cx + ' ' + (y + 5) + ' L' + cx + ' ' + (y + 10) +
+        ' M' + (cx - 9) + ' ' + (y + 13) + ' Q' + cx + ' ' + (y + 20) + ' ' + (cx + 9) + ' ' + (y + 13) +
+        '" fill="none" stroke="#2a2018" stroke-width="2.4" stroke-linecap="round"/>';
     } else {
       m = '<path d="M' + cx + ' ' + (y + 5) + ' L' + cx + ' ' + (y + 11) +
         ' M' + (cx - 9) + ' ' + (y + 14) + ' Q' + cx + ' ' + (y + 18) + ' ' + cx + ' ' + (y + 11) +
@@ -112,6 +156,10 @@
         ' M' + cx + ' ' + (y + 5) + ' Q' + (cx + 8) + ' ' + (y + 14) + ' ' + (cx + 12) + ' ' + (y + 7) + '" fill="none" stroke="#2a2018" stroke-width="2.2" stroke-linecap="round"/>';
     } else if (mood === 'sad') {
       m = '<path d="M' + (cx - 8) + ' ' + (y + 13) + ' Q' + cx + ' ' + (y + 7) + ' ' + (cx + 8) + ' ' + (y + 13) + '" fill="none" stroke="#2a2018" stroke-width="2.2" stroke-linecap="round"/>';
+    } else if (STYLE.mouthStyle === 'soft') {
+      // ω口（ねこスタンプの定番）
+      m = '<path d="M' + (cx - 12) + ' ' + (y + 8) + ' q6 7 12 0 q6 7 12 0' +
+        '" fill="none" stroke="#2a2018" stroke-width="2.2" stroke-linecap="round"/>';
     } else {
       m = '<path d="M' + cx + ' ' + (y + 5) + ' L' + cx + ' ' + (y + 9) +
         ' M' + (cx - 7) + ' ' + (y + 12) + ' Q' + cx + ' ' + (y + 15) + ' ' + cx + ' ' + (y + 9) +
@@ -165,14 +213,15 @@
   }
 
   // ----- 模様（本体内に収まる座標で配置）-----
-  function dogPattern(a) {
+  // mochi=true のとき足先マーク（くつした）は省略する（まるい前足の色で表現するため）
+  function dogPattern(a, mochi) {
     var p = a.pattern, c2 = a.color2;
     if (p === 'tan') {
       // 眉＋胸＋足先のタン
       return '<g fill="' + c2 + '">' +
         '<ellipse cx="78" cy="72" rx="9" ry="6"/><ellipse cx="122" cy="72" rx="9" ry="6"/>' +
         '<ellipse cx="100" cy="170" rx="20" ry="14"/>' +
-        '<circle cx="80" cy="186" r="7"/><circle cx="120" cy="186" r="7"/></g>';
+        (mochi ? '' : '<circle cx="80" cy="186" r="7"/><circle cx="120" cy="186" r="7"/>') + '</g>';
     }
     if (p === 'patch') {
       return '<g fill="' + c2 + '">' +
@@ -188,7 +237,7 @@
     return '';
   }
 
-  function catPattern(a) {
+  function catPattern(a, mochi) {
     var p = a.pattern, c2 = a.color2;
     if (p === 'tabby') {
       return '<g fill="none" stroke="' + c2 + '" stroke-width="4" stroke-linecap="round">' +
@@ -209,13 +258,13 @@
       return '<g fill="' + c2 + '">' +
         '<path d="M100 96 Q84 120 90 168 Q100 176 110 168 Q116 120 100 96 Z"/>' +
         '<ellipse cx="100" cy="104" rx="20" ry="14"/>' +
-        '<ellipse cx="78" cy="186" rx="8" ry="7"/><ellipse cx="122" cy="186" rx="8" ry="7"/></g>';
+        (mochi ? '' : '<ellipse cx="78" cy="186" rx="8" ry="7"/><ellipse cx="122" cy="186" rx="8" ry="7"/>') + '</g>';
     }
     if (p === 'point') {
       // シャム：口元・足先・尻尾が濃い
       return '<g fill="' + c2 + '" opacity="0.92">' +
         '<ellipse cx="100" cy="104" rx="22" ry="16"/>' +
-        '<circle cx="80" cy="186" r="8"/><circle cx="120" cy="186" r="8"/></g>';
+        (mochi ? '' : '<circle cx="80" cy="186" r="8"/><circle cx="120" cy="186" r="8"/>') + '</g>';
     }
     if (p === 'spot') {
       // ベンガルのロゼット
@@ -230,25 +279,33 @@
   // ----- 本体ビルド -----
   function buildDog(a, mood) {
     var c = a.color, body = c, belly = a.color2;
+    var mochi = STYLE.body !== 'snowman';
     var s = '';
-    // 後ろ足/おしり
-    s += '<ellipse cx="100" cy="158" rx="50" ry="42" fill="' + body + '"' + olAttr() + '/>';
-    // おなか明色
-    s += '<ellipse cx="100" cy="168" rx="30" ry="26" fill="' + belly + '" opacity="' + (a.pattern === 'solid' ? 0.55 : 0.0) + '"/>';
-    // 前足
-    s += '<rect x="74" y="168" width="16" height="30" rx="8" fill="' + body + '"' + olAttr() + '/>';
-    s += '<rect x="110" y="168" width="16" height="30" rx="8" fill="' + body + '"' + olAttr() + '/>';
     // しっぽ
     s += '<path d="M148 156 Q176 150 168 124 Q160 138 150 138 Z" fill="' + body + '"' + olAttr() + '/>';
-    // 耳（頭の後ろ）
+    // 耳（体の後ろ）
     s += dogEars(a);
-    // 頭
-    s += '<circle cx="100" cy="92" r="48" fill="' + body + '"' + olAttr() + '/>';
+    if (mochi) {
+      // もちもちブロブ（頭と体が一体）
+      s += mochiBody(a);
+    } else {
+      // 後ろ足/おしり
+      s += '<ellipse cx="100" cy="158" rx="50" ry="42" fill="' + body + '"' + olAttr() + '/>';
+      // おなか明色
+      s += '<ellipse cx="100" cy="168" rx="30" ry="26" fill="' + belly + '" opacity="' + (a.pattern === 'solid' ? 0.55 : 0.0) + '"/>';
+      // 前足
+      s += '<rect x="74" y="168" width="16" height="30" rx="8" fill="' + body + '"' + olAttr() + '/>';
+      s += '<rect x="110" y="168" width="16" height="30" rx="8" fill="' + body + '"' + olAttr() + '/>';
+      // 頭
+      s += '<circle cx="100" cy="92" r="48" fill="' + body + '"' + olAttr() + '/>';
+    }
     // 口元（暗色キャラは明るい口元に補正＝小サイズで顔が読めるように）
     var dark = isDark(c);
     s += '<ellipse cx="100" cy="108" rx="24" ry="18" fill="' + (isDark(belly) ? LIGHT_INK : belly) + '"/>';
     // 模様
-    s += dogPattern(a);
+    s += dogPattern(a, mochi);
+    // まるい前足（おてて）
+    if (mochi) s += mochiPaws(a);
     // 目
     s += eye(82, 88, mood, a.eye, 8, dark) + eye(118, 88, mood, a.eye, 8, dark);
     // 鼻口
@@ -263,23 +320,30 @@
 
   function buildCat(a, mood) {
     var c = a.color, body = c, belly = a.color2;
+    var mochi = STYLE.body !== 'snowman';
     var s = '';
     // しっぽ（体の右からくるん）
     s += '<path d="M150 168 Q188 160 184 120 Q180 100 166 108 Q176 120 172 144 Q168 162 148 158 Z" fill="' + body + '"' + olAttr() + '/>';
-    // 体
-    s += '<ellipse cx="100" cy="160" rx="46" ry="42" fill="' + body + '"' + olAttr() + '/>';
-    // 前足
-    s += '<rect x="76" y="170" width="15" height="28" rx="7" fill="' + body + '"' + olAttr() + '/>';
-    s += '<rect x="109" y="170" width="15" height="28" rx="7" fill="' + body + '"' + olAttr() + '/>';
-    // 耳
+    // 耳（体の後ろ）
     s += catEars(a);
-    // 頭
-    s += '<circle cx="100" cy="92" r="46" fill="' + body + '"' + olAttr() + '/>';
+    if (mochi) {
+      s += mochiBody(a);
+    } else {
+      // 体
+      s += '<ellipse cx="100" cy="160" rx="46" ry="42" fill="' + body + '"' + olAttr() + '/>';
+      // 前足
+      s += '<rect x="76" y="170" width="15" height="28" rx="7" fill="' + body + '"' + olAttr() + '/>';
+      s += '<rect x="109" y="170" width="15" height="28" rx="7" fill="' + body + '"' + olAttr() + '/>';
+      // 頭
+      s += '<circle cx="100" cy="92" r="46" fill="' + body + '"' + olAttr() + '/>';
+    }
     // 模様
-    s += catPattern(a);
+    s += catPattern(a, mochi);
     // 口元うっすら（暗色キャラは明るい口元に補正）
     var dark = isDark(c);
     s += '<ellipse cx="100" cy="106" rx="16" ry="11" fill="' + (dark ? LIGHT_INK : belly) + '" opacity="' + (dark ? 0.85 : (a.pattern === 'solid' ? 0.4 : 0.0)) + '"/>';
+    // まるい前足（おてて）
+    if (mochi) s += mochiPaws(a);
     // 目（猫は縦長め＝rやや小、ハイライト大）
     s += eye(82, 90, mood, a.eye, 8.5, dark) + eye(118, 90, mood, a.eye, 8.5, dark);
     // 鼻口ひげ（ひげは体色が暗ければ明るく）
