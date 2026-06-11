@@ -16,7 +16,8 @@
     blushBoost: 0.1,                    // ほっぺ不透明度への加算
     blushShape: 'paw',                  // にくきゅう型ほっぺ＝ブランドのシグネチャー（サイクル3採用）
     body: 'mochi',                      // もちもちブロブ＝スタンプ文法（サイクル4採用。ゆらぎ輪郭mochiwobは44pxにじみで棄却）
-    mouthStyle: 'soft'                  // ω口（猫）・へにゃ口（犬）＝スタンプ文法（サイクル4採用）
+    mouthStyle: 'soft',                 // ω口（猫）・へにゃ口（犬）＝スタンプ文法（サイクル4採用）
+    renderer: 'vector'                  // 'vector' / 'pixel'（ドット絵。サイクル5検討中）
   };
   function setStyle(s) { STYLE = Object.assign({}, STYLE, s || {}); }
   function olAttr() {
@@ -378,10 +379,108 @@
       '</svg>';
   }
 
+  // ===== ドット絵レンダラ（プロシージャル）=====
+  // 22x22グリッドに楕円・三角を整数ラスタライズし、シルエットの輪郭を自動生成する。
+  // vector版と同じ品種パラメータで描き分けるため、品種追加コストは増えない。
+  function pixelSVG(breed, stage, mood) {
+    var a = breed.art;
+    var W = 22, Hh = 22;
+    var g = [];
+    for (var i = 0; i < Hh; i++) g.push(new Array(W).fill(null));
+
+    function inb(x, y) { return x >= 0 && x < W && y >= 0 && y < Hh; }
+    function px(x, y, col) { x = Math.round(x); y = Math.round(y); if (inb(x, y)) g[y][x] = col; }
+    function ell(cx, cy, rx, ry, col) {
+      for (var y = 0; y < Hh; y++) for (var x = 0; x < W; x++) {
+        var dx = (x + 0.5 - cx) / rx, dy = (y + 0.5 - cy) / ry;
+        if (dx * dx + dy * dy <= 1) g[y][x] = col;
+      }
+    }
+    function tri(x1, y1, x2, y2, x3, y3, col) {
+      function sgn(ax, ay, bx, by, px_, py_) { return (px_ - bx) * (ay - by) - (ax - bx) * (py_ - by); }
+      for (var y = 0; y < Hh; y++) for (var x = 0; x < W; x++) {
+        var cx2 = x + 0.5, cy2 = y + 0.5;
+        var d1 = sgn(x1, y1, x2, y2, cx2, cy2), d2 = sgn(x2, y2, x3, y3, cx2, cy2), d3 = sgn(x3, y3, x1, y1, cx2, cy2);
+        var neg = (d1 < 0) || (d2 < 0) || (d3 < 0), pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+        if (!(neg && pos)) g[y][x] = col;
+      }
+    }
+
+    var C = a.color, C2 = a.color2;
+    var dark = isDark(C);
+    var MZ = dark || isDark(C2) ? '#f0e6d8' : C2; // 口元は明るく
+    var isCat = a.base === 'cat';
+
+    // しっぽ
+    if (isCat) { ell(18.6, 13, 0.9, 3, C); px(18.4, 9.4, C); }
+    else ell(18.2, 12.8, 1.3, 1.0, C);
+    // 耳（立ち耳系は頭の後ろ＝先に描く。垂れ耳は頭のあとに重ねる）
+    var earCol = a.pattern === 'point' ? C2 : C;
+    if (a.ear === 'round') { ell(5.6, 3.9, 1.9, 1.9, C); ell(16.4, 3.9, 1.9, 1.9, C); }
+    else if (a.ear === 'fold') { tri(6, 2.6, 8.6, 4.4, 4.8, 4.8, earCol); tri(16, 2.6, 13.4, 4.4, 17.2, 4.8, earCol); }
+    else if (a.ear === 'bigprick') { tri(5.4, 0, 9.2, 5.2, 3.4, 5.2, earCol); tri(16.6, 0, 12.8, 5.2, 18.6, 5.2, earCol); }
+    else if (a.ear === 'prick') { // 猫は細く高め・犬はやや低め
+      var ty = isCat ? 0.6 : 1.2;
+      var hw = isCat ? 1.9 : 2.3;
+      tri(6.2, ty, 6.2 + hw, 4.9, 6.2 - hw, 4.9, earCol); tri(15.8, ty, 15.8 + hw, 4.9, 15.8 - hw, 4.9, earCol);
+      px(6.2, 2.8, '#f3b0c0'); px(15.8, 2.8, '#f3b0c0'); // 内耳
+    }
+    // 体と頭（もちもち一体）
+    ell(11, 14.6, 6.1, 5.3, C);
+    ell(11, 7.6, 5.7, 4.9, C);
+    // 垂れ耳（頭のふちに小さく重ねる）
+    if (a.ear === 'flop') {
+      ell(5.6, 5.8, 1.3, 2.2, darken(C, 30)); ell(16.4, 5.8, 1.3, 2.2, darken(C, 30));
+    }
+    // 模様
+    if (a.pattern === 'tan') { px(8, 5.4, C2); px(14, 5.4, C2); ell(11, 15.6, 2.7, 2.1, C2); }
+    if (a.pattern === 'patch') { ell(7.6, 6, 2.2, 2.5, C2); ell(11, 16, 2.6, 1.8, C2); }
+    if (a.pattern === 'spot') { [[7, 13], [14.5, 12.5], [9, 16.5], [13.5, 16.5], [11, 14]].forEach(function (p) { px(p[0], p[1], C2); }); }
+    if (a.pattern === 'tabby') {
+      px(9, 3.4, C2); px(11, 2.9, C2); px(13, 3.4, C2); // 額のM
+      [[6.4, 13], [6.6, 15], [15.6, 13], [15.4, 15], [11, 17]].forEach(function (p) { px(p[0], p[1], C2); });
+    }
+    if (a.pattern === 'calico') { ell(7.2, 4.6, 2, 1.8, C2); ell(15, 4.4, 1.7, 1.5, '#3a322c'); ell(13.8, 15.2, 2.2, 2, C2); }
+    if (a.pattern === 'tuxedo') { ell(11, 15, 3, 3.6, C2); }
+    if (a.pattern === 'point') { ell(8, 18.6, 1.6, 1.2, C2); ell(14, 18.6, 1.6, 1.2, C2); }
+    // 口元
+    ell(11, 9.9, isCat ? 2.5 : 3, isCat ? 1.7 : 2.2, MZ);
+    // 前足（おてて）
+    var pawCol = (a.pattern === 'tan' || a.pattern === 'tuxedo') ? C2 : (a.pattern === 'point' ? C2 : (dark ? darken(C, -26) : C));
+    ell(8, 18.5, 1.6, 1.3, pawCol); ell(14, 18.5, 1.6, 1.3, pawCol);
+    // 顔（暗色キャラは目のまわりに明るい下地を敷く）
+    var eyeInk = '#241a12';
+    if (dark) { ell(8, 7.2, 1.4, 1.3, '#f0e6d8'); ell(14, 7.2, 1.4, 1.3, '#f0e6d8'); }
+    if (mood === 'happy') { px(7.5, 6.5, eyeInk); px(8.5, 6.1, eyeInk); px(9.5, 6.5, eyeInk); px(12.5, 6.5, eyeInk); px(13.5, 6.1, eyeInk); px(14.5, 6.5, eyeInk); }
+    else { px(8, 6.8, a.eye); px(8, 7.6, eyeInk); px(14, 6.8, a.eye); px(14, 7.6, eyeInk); }
+    px(11, 9, isCat ? '#ef8da0' : '#241a12');           // 鼻
+    px(10, 10.6, eyeInk); px(12, 10.6, eyeInk);          // ω口
+    var blushCol = '#ffb3a0';
+    px(6, 9.6, blushCol); px(16, 9.6, blushCol);         // ほっぺ
+    // シルエット輪郭の自動生成（外側1px・こげ茶）
+    var OUT = '#4a3424';
+    var add = [];
+    for (var y2 = 0; y2 < Hh; y2++) for (var x2 = 0; x2 < W; x2++) {
+      if (g[y2][x2]) continue;
+      if ((inb(x2 + 1, y2) && g[y2][x2 + 1] && g[y2][x2 + 1] !== OUT) || (inb(x2 - 1, y2) && g[y2][x2 - 1] && g[y2][x2 - 1] !== OUT) ||
+          (inb(x2, y2 + 1) && g[y2 + 1][x2] && g[y2 + 1][x2] !== OUT) || (inb(x2, y2 - 1) && g[y2 - 1][x2] && g[y2 - 1][x2] !== OUT)) add.push([x2, y2]);
+    }
+    add.forEach(function (p) { g[p[1]][p[0]] = OUT; });
+    // 成長段階スケール（整数倍を保ってドットのにじみを防ぐ）
+    var sc = stage === 1 ? 0.62 : stage === 2 ? 0.82 : 1;
+    var rects = '';
+    for (var y3 = 0; y3 < Hh; y3++) for (var x3 = 0; x3 < W; x3++) {
+      if (g[y3][x3]) rects += '<rect x="' + x3 + '" y="' + y3 + '" width="1" height="1" fill="' + g[y3][x3] + '"/>';
+    }
+    return '<svg viewBox="0 0 ' + W + ' ' + Hh + '" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">' +
+      '<g transform="translate(' + (W / 2) + ' ' + Hh + ') scale(' + sc + ') translate(' + (-W / 2) + ' ' + (-Hh) + ')">' + rects + '</g></svg>';
+  }
+
   /** stage: 0=おくるみ(ねんね),1=赤ちゃん,2=子,3=成体 / mood: happy|normal|sad */
   function petSVG(breed, stage, mood) {
     if (stage <= 0) return bundleSVG(breed);
     mood = mood || 'normal';
+    if (STYLE.renderer === 'pixel') return pixelSVG(breed, stage, mood);
     var a = breed.art;
     var inner = a.base === 'cat' ? buildCat(a, mood) : buildDog(a, mood);
     // 成長段階でスケール（赤ちゃんは小さくまんまる）
