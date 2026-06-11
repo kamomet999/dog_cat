@@ -46,25 +46,29 @@
   }
   var LIGHT_INK = '#f0e6d8'; // 暗色キャラ用の明るい描線（クリーム）
 
-  // ----- もちもちブロブ体（スタンプ文法: 頭と体の境目をなくした脱力シルエット）-----
-  // mochiwob は左右非対称のゆらぎ入り（手描き感）
-  function mochiPath(wob) {
-    if (wob) {
-      return 'M100 45 C71 46 55 63 53 88 C50 104 45 125 44.5 146 ' +
-        'C44 170 63 183 100 182.5 C138 183 156 169 154.5 145 ' +
-        'C153 124 149.5 103 147 89 C145.5 62 130 44.5 100 45 Z';
-    }
-    return 'M100 45 C72 45 56 62 53 88 C50 104 46 125 45 146 ' +
-      'C44 170 64 183 100 183 C136 183 156 170 155 146 ' +
-      'C154 125 150 104 147 88 C144 62 128 45 100 45 Z';
+  // ----- もちもちブロブ体（CHARACTER_DESIGN.md §2.1）-----
+  // 曲率リズム: 頭頂→こめかみ(締)→頬(張・y≒110=目より下)→くびれの名残(締)→腰(張)→接地(潰・底辺幅≧最大幅0.8)
+  // 右側を1〜2単位ずらして「1%の生」（完全対称の死を避ける）
+  function mochiPath() {
+    return 'M100 42 ' +
+      'C78 42 62 52 56 70 ' +     // 頭頂→こめかみ（締まる）
+      'C50 84 44 96 44 110 ' +    // 頬の張り出し（最大幅・目より下）
+      'C44 122 48 129 50 136 ' +  // くびれの名残（締まる）
+      'C45 148 43 158 43.5 166 ' + // 腰（再び張る）
+      'C44 178 58 184 100 184 ' + // 接地へ（底辺は平らに潰れる）
+      'C143 184 156.5 178 157 166 ' + // 右はわずかに非対称
+      'C157.5 158 155.5 148 150.5 136 ' +
+      'C152.5 129 156.5 122 156.5 111 ' +
+      'C156 96 150 84 144.5 70 ' +
+      'C138 52 122 42 100 42 Z';
   }
 
   /** もちもちボディ一式（ブロブ＋前足のまるいおてて）。tail/ears/faceは呼び出し側で重ねる */
   function mochiBody(a) {
     var s = '';
-    s += '<path d="' + mochiPath(STYLE.body === 'mochiwob') + '" fill="' + a.color + '"' + olAttr() + '/>';
+    s += '<path d="' + mochiPath() + '" fill="' + a.color + '"' + olAttr() + '/>';
     // おなか明色（solid のみ）
-    s += '<ellipse cx="100" cy="160" rx="32" ry="28" fill="' + a.color2 + '" opacity="' + (a.pattern === 'solid' ? 0.5 : 0.0) + '"/>';
+    s += '<ellipse cx="100" cy="160" rx="32" ry="26" fill="' + a.color2 + '" opacity="' + (a.pattern === 'solid' ? 0.5 : 0.0) + '"/>';
     return s;
   }
 
@@ -116,10 +120,15 @@
         '<circle cx="' + (x - r * 0.22) + '" cy="' + (y - r * 0.26) + '" r="' + (r * 0.2) + '" fill="#fff" opacity=".9"/>';
     }
     if (STYLE.eyeStyle === 'softdot') {
-      // 色付き点目（点目の丸さ×品種の目色のリング。図鑑の描き分けを保ったままゆるくする）
-      return backing + '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.82) + '" fill="' + color + '"/>' +
-        '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 0.6) + '" fill="#241a12"/>' +
-        '<circle cx="' + (x - r * 0.2) + '" cy="' + (y - r * 0.24) + '" r="' + (r * 0.18) + '" fill="#fff" opacity=".95"/>';
+      // 微笑みの目（CHARACTER_DESIGN.md §2.3）:
+      // 虹彩は下をわずかに切った楕円(ry=0.80r/rx=0.85r)・瞳孔68%・視線は内へ1.2（「あなたを見てる」）
+      // ハイライトは主1（光源=左上で全キャラ統一）＋副1のみ
+      var inw = (x < 100 ? 1 : -1) * 1.2;
+      return backing +
+        '<ellipse cx="' + x + '" cy="' + y + '" rx="' + (r * 0.85) + '" ry="' + (r * 0.80) + '" fill="' + color + '"/>' +
+        '<circle cx="' + (x + inw) + '" cy="' + (y + r * 0.04) + '" r="' + (r * 0.58) + '" fill="#241a12"/>' +
+        '<circle cx="' + (x + inw - r * 0.2) + '" cy="' + (y - r * 0.22) + '" r="' + (r * 0.22) + '" fill="#fff"/>' +
+        '<circle cx="' + (x + inw + r * 0.22) + '" cy="' + (y + r * 0.24) + '" r="' + (r * 0.1) + '" fill="#fff" opacity=".8"/>';
     }
     // sparkle（虹彩＋ハイライト）
     return backing + '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + color + '"/>' +
@@ -242,7 +251,8 @@
   function catPattern(a, mochi) {
     var p = a.pattern, c2 = a.color2;
     if (p === 'tabby') {
-      return '<g fill="none" stroke="' + c2 + '" stroke-width="4" stroke-linecap="round">' +
+      // 縞は模様＝外輪郭(3.2)より細く（線階層 CHARACTER_DESIGN.md §2.4）
+      return '<g fill="none" stroke="' + c2 + '" stroke-width="2.2" stroke-linecap="round">' +
         '<path d="M92 56 L100 66 L108 56"/>' +            // 額のM
         '<path d="M86 78 L84 90 M100 80 L100 92 M114 78 L116 90"/>' +
         '<path d="M82 140 L80 162 M100 142 L100 168 M118 140 L120 162"/></g>';
@@ -283,8 +293,14 @@
     var c = a.color, body = c, belly = a.color2;
     var mochi = STYLE.body !== 'snowman';
     var s = '';
-    // しっぽ
-    s += '<path d="M148 156 Q176 150 168 124 Q160 138 150 138 Z" fill="' + body + '"' + olAttr() + '/>';
+    if (a.tail === 'curl') {
+      // 巻き尾（柴犬の最強識別子 CHARACTER_DESIGN.md §2.7）: 背の右上から外へくるんとはみ出す渦
+      s += '<circle cx="162" cy="112" r="12.5" fill="' + body + '"' + olAttr() + '/>' +
+        '<circle cx="165" cy="109" r="5.5" fill="' + belly + '"/>';
+    } else {
+      // しっぽ
+      s += '<path d="M148 156 Q176 150 168 124 Q160 138 150 138 Z" fill="' + body + '"' + olAttr() + '/>';
+    }
     // 耳（体の後ろ）
     s += dogEars(a);
     if (mochi) {

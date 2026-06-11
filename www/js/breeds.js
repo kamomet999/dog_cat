@@ -19,7 +19,7 @@
     {
       id: 'shiba', species: 'dog', name: '柴犬', rarity: 'common', nature: 'いちず',
       desc: 'くるんと巻いた尻尾。日本の代表犬。',
-      art: { base: 'dog', ear: 'prick', color: '#d99a5c', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false }
+      art: { base: 'dog', ear: 'prick', color: '#d99a5c', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false, tail: 'curl' }
     },
     {
       id: 'golden', species: 'dog', name: 'ゴールデンレトリバー', rarity: 'common', nature: 'ひとなつっこい',
