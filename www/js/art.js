@@ -604,85 +604,110 @@
   }
 
 
-  /** 4足歩行ポーズ（横向き・おさんぽ等「動物としてふるまう場面」用。CHARACTER_DESIGN.md §2.10） */
+  /** 4足歩行ポーズ v2（横向き・おさんぽ等「動物としてふるまう場面」用。CHARACTER_DESIGN.md §2.10）
+      設計: 側面でも2頭身（頭が主役）・胴は曲率リズムのあるローフ型・脚は短いぽてぽて
+      STYLE.quadDesign: 'A'=ぽてぽて足バンプ / 'B'=とことこ短脚 / 'C'=超チビ頭 */
   function quadSVG(breed, mood, stage) {
     var a = breed.art, C = a.color, C2 = a.color2;
     var dark = isDark(C);
-    var MZ = dark || isDark(C2) ? LIGHT_INK : C2;
+    // 口元はじゅうぶん明るい C2 のみ流用（豚鼻化防止・正面ビューと同ルール）
+    var MZ = !dark && lumOf(C2) >= 185 ? C2 : LIGHT_INK;
     var isCat = a.base === 'cat';
+    var D = STYLE.quadDesign || 'A';
+    var headR = D === 'C' ? 47 : 42;
     var legNear = (a.pattern === 'tuxedo' || a.pattern === 'point') ? C2 : limbFill(a);
-    var legFar = darken(C, 20);
+    var legFar = darken(C, 22);
+    // 暗色種は暗緑のおさんぽ背景に溶けるため、quad限定で明るい縁取りに（§11-7 図地分離）
+    var ol = dark ? ' stroke="rgba(238,228,214,.45)" stroke-width="3.2" stroke-linejoin="round"' : olAttr();
     var s = '';
 
-    function leg(x, y, h, fill) {
-      return '<rect x="' + x + '" y="' + y + '" width="13" height="' + h + '" rx="6.5" fill="' + fill + '"' + olAttr() + '/>';
+    // しっぽ（後方=左・おしりの上から）
+    if (a.tail === 'curl') {
+      s += '<circle cx="42" cy="100" r="12.5" fill="' + C + '"' + ol + '/>' +
+        '<circle cx="45" cy="97" r="5.5" fill="' + C2 + '"/>';
+    } else if (isCat) {
+      s += '<path d="M52 118 Q34 96 46 70 Q54 60 59 68 Q48 88 62 112 Z" fill="' + (a.pattern === 'point' ? C2 : C) + '"' + ol + '/>';
+    } else {
+      s += '<path d="M52 118 Q34 104 40 86 Q50 94 60 104 Z" fill="' + C + '"' + ol + '/>';
     }
 
-    // しっぽ（後方=左）
-    if (a.tail === 'curl') {
-      s += '<circle cx="50" cy="98" r="12" fill="' + C + '"' + olAttr() + '/>' +
-        '<circle cx="53" cy="95" r="5" fill="' + C2 + '"/>';
-    } else if (isCat) {
-      s += '<path d="M56 122 Q38 100 48 74 Q56 64 61 72 Q50 90 66 114 Z" fill="' + (a.pattern === 'point' ? C2 : C) + '"' + olAttr() + '/>';
+    // 奥側の脚（暗め・先に描く）
+    if (D === 'B') {
+      s += '<rect x="74" y="146" width="12" height="22" rx="6" fill="' + legFar + '"' + ol + '/>' +
+        '<rect x="116" y="142" width="12" height="22" rx="6" fill="' + legFar + '"' + ol + '/>';
     } else {
-      s += '<path d="M56 122 Q36 110 42 90 Q52 98 62 106 Z" fill="' + C + '"' + olAttr() + '/>';
+      s += '<ellipse cx="82" cy="163" rx="11.5" ry="9.5" fill="' + legFar + '"' + ol + '/>' +
+        '<ellipse cx="120" cy="161" rx="11.5" ry="9.5" fill="' + legFar + '"' + ol + '/>';
     }
-    // 奥側の脚2本（歩行の互い違い）
-    s += leg(82, 148, 34, legFar) + leg(132, 144, 34, legFar);
-    // 体（横長）
-    s += '<ellipse cx="104" cy="128" rx="52" ry="31" fill="' + C + '"' + olAttr() + '/>';
+
+    // 胴（ローフ型・曲率リズム: 首もと→背のゆるい弧→丸いおしり→下面→胸）
+    s += '<path d="M118 96 C96 88 66 92 52 104 C42 114 40 130 44 143 ' +
+      'C48 156 64 163 86 163 C104 164 124 161 134 150 C142 140 138 112 128 104 Z" fill="' + C + '"' + ol + '/>';
+
     // 模様（横向き簡略版）
-    if (a.pattern === 'solid') s += '<ellipse cx="100" cy="146" rx="30" ry="13" fill="' + C2 + '" opacity=".5"/>';
-    if (a.pattern === 'tan') s += '<ellipse cx="128" cy="142" rx="16" ry="11" fill="' + C2 + '"/>';
-    if (a.pattern === 'patch') s += '<ellipse cx="92" cy="116" rx="17" ry="13" fill="' + C2 + '"/>';
-    if (a.pattern === 'spot') { [[80, 118], [108, 112], [94, 138], [124, 134]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="7" fill="' + C2 + '"/>'; }); }
-    if (a.pattern === 'tabby') s += '<g fill="none" stroke="' + C2 + '" stroke-width="2.2" stroke-linecap="round"><path d="M82 104 L80 122 M100 100 L100 120 M118 102 L120 120"/></g>';
-    if (a.pattern === 'calico') s += '<ellipse cx="88" cy="112" rx="15" ry="12" fill="' + C2 + '"/><ellipse cx="118" cy="136" rx="13" ry="11" fill="#3a322c"/>';
-    if (a.pattern === 'tuxedo') s += '<ellipse cx="134" cy="142" rx="15" ry="13" fill="' + C2 + '"/>';
-    // 手前側の脚2本（前脚は一歩前へ＝歩いている）
-    s += leg(60, 152, 32, legNear) + leg(144, 148, 36, legNear);
-    // 頭（進行方向=右）
-    s += quadEars(a, isCat);
-    s += '<circle cx="150" cy="90" r="34" fill="' + C + '"' + olAttr() + '/>';
-    // 口元
-    s += '<ellipse cx="168" cy="102" rx="13" ry="9.5" fill="' + MZ + '"/>';
-    if (a.pattern === 'point') s += '<ellipse cx="168" cy="102" rx="13" ry="9.5" fill="' + C2 + '" opacity=".92"/>';
-    if (a.pattern === 'tan') s += '<ellipse cx="142" cy="74" rx="7" ry="5" fill="' + C2 + '"/>';
-    if (a.pattern === 'tabby') s += '<g fill="none" stroke="' + C2 + '" stroke-width="2.2" stroke-linecap="round"><path d="M140 60 L146 68 M152 58 L154 67"/></g>';
-    // 顔（横向きは目1つ）
-    s += eye(152, 88, mood, a.eye, 9.5, dark);
-    s += '<ellipse cx="176" cy="98" rx="4" ry="3.2" fill="' + (isCat ? '#ef8da0' : '#241a12') + '"/>';
-    s += '<path d="M166 108 q5 4 10 0" fill="none" stroke="' + (dark ? LIGHT_INK : '#2a2018') + '" stroke-width="2.2" stroke-linecap="round"/>';
-    if (isCat) s += '<g stroke="' + (dark ? 'rgba(240,230,216,.65)' : 'rgba(90,70,50,.5)') + '" stroke-width="1.4" stroke-linecap="round"><path d="M160 100 L144 96 M160 104 L144 104"/></g>';
-    if (mood !== 'sad') s += blush(142, 102, 8, 0.5);
+    if (a.pattern === 'solid') s += '<ellipse cx="92" cy="148" rx="28" ry="12" fill="' + C2 + '" opacity=".5"/>';
+    if (a.pattern === 'tan') s += '<ellipse cx="120" cy="146" rx="15" ry="10" fill="' + C2 + '"/>';
+    if (a.pattern === 'patch') s += '<ellipse cx="86" cy="114" rx="16" ry="12" fill="' + C2 + '"/>';
+    if (a.pattern === 'spot') { [[72, 116], [100, 110], [86, 138], [116, 132]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="6.5" fill="' + C2 + '"/>'; }); }
+    if (a.pattern === 'tabby') s += '<g fill="none" stroke="' + C2 + '" stroke-width="2.2" stroke-linecap="round"><path d="M74 102 L72 120 M92 98 L92 118 M110 100 L112 118"/></g>';
+    if (a.pattern === 'calico') s += '<ellipse cx="80" cy="112" rx="14" ry="11" fill="' + C2 + '"/><ellipse cx="108" cy="140" rx="12" ry="10" fill="#3a322c"/>';
+    if (a.pattern === 'tuxedo') s += '<ellipse cx="124" cy="146" rx="14" ry="12" fill="' + C2 + '"/>';
+
+    // 手前側の脚（前脚は一歩前へ＝歩いている）
+    if (D === 'B') {
+      s += '<rect x="56" y="150" width="12" height="22" rx="6" fill="' + legNear + '"' + ol + '/>' +
+        '<rect x="128" y="148" width="12" height="24" rx="6" fill="' + legNear + '"' + ol + '/>';
+    } else {
+      s += '<ellipse cx="62" cy="167" rx="12" ry="9.5" fill="' + legNear + '"' + ol + '/>' +
+        '<ellipse cx="136" cy="164" rx="12" ry="9.5" fill="' + legNear + '"' + ol + '/>';
+    }
+
+    // 頭（進行方向=右・側面でも2頭身の主役）
+    s += quadEars(a, isCat, headR, ol);
+    s += '<circle cx="148" cy="92" r="' + headR + '" fill="' + C + '"' + ol + '/>';
+    // 口元（小さく低く）
+    s += '<ellipse cx="174" cy="108" rx="10" ry="7.5" fill="' + MZ + '"/>';
+    if (a.pattern === 'point') s += '<ellipse cx="174" cy="108" rx="10" ry="7.5" fill="' + C2 + '" opacity=".92"/>';
+    if (a.pattern === 'tan') s += '<ellipse cx="138" cy="76" rx="6.5" ry="4.5" fill="' + C2 + '"/>';
+    if (a.pattern === 'tabby') s += '<g fill="none" stroke="' + C2 + '" stroke-width="2.2" stroke-linecap="round"><path d="M134 60 L140 68 M148 56 L150 66"/></g>';
+    if (a.pattern === 'tuxedo') s += '<path d="M150 52 L174 60 L168 76 Q158 70 146 73 Z" fill="' + C2 + '"/>'; // 額の白斑（ハチワレ識別 §10）
+    // 顔（横向きは目1つ・大きく低く）
+    s += eye(150, 96, mood, a.eye, 11, dark);
+    s += '<ellipse cx="181" cy="104" rx="3.5" ry="3" fill="' + (isCat ? '#ef8da0' : '#241a12') + '"/>';
+    s += '<path d="M170 114 q4.5 3.5 9 0" fill="none" stroke="' + (dark ? LIGHT_INK : '#2a2018') + '" stroke-width="2.2" stroke-linecap="round"/>';
+    if (isCat) s += '<g stroke="' + (dark ? 'rgba(240,230,216,.65)' : 'rgba(90,70,50,.5)') + '" stroke-width="1.4" stroke-linecap="round"><path d="M166 104 L150 100 M166 108 L150 108"/></g>';
+    if (mood !== 'sad') s += blush(136, 110, 8.5, 0.5);
 
     var sc = stage === 1 ? 0.62 : stage === 2 ? 0.82 : 1;
     return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">' +
-      '<ellipse cx="104" cy="190" rx="' + (62 * sc) + '" ry="8" fill="rgba(120,90,60,.14)"/>' +
-      '<g transform="translate(104 184) scale(' + sc + ') translate(-104 -184)">' + s + '</g></svg>';
+      '<ellipse cx="104" cy="184" rx="' + (64 * sc) + '" ry="8" fill="rgba(120,90,60,.14)"/>' +
+      '<g transform="translate(104 178) scale(' + sc + ') translate(-104 -178)">' + s + '</g></svg>';
   }
 
-  /** 横向きの耳（頭の後ろに先に描く） */
-  function quadEars(a, isCat) {
+  /** 横向きの耳（頭の後ろに先に描く）。headRに合わせて配置 */
+  function quadEars(a, isCat, headR, ol) {
+    ol = ol || olAttr();
     var c = a.pattern === 'point' ? a.color2 : a.color;
+    var big = headR >= 45 ? 1.1 : 1;
     if (a.ear === 'flop') {
-      return '<ellipse cx="132" cy="74" rx="9" ry="17" fill="' + darken(a.color, 30) + '"' + olAttr() + ' transform="rotate(14 132 74)"/>' +
-        '<ellipse cx="158" cy="70" rx="9" ry="17" fill="' + darken(a.color, 26) + '"' + olAttr() + ' transform="rotate(22 158 70)"/>';
+      return '<ellipse cx="122" cy="74" rx="10" ry="19" fill="' + darken(a.color, 30) + '"' + ol + ' transform="rotate(12 122 74)"/>' +
+        '<ellipse cx="158" cy="66" rx="10" ry="19" fill="' + darken(a.color, 26) + '"' + ol + ' transform="rotate(24 158 66)"/>';
     }
     if (a.ear === 'round') {
-      return '<circle cx="132" cy="62" r="12" fill="' + c + '"' + olAttr() + '/><circle cx="160" cy="58" r="12" fill="' + c + '"' + olAttr() + '/>';
+      return '<circle cx="122" cy="58" r="' + (13 * big) + '" fill="' + c + '"' + ol + '/><circle cx="158" cy="52" r="' + (13 * big) + '" fill="' + c + '"' + ol + '/>';
     }
     if (a.ear === 'fold') {
-      return '<path d="M126 66 Q120 50 136 52 Q142 60 138 68 Z" fill="' + c + '"' + olAttr() + '/>' +
-        '<path d="M154 60 Q150 44 166 48 Q170 56 164 64 Z" fill="' + c + '"' + olAttr() + '/>';
+      return '<path d="M114 62 Q108 44 126 47 Q133 56 128 65 Z" fill="' + c + '"' + ol + '/>' +
+        '<path d="M148 54 Q146 36 164 41 Q169 50 162 59 Z" fill="' + c + '"' + ol + '/>';
     }
     if (a.ear === 'bigprick') {
-      return '<path d="M128 70 L118 28 L148 56 Z" fill="' + c + '"' + olAttr() + '/>' +
-        '<path d="M156 64 L158 22 L182 52 Z" fill="' + c + '"' + olAttr() + '/>';
+      return '<path d="M112 68 L100 18 L142 52 Z" fill="' + c + '"' + ol + '/>' +
+        '<path d="M150 58 L154 10 L186 46 Z" fill="' + c + '"' + ol + '/>';
     }
-    var ty = isCat ? 34 : 40;
-    return '<path d="M130 68 L124 ' + ty + ' L150 58 Z" fill="' + c + '"' + olAttr() + '/>' +
-      '<path d="M158 62 L162 ' + (ty - 4) + ' L182 56 Z" fill="' + c + '"' + olAttr() + '/>';
+    var ty = isCat ? 28 : 34;
+    return '<path d="M116 64 L108 ' + ty + ' L142 52 Z" fill="' + c + '"' + ol + '/>' +
+      '<path d="M150 56 L156 ' + (ty - 6) + ' L182 48 Z" fill="' + c + '"' + ol + '/>' +
+      '<path d="M119 58 L113 ' + (ty + 8) + ' L136 52 Z" fill="#f3b0c0" opacity=".8"/>';
   }
 
   /** stage: 0=おくるみ(ねんね),1=赤ちゃん,2=子,3=成体 / mood: happy|normal|sad */
