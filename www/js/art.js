@@ -72,19 +72,30 @@
     return s;
   }
 
-  /** まるい前足（おてて）＋指のスジ（CHARACTER_DESIGN.md §2.1）。
-      体に埋めず、接地線から手前にちょこんとはみ出させて「手がある」ことを見せる。
-      暗色キャラは体と同化しないよう少し明るくする */
+  /** 手足の色（暗色キャラは体と同化しないよう少し明るくする） */
+  function limbFill(a) {
+    return isDark(a.color) ? darken(a.color, -22) : a.color;
+  }
+
+  /** あんよ（脚）＋指のスジ（CHARACTER_DESIGN.md §2.1）。
+      体に埋めず、接地線から手前にちょこんとはみ出させる */
   function mochiPaws(a) {
-    var dark = isDark(a.color);
-    var fill = dark ? darken(a.color, -22) : a.color;
-    var ink = dark ? 'rgba(240,230,216,.6)' : 'rgba(60,42,26,.45)';
+    var fill = limbFill(a);
+    var ink = isDark(a.color) ? 'rgba(240,230,216,.6)' : 'rgba(60,42,26,.45)';
     function paw(cx) {
       return '<ellipse cx="' + cx + '" cy="178" rx="13.5" ry="10" fill="' + fill + '"' + olAttr() + '/>' +
         '<path d="M' + (cx - 4.5) + ' 171 L' + (cx - 4.5) + ' 181 M' + (cx + 4.5) + ' 171 L' + (cx + 4.5) + ' 181"' +
         ' stroke="' + ink + '" stroke-width="2.4" stroke-linecap="round" fill="none"/>';
     }
     return paw(77) + paw(123);
+  }
+
+  /** おてて（腕）= 擬人化の記号（CHARACTER_DESIGN.md §2.1 ポーズ体系）。
+      体の脇から小さく斜め下に。短くて届かない腕＝庇護欲（DEEP_DIVE §7） */
+  function mochiArms(a) {
+    var fill = limbFill(a);
+    return '<ellipse cx="42" cy="141" rx="7.5" ry="14.5" fill="' + fill + '"' + olAttr() + ' transform="rotate(24 42 141)"/>' +
+      '<ellipse cx="158" cy="141" rx="7.5" ry="14.5" fill="' + fill + '"' + olAttr() + ' transform="rotate(-24 158 141)"/>';
   }
 
   // ----- ほっぺ -----
@@ -323,8 +334,8 @@
     s += '<ellipse cx="100" cy="108" rx="24" ry="18" fill="' + (isDark(belly) ? LIGHT_INK : belly) + '"/>';
     // 模様
     s += dogPattern(a, mochi);
-    // まるい前足（おてて）
-    if (mochi) s += mochiPaws(a);
+    // 腕とあんよ（擬人化基本形）
+    if (mochi) s += mochiArms(a) + mochiPaws(a);
     // 目
     s += eye(82, 88, mood, a.eye, 8, dark) + eye(118, 88, mood, a.eye, 8, dark);
     // 鼻口
@@ -592,11 +603,94 @@
     return 0.299 * parseInt(c.substr(0, 2), 16) + 0.587 * parseInt(c.substr(2, 2), 16) + 0.114 * parseInt(c.substr(4, 2), 16);
   }
 
+
+  /** 4足歩行ポーズ（横向き・おさんぽ等「動物としてふるまう場面」用。CHARACTER_DESIGN.md §2.10） */
+  function quadSVG(breed, mood, stage) {
+    var a = breed.art, C = a.color, C2 = a.color2;
+    var dark = isDark(C);
+    var MZ = dark || isDark(C2) ? LIGHT_INK : C2;
+    var isCat = a.base === 'cat';
+    var legNear = (a.pattern === 'tuxedo' || a.pattern === 'point') ? C2 : limbFill(a);
+    var legFar = darken(C, 20);
+    var s = '';
+
+    function leg(x, y, h, fill) {
+      return '<rect x="' + x + '" y="' + y + '" width="13" height="' + h + '" rx="6.5" fill="' + fill + '"' + olAttr() + '/>';
+    }
+
+    // しっぽ（後方=左）
+    if (a.tail === 'curl') {
+      s += '<circle cx="50" cy="98" r="12" fill="' + C + '"' + olAttr() + '/>' +
+        '<circle cx="53" cy="95" r="5" fill="' + C2 + '"/>';
+    } else if (isCat) {
+      s += '<path d="M56 122 Q38 100 48 74 Q56 64 61 72 Q50 90 66 114 Z" fill="' + (a.pattern === 'point' ? C2 : C) + '"' + olAttr() + '/>';
+    } else {
+      s += '<path d="M56 122 Q36 110 42 90 Q52 98 62 106 Z" fill="' + C + '"' + olAttr() + '/>';
+    }
+    // 奥側の脚2本（歩行の互い違い）
+    s += leg(82, 148, 34, legFar) + leg(132, 144, 34, legFar);
+    // 体（横長）
+    s += '<ellipse cx="104" cy="128" rx="52" ry="31" fill="' + C + '"' + olAttr() + '/>';
+    // 模様（横向き簡略版）
+    if (a.pattern === 'solid') s += '<ellipse cx="100" cy="146" rx="30" ry="13" fill="' + C2 + '" opacity=".5"/>';
+    if (a.pattern === 'tan') s += '<ellipse cx="128" cy="142" rx="16" ry="11" fill="' + C2 + '"/>';
+    if (a.pattern === 'patch') s += '<ellipse cx="92" cy="116" rx="17" ry="13" fill="' + C2 + '"/>';
+    if (a.pattern === 'spot') { [[80, 118], [108, 112], [94, 138], [124, 134]].forEach(function (p) { s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="7" fill="' + C2 + '"/>'; }); }
+    if (a.pattern === 'tabby') s += '<g fill="none" stroke="' + C2 + '" stroke-width="2.2" stroke-linecap="round"><path d="M82 104 L80 122 M100 100 L100 120 M118 102 L120 120"/></g>';
+    if (a.pattern === 'calico') s += '<ellipse cx="88" cy="112" rx="15" ry="12" fill="' + C2 + '"/><ellipse cx="118" cy="136" rx="13" ry="11" fill="#3a322c"/>';
+    if (a.pattern === 'tuxedo') s += '<ellipse cx="134" cy="142" rx="15" ry="13" fill="' + C2 + '"/>';
+    // 手前側の脚2本（前脚は一歩前へ＝歩いている）
+    s += leg(60, 152, 32, legNear) + leg(144, 148, 36, legNear);
+    // 頭（進行方向=右）
+    s += quadEars(a, isCat);
+    s += '<circle cx="150" cy="90" r="34" fill="' + C + '"' + olAttr() + '/>';
+    // 口元
+    s += '<ellipse cx="168" cy="102" rx="13" ry="9.5" fill="' + MZ + '"/>';
+    if (a.pattern === 'point') s += '<ellipse cx="168" cy="102" rx="13" ry="9.5" fill="' + C2 + '" opacity=".92"/>';
+    if (a.pattern === 'tan') s += '<ellipse cx="142" cy="74" rx="7" ry="5" fill="' + C2 + '"/>';
+    if (a.pattern === 'tabby') s += '<g fill="none" stroke="' + C2 + '" stroke-width="2.2" stroke-linecap="round"><path d="M140 60 L146 68 M152 58 L154 67"/></g>';
+    // 顔（横向きは目1つ）
+    s += eye(152, 88, mood, a.eye, 9.5, dark);
+    s += '<ellipse cx="176" cy="98" rx="4" ry="3.2" fill="' + (isCat ? '#ef8da0' : '#241a12') + '"/>';
+    s += '<path d="M166 108 q5 4 10 0" fill="none" stroke="' + (dark ? LIGHT_INK : '#2a2018') + '" stroke-width="2.2" stroke-linecap="round"/>';
+    if (isCat) s += '<g stroke="' + (dark ? 'rgba(240,230,216,.65)' : 'rgba(90,70,50,.5)') + '" stroke-width="1.4" stroke-linecap="round"><path d="M160 100 L144 96 M160 104 L144 104"/></g>';
+    if (mood !== 'sad') s += blush(142, 102, 8, 0.5);
+
+    var sc = stage === 1 ? 0.62 : stage === 2 ? 0.82 : 1;
+    return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="104" cy="190" rx="' + (62 * sc) + '" ry="8" fill="rgba(120,90,60,.14)"/>' +
+      '<g transform="translate(104 184) scale(' + sc + ') translate(-104 -184)">' + s + '</g></svg>';
+  }
+
+  /** 横向きの耳（頭の後ろに先に描く） */
+  function quadEars(a, isCat) {
+    var c = a.pattern === 'point' ? a.color2 : a.color;
+    if (a.ear === 'flop') {
+      return '<ellipse cx="132" cy="74" rx="9" ry="17" fill="' + darken(a.color, 30) + '"' + olAttr() + ' transform="rotate(14 132 74)"/>' +
+        '<ellipse cx="158" cy="70" rx="9" ry="17" fill="' + darken(a.color, 26) + '"' + olAttr() + ' transform="rotate(22 158 70)"/>';
+    }
+    if (a.ear === 'round') {
+      return '<circle cx="132" cy="62" r="12" fill="' + c + '"' + olAttr() + '/><circle cx="160" cy="58" r="12" fill="' + c + '"' + olAttr() + '/>';
+    }
+    if (a.ear === 'fold') {
+      return '<path d="M126 66 Q120 50 136 52 Q142 60 138 68 Z" fill="' + c + '"' + olAttr() + '/>' +
+        '<path d="M154 60 Q150 44 166 48 Q170 56 164 64 Z" fill="' + c + '"' + olAttr() + '/>';
+    }
+    if (a.ear === 'bigprick') {
+      return '<path d="M128 70 L118 28 L148 56 Z" fill="' + c + '"' + olAttr() + '/>' +
+        '<path d="M156 64 L158 22 L182 52 Z" fill="' + c + '"' + olAttr() + '/>';
+    }
+    var ty = isCat ? 34 : 40;
+    return '<path d="M130 68 L124 ' + ty + ' L150 58 Z" fill="' + c + '"' + olAttr() + '/>' +
+      '<path d="M158 62 L162 ' + (ty - 4) + ' L182 56 Z" fill="' + c + '"' + olAttr() + '/>';
+  }
+
   /** stage: 0=おくるみ(ねんね),1=赤ちゃん,2=子,3=成体 / mood: happy|normal|sad */
-  function petSVG(breed, stage, mood) {
+  function petSVG(breed, stage, mood, pose) {
     if (stage <= 0) return STYLE.renderer === 'pixel' ? pixelBundleSVG(breed) : bundleSVG(breed);
     // pixelate はベクターの絵をそのまま使う（ドット化は Art.mount のキャンバス側で行う）
     mood = mood || 'normal';
+    if (pose === 'quad') return quadSVG(breed, mood, stage);
     if (STYLE.renderer === 'pixel') return pixelSVG(breed, stage, mood);
     var a = breed.art;
     var inner = a.base === 'cat' ? buildCat(a, mood) : buildDog(a, mood);

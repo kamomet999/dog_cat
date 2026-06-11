@@ -424,12 +424,14 @@
     var ov = $('walkOverlay');
     if (!ov.firstChild) {
       ov.innerHTML = '<div class="walk-screen">' +
-        '<div class="walk-emoji">🐕🐈</div>' +
+        '<div id="walkPet" class="walk-pet"></div>' +
         '<div class="walk-title">おさんぽちゅう…</div>' +
         '<div id="walkTimer" class="walk-timer"></div>' +
         '<p id="walkMsg" class="walk-msg"></p>' +
         '<button id="walkCancel" class="big-btn ghost" style="margin-top:18px">あきらめる</button>' +
         '</div>';
+      // おさんぽ中は「動物としてふるまう場面」＝4足歩行ポーズで歩く
+      Art.mount(ov.querySelector('#walkPet'), Art.petSVG(Engine.breed(), Engine.stage(), 'happy', 'quad'));
       ov.querySelector('#walkCancel').addEventListener('click', function () {
         var res = Engine.cancelWalk(now());
         if (window.Native) Native.walkEnded();
