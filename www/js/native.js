@@ -12,6 +12,7 @@
   var P = isNative && cap.Plugins ? cap.Plugins : null;
 
   var WALK_NOTIF_ID = 1001;
+  var TASK_NOTIF_ID = 1002;
 
   var Native = {
     isNative: isNative,
@@ -44,7 +45,27 @@
       }).catch(function () { /* 通知が使えなくてもゲームは続行 */ });
     },
 
-    /** おさんぽ開始：満了時刻に「おかえり」通知を予約 */
+    /** さんぽ（課題）開始: 終了時刻に「おかえり」通知を予約 */
+    taskStarted: function (task) {
+      if (!P || !P.LocalNotifications || !task) return;
+      P.LocalNotifications.requestPermissions().then(function (r) {
+        if (!r || r.display !== 'granted') return;
+        return P.LocalNotifications.schedule({
+          notifications: [{
+            id: TASK_NOTIF_ID,
+            title: 'おさんぽ おわり！🐾',
+            body: 'いいじかんを いっしょに すごせたよ。えらい！',
+            schedule: { at: new Date(task.endsAt), allowWhileIdle: true }
+          }]
+        });
+      }).catch(function () {});
+    },
+    taskEnded: function () {
+      if (!P || !P.LocalNotifications) return;
+      P.LocalNotifications.cancel({ notifications: [{ id: TASK_NOTIF_ID }] }).catch(function () {});
+    },
+
+    /** ごはんさがし開始：満了時刻に「おかえり」通知を予約 */
     walkStarted: function (walk) {
       if (!P || !P.LocalNotifications || !walk) return;
       P.LocalNotifications.requestPermissions().then(function (r) {
@@ -52,8 +73,8 @@
         return P.LocalNotifications.schedule({
           notifications: [{
             id: WALK_NOTIF_ID,
-            title: 'おさんぽ せいこう！🐾',
-            body: 'むかえにきてね。ごほうびがまってるよ',
+            title: 'ごはんさがし せいこう！🍖',
+            body: 'えさを もってかえったよ。むかえにきてね',
             schedule: { at: new Date(walk.endsAt), allowWhileIdle: true }
           }]
         });

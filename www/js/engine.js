@@ -7,18 +7,32 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 3;
+  var VERSION = 5;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
 
-  // ----- いのち（生存システム。docs/GAME_DESIGN.md が正）-----
-  // 生存条件は「おなか」と「おさんぽ充足(detox)」。どちらかが尽きると いのち が減り、0でおわかれ。
-  var DETOX_DECAY = 100 / 72;   // おさんぽ充足の自然減衰 /h（3日で空）
-  var STARVE_DRAIN = 100 / 24;  // おなか0のあいだの いのち消耗 /h
-  var DETOX_DRAIN = 100 / 24;   // おさんぽ充足0のあいだの いのち消耗 /h
-  var HEALTH_REGEN = 100 / 48;  // 両方>30のときの回復 /h
-  function walkDetoxGain(minutes) { return 30 + minutes / 3; } // 30分=+40 / 1h=+50 / 2h=+70
+  // ----- いのちと家出（生存システム。docs/GAME_DESIGN.md が正）-----
+  // ごはん（えさ）を切らすと おほしさま（死・リミット短め／ストックが日数バッファ）。
+  // さんぽ（学習・運動などのいい時間）を怠ると 家出（リミット長め）。
+  var SANPO_DECAY = 100 / 168;  // さんぽゲージの自然減衰 /h（1週間で空＝リミット長め）
+  var STARVE_DRAIN = 100 / 24;  // おなか0のあいだの いのち消耗 /h（空腹12h+24h=ストック切れから36hでおわかれ）
+  var HEALTH_REGEN = 100 / 48;  // おなか>30のときの いのち回復 /h
+  var RUNAWAY_H = 72;           // さんぽゲージ0がこの時間つづくと家出（7日+3日=計10日で出ていく）
+  // えさ: スマホを触らない時間で貯まり、自動で与えられる
+  var FOOD_PER_HOUR = 0.1;      // アプリを閉じている時間の弱い補給（2.4えさ/日。主獲得は「ごはんさがし」セッション）
+  var FOOD_STOCK_MAX = 21;      // ストック上限（約1週間ぶん）
+  var FOOD_HUNGER = 60;         // えさ1つぶん の満腹回復
+  var AUTO_FEED_AT = 40;        // おなかがこれ未満になったら自動給餌
+  // ----- えさ（食料の源泉はスマホを置いた時間。GAME_DESIGN.md §2.5）-----
+  var FOOD_COST = 20;                  // コインでの購入（コイン=放置時間の蓄積→これも間接デトックス由来）
+  var HAND_FEED_BONUS = { mood: 8, xp: 4 }; // 自動給餌でなく「てであげる」と仲が深まる
+  function walkFoodGain(minutes) { return minutes >= 120 ? 8 : minutes >= 60 ? 4 : 2; } // ごはんさがし（伏せセッション）の持ち帰り
+  var STARTER_STOCK = 6;
+  // さんぽ（課題セッション）: 読書・英語・運動など。失敗なし・時間ぶんゲージ回復
+  var TASK_KINDS = ['どくしょ', 'えいご', 'うんどう', 'ジョグ', 'しゅうちゅう'];
+  var TASK_OPTIONS = [15, 30, 60];     // 分
+  function taskSanpoGain(minutes) { return 20 + minutes; } // 15分=+35 / 30分=+50 / 60分=+80
 
   // ----- おさんぽ（Forest型セッション）-----
   // 開始後はアプリを閉じて過ごす。満了前にアプリへ戻ると失敗（開始直後の猶予あり）。
@@ -33,12 +47,11 @@
   // 成長に必要な累積なかよし度（xp）。index=到達stage
   var GROW = [0, 12, 70, 180]; // 0:おくるみ(ねんね) 1:赤ちゃん 2:子 3:成体
 
-  // 1時間あたりの自然減衰量
-  var DECAY = { hunger: 12.5, mood: 8.34, clean: 6.25, energy: 10 };
+  // 1時間あたりの自然減衰量（hungerは12hで空＝1日3〜4食ペース）
+  var DECAY = { hunger: 8.34, mood: 8.34, clean: 6.25, energy: 10 };
 
-  // 世話アクション効果
+  // 世話アクション効果（ごはんは在庫制の feed() に分離。GAME_DESIGN.md §2.5）
   var CARE = {
-    feed:  { hunger: 38, xp: 8, coin: 3, label: 'ごはん' },
     play:  { mood: 32, energy: -8, xp: 8, coin: 3, label: 'あそぶ' },
     wash:  { clean: 42, xp: 8, coin: 3, label: 'おそうじ' },
     sleep: { energy: 45, mood: 5, xp: 6, coin: 2, label: 'ねんね' }
@@ -63,7 +76,8 @@
       breedId: breedId,
       xp: 0,
       hunger: 72, mood: 72, clean: 78, energy: 78,
-      health: 100, detox: 100,
+      health: 100, sanpo: 100,
+      runawayH: 0, away: false,
       careCount: 0
     };
   }
@@ -78,6 +92,9 @@
       lastSavedAt: now,
       graduates: 0,
       deaths: 0,            // おほしさまになった子の数
+      runaways: 0,          // 家出していった子の数
+      foodStock: STARTER_STOCK, // えさストック（小数あり。表示は切り捨て）
+      task: null,           // { startedAt, endsAt, minutes, kind } さんぽ（課題）中のみ
       walk: null,           // { startedAt, endsAt, minutes } おさんぽ中のみ
       walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }
     };
@@ -110,6 +127,23 @@
         current: s.current ? { ...s.current, health: 100, detox: 100 } : null
       };
     }
+    if (s.version === 3) {
+      s = {
+        ...s,
+        version: 4,
+        runaways: 0,
+        items: { kibble: 5, souvenir: 1 },
+        current: s.current ? { ...s.current, runawayH: 0, away: false } : null
+      };
+    }
+    if (s.version === 4) {
+      var stock = s.items ? (s.items.kibble || 0) + (s.items.souvenir || 0) : STARTER_STOCK;
+      var cur = s.current ? { ...s.current, sanpo: s.current.detox == null ? 100 : s.current.detox } : null;
+      if (cur) delete cur.detox;
+      var s5 = { ...s, version: 5, foodStock: stock, task: null, current: cur };
+      delete s5.items;
+      s = s5;
+    }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
 
@@ -134,33 +168,59 @@
     var coinGain = (50 * rHours) * (0.4 + 0.6 * hf);
 
     var hunger = p.hunger, mood = p.mood, clean = p.clean, energy = p.energy;
-    var detox = p.detox == null ? 100 : p.detox;
+    var sanpo = p.sanpo == null ? 100 : p.sanpo;
     var health = p.health == null ? 100 : p.health;
+    var runawayH = p.runawayH || 0;
+    var away = !!p.away;
+    var stock = state.foodStock == null ? STARTER_STOCK : state.foodStock;
+    var earnLeft = rewardMs / H;   // えさ獲得はスマホを置いていた時間（報酬と同じ24h上限）
+    var autoFed = 0;
     var remaining = simMs / H;
-    while (remaining > 0 && health > 0) {
+    while (remaining > 0 && health > 0 && !away) {
       var dt = remaining < 0.25 ? remaining : 0.25;
       remaining -= dt;
+      // えさ獲得（スマホを触らない時間がそのまま えさ になる）
+      if (earnLeft > 0) {
+        var edt = earnLeft < dt ? earnLeft : dt;
+        stock = Math.min(FOOD_STOCK_MAX, stock + FOOD_PER_HOUR * edt);
+        earnLeft -= edt;
+      }
       hunger = clamp(hunger - DECAY.hunger * dt, 0, 100);
       mood   = clamp(mood   - DECAY.mood   * dt, 0, 100);
       clean  = clamp(clean  - DECAY.clean  * dt, 0, 100);
       energy = clamp(energy - DECAY.energy * dt, 0, 100);
-      detox  = clamp(detox  - DETOX_DECAY  * dt, 0, 100);
+      sanpo  = clamp(sanpo  - SANPO_DECAY  * dt, 0, 100);
+      // 自動給餌（ストックがあるかぎり、何日先まででも勝手にごはんを食べる）
+      if (!stage0 && hunger < AUTO_FEED_AT && stock >= 1) {
+        stock -= 1;
+        hunger = clamp(hunger + FOOD_HUNGER, 0, 100);
+        autoFed++;
+      }
       if (!stage0) {
-        var drain = (hunger <= 0 ? STARVE_DRAIN : 0) + (detox <= 0 ? DETOX_DRAIN : 0);
-        if (drain > 0) health = clamp(health - drain * dt, 0, 100);
-        else if (hunger > 30 && detox > 30) health = clamp(health + HEALTH_REGEN * dt, 0, 100);
+        // いのち＝ごはん。飢えで減り、満たされていれば回復する（リミット短め）
+        if (hunger <= 0) health = clamp(health - STARVE_DRAIN * dt, 0, 100);
+        else if (hunger > 30) health = clamp(health + HEALTH_REGEN * dt, 0, 100);
+        // 家出＝さんぽ（いい時間）。ゲージ0がつづくと、あたらしい家族をさがしに出ていく（リミット長め）
+        if (sanpo <= 0) {
+          runawayH += dt;
+          if (runawayH >= RUNAWAY_H) away = true;
+        } else {
+          runawayH = 0;
+        }
       }
     }
     var died = !stage0 && health <= 0;
+    var ranAway = !stage0 && away && !died;
 
     var np = {
       ...p,
       xp: p.xp + xpGain,
       hunger: hunger, mood: mood, clean: clean, energy: energy,
-      detox: detox, health: health
+      sanpo: sanpo, health: health,
+      runawayH: runawayH, away: away
     };
-    var ns = { ...state, current: np, coin: state.coin + coinGain };
-    return { state: ns, coinGain: coinGain, xpGain: xpGain, died: died };
+    var ns = { ...state, current: np, coin: state.coin + coinGain, foodStock: stock };
+    return { state: ns, coinGain: coinGain, xpGain: xpGain, died: died, ranAway: ranAway, autoFed: autoFed };
   }
 
   // ====== 公開API ======
@@ -219,7 +279,9 @@
         beforeStage: beforeStage,
         afterStage: stageOf(ns.current.xp),
         before: beforeStatus,
-        died: r.died
+        died: r.died,
+        ranAway: r.ranAway,
+        autoFed: r.autoFed || 0
       };
     },
 
@@ -232,6 +294,91 @@
       var r = advance(s, clamp(ms, 0, MAX_SIM), clamp(ms, 0, MAX_OFFLINE));
       this._state = { ...r.state, lastSavedAt: now };
       persist(this._state);
+    },
+
+    FOOD_HUNGER: FOOD_HUNGER,
+    FOOD_COST: FOOD_COST,
+    TASK_KINDS: TASK_KINDS,
+    TASK_OPTIONS: TASK_OPTIONS,
+
+    /** えさストック（表示用に切り捨てた数と「あと何日ぶん」） */
+    foodInfo: function () {
+      var s = this._state;
+      var stock = s ? (s.foodStock == null ? 0 : s.foodStock) : 0;
+      // 1日の消費 ≈ 自動給餌3回ぶん
+      return { stock: Math.floor(stock), days: stock / 3 };
+    },
+
+    /** てであげる（自動給餌と違い、なかよし＋機嫌のボーナス） */
+    feed: function (now) {
+      var s = this._state;
+      if (!s || !s.current) return null;
+      var stock = s.foodStock == null ? 0 : s.foodStock;
+      if (stock < 1) return { error: 'no_food' };
+      var p = s.current;
+      var np = {
+        ...p,
+        xp: p.xp + HAND_FEED_BONUS.xp,
+        hunger: clamp(p.hunger + FOOD_HUNGER, 0, 100),
+        mood: clamp(p.mood + HAND_FEED_BONUS.mood, 0, 100),
+        careCount: p.careCount + 1
+      };
+      var ns = { ...s, current: np, foodStock: stock - 1, lastSavedAt: now };
+      this._state = ns;
+      persist(ns);
+      return { stageBefore: stageOf(p.xp), stageAfter: stageOf(np.xp), left: Math.floor(ns.foodStock) };
+    },
+
+    /** えさを買う（コイン消費。コイン=放置時間の蓄積） */
+    buyFood: function (now) {
+      var s = this._state;
+      if (!s) return null;
+      if (s.coin < FOOD_COST) return { error: 'no_coin' };
+      var stock = Math.min(FOOD_STOCK_MAX, (s.foodStock == null ? 0 : s.foodStock) + 1);
+      var ns = { ...s, coin: s.coin - FOOD_COST, foodStock: stock, lastSavedAt: now };
+      this._state = ns;
+      persist(ns);
+      return { stock: Math.floor(stock), coin: ns.coin };
+    },
+
+    // ===== さんぽ（学習・運動などの「いい時間」。失敗なしの課題セッション） =====
+    task: function () { return this._state ? this._state.task : null; },
+
+    /** さんぽ開始（kind: TASK_KINDS, minutes: TASK_OPTIONS）。他アプリの使用OK・失敗なし */
+    startTask: function (kind, minutes, now) {
+      var s = this._state;
+      if (!s || !s.current || s.task || s.walk) return null;
+      if (TASK_OPTIONS.indexOf(minutes) < 0) return null;
+      var ns = { ...s, task: { startedAt: now, endsAt: now + minutes * 60000, minutes: minutes, kind: kind }, lastSavedAt: now };
+      this._state = ns;
+      persist(ns);
+      return ns.task;
+    },
+
+    /** さんぽの判定。満了していれば完了（ゲージ回復）。途中なら残り時間 */
+    checkTask: function (now) {
+      var s = this._state;
+      if (!s || !s.task) return null;
+      var t = s.task;
+      if (now < t.endsAt) return { result: 'ongoing', remainMs: t.endsAt - now, kind: t.kind, minutes: t.minutes };
+      var p = s.current;
+      var gain = taskSanpoGain(t.minutes);
+      var np = { ...p, sanpo: clamp((p.sanpo == null ? 100 : p.sanpo) + gain, 0, 100), runawayH: 0 };
+      var ns = { ...s, current: np, task: null, lastSavedAt: now };
+      this._state = ns;
+      persist(ns);
+      return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain };
+    },
+
+    /** さんぽをやめる（失敗ではない。ゲージ回復なしなだけ） */
+    cancelTask: function (now) {
+      var s = this._state;
+      if (!s || !s.task) return null;
+      var t = s.task;
+      var ns = { ...s, task: null, lastSavedAt: now };
+      this._state = ns;
+      persist(ns);
+      return { result: 'cancel', kind: t.kind };
     },
 
     /** 世話アクション */
@@ -270,51 +417,62 @@
 
     canGraduate: function () { return this.stage() >= 3; },
 
-    // ===== いのち（生存システム） =====
-    /** いのちが尽きているか（おくるみは死なない） */
+    // ===== いのちと家出（生存システム） =====
+    /** いのちが尽きているか＝ごはんの怠り（おくるみは死なない） */
     isDead: function () {
       var s = this._state;
       return !!(s && s.current && stageOf(s.current.xp) >= 1 && s.current.health <= 0);
     },
 
-    /** おわかれ → あたらしい子（おくるみ）をおむかえ。図鑑には登録されない */
+    /** 家出してしまったか＝おさんぽの怠り */
+    isAway: function () {
+      var s = this._state;
+      return !!(s && s.current && stageOf(s.current.xp) >= 1 && s.current.away && s.current.health > 0);
+    },
+
+    /** もういない（どちらかの結末を迎えた） */
+    isGone: function () { return this.isDead() || this.isAway(); },
+
+    /** おわかれ/見送り → あたらしい子（おくるみ）をおむかえ。図鑑には登録されない */
     farewell: function (now, rnd) {
       rnd = rnd || Math.random;
       var s = this._state;
-      if (!s || !s.current || s.current.health > 0) return null;
+      if (!s || !s.current) return null;
+      var cause = s.current.health <= 0 ? 'star' : (s.current.away ? 'away' : null);
+      if (!cause) return null;
       var breed = Breeds.get(s.current.breedId);
       var next = Breeds.roll(rnd, s.luck);
       var ns = {
         ...s,
-        deaths: (s.deaths || 0) + 1,
+        deaths: (s.deaths || 0) + (cause === 'star' ? 1 : 0),
+        runaways: (s.runaways || 0) + (cause === 'away' ? 1 : 0),
         current: freshPet(next.id),
         walk: null,
         lastSavedAt: now
       };
       this._state = ns;
       persist(ns);
-      return { breed: breed, next: next };
+      return { breed: breed, next: next, cause: cause };
     },
 
-    /** 危険の予測（通知スケジュール用）。{type:'hunger'|'detox'|'health', at:epochMs}[] を返す */
+    /** 危険の予測（通知スケジュール用）。
+        hunger=空腹予告 / detox=おさんぽ催促（家出の前ぶれ） / health=いのち警告 */
     dangerForecast: function (now) {
       var s = this._state;
       if (!s || !s.current || stageOf(s.current.xp) < 1) return [];
       var p = s.current;
       var ev = [];
-      if (p.hunger > 0) ev.push({ type: 'hunger', at: now + (p.hunger / DECAY.hunger) * H });
-      var dx = p.detox == null ? 100 : p.detox;
-      if (dx > 0) ev.push({ type: 'detox', at: now + (dx / DETOX_DECAY) * H });
-      // いのち50%割れの予測（0.5h刻みの簡易シミュレーション・96h先まで）
-      var hunger = p.hunger, detox = dx, health = p.health == null ? 100 : p.health;
+      var stock = s.foodStock == null ? 0 : s.foodStock;
+      // ストックがあるかぎり自動給餌される＝飢えるのは「ストック切れ＋おなかが空いたとき」
+      var hoursOfStock = (stock * FOOD_HUNGER + p.hunger) / DECAY.hunger;
+      var tHunger0 = hoursOfStock; // 実質の空腹到達(h)
+      ev.push({ type: 'hunger', at: now + tHunger0 * H });
+      var sp = p.sanpo == null ? 100 : p.sanpo;
+      if (sp > 0) ev.push({ type: 'sanpo', at: now + (sp / SANPO_DECAY) * H });
+      // いのち50%割れ＝飢えのみで決まるため閉形式で出せる
+      var health = p.health == null ? 100 : p.health;
       if (health > 50) {
-        for (var t = 0; t < 96; t += 0.5) {
-          hunger = clamp(hunger - DECAY.hunger * 0.5, 0, 100);
-          detox = clamp(detox - DETOX_DECAY * 0.5, 0, 100);
-          var drain = (hunger <= 0 ? STARVE_DRAIN : 0) + (detox <= 0 ? DETOX_DRAIN : 0);
-          if (drain > 0) health -= drain * 0.5;
-          if (health <= 50) { ev.push({ type: 'health', at: now + (t + 0.5) * H }); break; }
-        }
+        ev.push({ type: 'health', at: now + (tHunger0 + (health - 50) / STARVE_DRAIN) * H });
       }
       ev.sort(function (a, b) { return a.at - b.at; });
       return ev;
@@ -381,14 +539,15 @@
         var np = {
           ...p,
           xp: p.xp + xpGain,
-          mood: clamp(p.mood + WALK_MOOD, 0, 100),
-          detox: clamp((p.detox == null ? 100 : p.detox) + walkDetoxGain(w.minutes), 0, 100)
+          mood: clamp(p.mood + WALK_MOOD, 0, 100)
         };
+        var foods = walkFoodGain(w.minutes);
         var ns = {
           ...s,
           current: np,
           coin: s.coin + coinGain,
           luck: clamp(s.luck + WALK_LUCK, 0, 2),
+          foodStock: Math.min(FOOD_STOCK_MAX, (s.foodStock == null ? 0 : s.foodStock) + foods),
           walk: null,
           walkStats: {
             success: st.success + 1, fail: st.fail,
@@ -401,6 +560,7 @@
         persist(ns);
         res = {
           result: 'success', minutes: w.minutes, coinGain: coinGain,
+          foods: foods,
           xpGain: Math.floor(xpGain), streak: streak,
           isBest: streak > st.best,
           stageBefore: stageBefore, stageAfter: stageOf(np.xp)

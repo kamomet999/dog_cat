@@ -7,7 +7,7 @@
 
   var STATS = [
     { key: 'hunger', ico: '🍚', name: 'おなか' },
-    { key: 'detox',  ico: '🐾', name: 'おさんぽ' },
+    { key: 'sanpo',  ico: '🐾', name: 'さんぽ' },
     { key: 'mood',   ico: '😊', name: 'きげん' },
     { key: 'clean',  ico: '🛁', name: 'きれい' },
     { key: 'energy', ico: '⚡', name: 'げんき' }
@@ -71,6 +71,7 @@
     $('dexBtn').addEventListener('click', openDex);
     $('actBtn').addEventListener('click', onAct);
     $('walkBtn').addEventListener('click', openWalkPicker);
+    $('taskBtn').addEventListener('click', openTaskPicker);
     $('settingsBtn').addEventListener('click', openSettings);
   }
 
@@ -108,8 +109,10 @@
     var full = Math.max(0, Math.min(5, Math.ceil(h / 20)));
     var hearts = '';
     for (var i = 0; i < 5; i++) hearts += i < full ? '❤️' : '🤍';
+    var sp = p.sanpo == null ? 100 : p.sanpo;
+    var warn = h < 50 ? 'ぐあいが わるそう…' : (sp <= 0 ? 'とおくへ いきたそうにしている…' : '');
     el.innerHTML = '<span class="life-label">いのち</span><span>' + hearts + '</span>' +
-      (h < 50 ? '<span class="life-warn">ぐあいが わるそう…</span>' : '');
+      (warn ? '<span class="life-warn">' + warn + '</span>' : '');
   }
 
   function renderGrow() {
@@ -171,6 +174,7 @@
 
   // ---------- 操作 ----------
   function onCare(action) {
+    if (action === 'feed') return openFoodModal();
     var r = Engine.care(action, now());
     if (!r) return;
     happyUntil = now() + 1200;
@@ -365,7 +369,8 @@
       '<hr class="soft">' +
       '<p class="muted">おさんぽ成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ デトックス合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
       '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種' +
-      ((st.deaths || 0) > 0 ? ' ／ おほしさまになった子：<b>' + st.deaths + '</b>' : '') + '</p>' +
+      ((st.deaths || 0) > 0 ? ' ／ おほしさまになった子：<b>' + st.deaths + '</b>' : '') +
+      ((st.runaways || 0) > 0 ? ' ／ たびに でた子：<b>' + st.runaways + '</b>' : '') + '</p>' +
       '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--bad)">🗑 データをリセット</button>';
     var m = openModal(html);
     var rb = m.root.querySelector('#resetBtn');
@@ -389,8 +394,9 @@
     if (p.hunger < 25) msgs.push('おなかぺこぺこ…🍚');
     if (p.clean < 25) msgs.push('おふろにいれてあげて🛁');
     if (p.mood < 25) msgs.push('ちょっとさみしそう…😢');
-    if (p.detox != null && p.detox < 25) msgs.push('スマホをおいて おさんぽに いきたいな🐾');
+    if (p.sanpo != null && p.sanpo < 25) msgs.push('そろそろ いっしょに「いいじかん」を すごしたいな🐾');
     if (p.health != null && p.health < 50) msgs.push('なんだか ぐあいが わるそう…💧');
+    if (rep.autoFed > 0) msgs.push('るすのあいだに ごはんを ' + rep.autoFed + 'かい たべたよ🍚');
     if (rep.afterStage > rep.beforeStage) msgs.push('そのあいだに大きくなったよ！✨');
     var grewNote = rep.elapsedMs > rep.cappedMs ?
       '<p class="muted">※ 放置は24時間ぶんまで反映されます。</p>' : '';
@@ -421,9 +427,9 @@
         '<span class="emo">' + (min <= 30 ? '🐾' : min <= 60 ? '🌳' : '⛰') + '</span>' +
         '<span class="lbl">' + fmtMin(min) + '</span></button>';
     }).join('');
-    var html = '<h2>🐾 おさんぽにでかける</h2>' +
-      '<p class="sub">スマホをとじて、そのあいだは もどってこないでね。<br>' +
-      'ぶじに帰ってこられたら ぐんと育って、ごほうびがもらえるよ。<br>' +
+    var html = '<h2>🍖 ごはんさがしに でかける</h2>' +
+      '<p class="sub">スマホをふせて、そのあいだは もどってこないでね。<br>' +
+      'ぶじに帰ってこられたら <b>えさ</b> をもってかえるよ（30分=2・1時間=4・2時間=8）。<br>' +
       '<b>とちゅうでアプリをひらくと失敗</b>しちゃう…！</p>' +
       '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:12px">' + btns + '</div>' +
       '<p class="muted mt12">ながく でかけるほど ごほうびアップ。れんぞく成功でさらにアップ！<br>※はじめてから60秒いないなら、もどってもセーフだよ。</p>';
@@ -444,7 +450,7 @@
     if (!ov.firstChild) {
       ov.innerHTML = '<div class="walk-screen">' +
         '<div id="walkPet" class="walk-pet"></div>' +
-        '<div class="walk-title">おさんぽちゅう…</div>' +
+        '<div class="walk-title">ごはんさがしちゅう…</div>' +
         '<div id="walkTimer" class="walk-timer"></div>' +
         '<p id="walkMsg" class="walk-msg"></p>' +
         '<button id="walkCancel" class="big-btn ghost" style="margin-top:18px">あきらめる</button>' +
@@ -492,11 +498,11 @@
   function showWalkSuccess(r) {
     happyUntil = now() + 2000;
     var html = '<div class="center pop">' +
-      '<h2>🎉 おさんぽ せいこう！</h2>' +
+      '<h2>🎉 ごはんさがし せいこう！</h2>' +
       '<p class="sub">' + fmtMin(r.minutes) + ' スマホからはなれられたよ。えらい！</p>' +
       '<div style="font-size:56px;margin:4px">🐾</div>' +
-      '<div style="font-weight:800;color:var(--coin);font-size:18px">＋' + r.coinGain + ' コイン</div>' +
-      '<div style="font-weight:800;color:var(--accent-d)">なかよし ＋' + r.xpGain + '</div>' +
+      '<div style="font-weight:800;color:var(--coin);font-size:18px">🍖 えさ ×' + r.foods + ' をもってかえった！</div>' +
+      '<div style="font-weight:800;color:var(--accent-d)">＋' + r.coinGain + ' コイン ／ なかよし ＋' + r.xpGain + '</div>' +
       '<p class="mt12">れんぞく成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（じこしんきろく！）' : '') + '</p>' +
       (r.stageAfter > r.stageBefore ? '<p style="font-weight:800">✨ おさんぽのあいだに大きくなった！</p>' : '') +
       '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button></div>';
@@ -508,10 +514,10 @@
   function showWalkFail(r) {
     var gentle = r.reason === 'cancel';
     var html = '<div class="center">' +
-      '<h2>' + (gentle ? 'おさんぽをやめたよ' : 'あっ…！') + '</h2>' +
+      '<h2>' + (gentle ? 'ごはんさがしを やめたよ' : 'あっ…！') + '</h2>' +
       '<p class="sub">' + (gentle ?
         'またこんど、いっしょにでかけようね。' :
-        'とちゅうでスマホをひらいちゃった…。<br>おさんぽは失敗。ちょっとしょんぼりしてる…') + '</p>' +
+        'とちゅうでスマホをひらいちゃった…。<br>ごはんは みつからなかった。ちょっとしょんぼりしてる…') + '</p>' +
       '<div style="font-size:56px;margin:4px">' + (gentle ? '🐾' : '💧') + '</div>' +
       '<p class="muted">れんぞく成功はリセット。つぎはきっとだいじょうぶ！</p>' +
       '<button id="walkNg" class="big-btn primary mt12" style="width:100%">うん…</button></div>';
@@ -520,19 +526,140 @@
     if (ng) ng.addEventListener('click', m.close);
   }
 
+  // ---------- さんぽ（学習・運動などの いい時間。失敗なし） ----------
+  var TASK_EMO = { 'どくしょ': '📖', 'えいご': '🔤', 'うんどう': '💪', 'ジョグ': '🏃', 'しゅうちゅう': '🎯' };
+
+  function openTaskPicker() {
+    if (Engine.task()) return;
+    if (Engine.walk()) return showToast('いまは ごはんさがしちゅうだよ');
+    var kinds = Engine.TASK_KINDS.map(function (k) {
+      return '<button class="care-btn task-kind" data-kind="' + k + '" style="padding:10px 2px">' +
+        '<span class="emo">' + (TASK_EMO[k] || '🐾') + '</span><span class="lbl">' + k + '</span></button>';
+    }).join('');
+    var mins = Engine.TASK_OPTIONS.map(function (m2) {
+      return '<button class="care-btn task-min" data-min="' + m2 + '" style="padding:10px 2px"><span class="lbl">' + m2 + 'ふん</span></button>';
+    }).join('');
+    var html = '<h2>🐾 おさんぽ（いいじかん）</h2>' +
+      '<p class="sub">どくしょ・えいご・うんどうなど、じぶんできめた「いいじかん」のあいだ、' +
+      'この子は となりを おさんぽしてる気分。<br>KindleやえいごアプリをつかってもOK。<b>失敗はないよ</b>。</p>' +
+      '<div class="dex-section-title">なにをする？</div>' +
+      '<div class="care-grid" style="grid-template-columns:repeat(5,1fr);gap:8px">' + kinds + '</div>' +
+      '<div class="dex-section-title">どのくらい？</div>' +
+      '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:8px">' + mins + '</div>' +
+      '<button id="taskStart" class="big-btn primary mt12" style="width:100%" disabled>はじめる</button>';
+    var m = openModal(html);
+    var kind = null, min = null;
+    function refresh() {
+      m.root.querySelectorAll('.task-kind').forEach(function (b) { b.style.outline = b.getAttribute('data-kind') === kind ? '3px solid var(--accent-d)' : 'none'; });
+      m.root.querySelectorAll('.task-min').forEach(function (b) { b.style.outline = parseInt(b.getAttribute('data-min'), 10) === min ? '3px solid var(--accent-d)' : 'none'; });
+      m.root.querySelector('#taskStart').disabled = !(kind && min);
+    }
+    m.root.querySelectorAll('.task-kind').forEach(function (b) {
+      b.addEventListener('click', function () { kind = b.getAttribute('data-kind'); refresh(); });
+    });
+    m.root.querySelectorAll('.task-min').forEach(function (b) {
+      b.addEventListener('click', function () { min = parseInt(b.getAttribute('data-min'), 10); refresh(); });
+    });
+    m.root.querySelector('#taskStart').addEventListener('click', function () {
+      var t = Engine.startTask(kind, min, now());
+      if (!t) return;
+      if (window.Native) Native.taskStarted(t);
+      m.close();
+      renderTaskRow();
+      showToast('🐾 いってらっしゃい！');
+    });
+  }
+
+  function renderTaskRow() {
+    var el = $('taskRow');
+    if (!el) return;
+    var t = Engine.task();
+    if (!t) { el.innerHTML = ''; el.style.display = 'none'; return; }
+    var remain = Math.max(0, t.endsAt - now());
+    el.style.display = 'flex';
+    el.innerHTML = '<span>' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + 'で おさんぽちゅう… のこり ' + fmtMMSS(remain) + '</span>' +
+      '<button id="taskCancel">やめる</button>';
+    var c = el.querySelector('#taskCancel');
+    if (c) c.addEventListener('click', function () {
+      Engine.cancelTask(now());
+      if (window.Native) Native.taskEnded();
+      renderTaskRow();
+      showToast('また こんど いこうね');
+    });
+  }
+
+  function syncTask() {
+    var t = Engine.task();
+    if (!t) { renderTaskRow(); return; }
+    var r = Engine.checkTask(now());
+    if (r && r.result === 'done') {
+      if (window.Native) Native.taskEnded();
+      renderTaskRow();
+      happyUntil = now() + 1500;
+      lastArtKey = '';
+      render();
+      showToast('🐾 おさんぽから かえってきた！えらい！（さんぽ +' + r.gain + '）');
+    } else {
+      renderTaskRow();
+    }
+  }
+
+  // ---------- えさ（ごはん） ----------
+  function openFoodModal() {
+    var info = Engine.foodInfo();
+    var st = Engine.getState();
+    var days = info.days >= 1 ? ('あと約' + Math.floor(info.days) + '日ぶん') : 'もうすぐ なくなりそう…';
+    var html = '<h2>🍚 ごはん</h2>' +
+      '<p class="sub">えさは <b>スマホをはなれた時間</b> でたまるよ。<br>ストックがあるあいだは じどうで たべてくれる。</p>' +
+      '<div class="center" style="font-size:34px;margin:4px">🍖 ×' + info.stock + '</div>' +
+      '<p class="center muted">' + (info.stock > 0 ? days : 'えさがないよ。ごはんさがしに いこう') + '</p>' +
+      '<button id="handFeed" class="big-btn primary mt12" style="width:100%"' + (info.stock < 1 ? ' disabled' : '') + '>🤲 てであげる（なかよしアップ）</button>' +
+      '<button id="buyFood" class="big-btn ghost mt12" style="width:100%"' + (st.coin < Engine.FOOD_COST ? ' disabled' : '') + '>🪙 えさを かう（' + Engine.FOOD_COST + 'コイン）</button>' +
+      '<p class="muted mt12">たくさん ほしいときは「🍖 ごはんさがし」（スマホをふせる）が いちばん。</p>';
+    var m = openModal(html);
+    var hf = m.root.querySelector('#handFeed');
+    if (hf) hf.addEventListener('click', function () {
+      var r = Engine.feed(now());
+      if (!r || r.error) return showToast('えさが ないよ…');
+      m.close();
+      happyUntil = now() + 1200;
+      bump('bounce');
+      render();
+      showToast('🍚 もぐもぐ…おいしいね');
+      if (r.stageAfter > r.stageBefore) celebrateGrowth(r.stageAfter);
+    });
+    var bf = m.root.querySelector('#buyFood');
+    if (bf) bf.addEventListener('click', function () {
+      var r = Engine.buyFood(now());
+      if (!r || r.error) return showToast('コインが たりないよ');
+      m.close();
+      render();
+      showToast('🍖 えさを かった！');
+    });
+  }
+
   // ---------- おわかれ ----------
   var farewellOpen = false;
   function showFarewell() {
     if (farewellOpen) return;
     farewellOpen = true;
     hideWalkOverlay();
+    renderTaskRow();
     var b = Engine.breed();
-    var html = '<div class="center">' +
-      '<h2>' + b.name + 'は<br>おほしさまに なりました</h2>' +
-      '<p class="sub">ごはんと おさんぽが たりなかったみたい。<br>いっしょに すごした じかんは きえないよ。</p>' +
-      '<div style="font-size:56px;margin:10px">🌟</div>' +
-      '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">あたらしい子を おむかえする</button>' +
-      '</div>';
+    var away = Engine.isAway();
+    var html = away
+      ? '<div class="center">' +
+        '<h2>' + b.name + 'は<br>たびに でました</h2>' +
+        '<p class="sub">いっしょの「いいじかん」が たりなくて、<br>あたらしい かぞくを さがしに いったみたい。<br>どこかで げんきに しているよ。</p>' +
+        '<div style="font-size:56px;margin:10px">🎒</div>' +
+        '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">あたらしい子を おむかえする</button>' +
+        '</div>'
+      : '<div class="center">' +
+        '<h2>' + b.name + 'は<br>おほしさまに なりました</h2>' +
+        '<p class="sub">ごはんが たりなかったみたい。<br>いっしょに すごした じかんは きえないよ。</p>' +
+        '<div style="font-size:56px;margin:10px">🌟</div>' +
+        '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">あたらしい子を おむかえする</button>' +
+        '</div>';
     var m = openModal(html, { closable: false });
     m.root.querySelector('#fwBtn').addEventListener('click', function () {
       Engine.farewell(now());
@@ -561,8 +688,9 @@
     var pre = Engine.stage();
     Engine.tick(now());
     var post = Engine.stage();
-    if (Engine.isDead()) { render(); showFarewell(); return; }
+    if (Engine.isGone()) { render(); showFarewell(); return; }
     syncWalk();
+    syncTask();
     render();
     if (post > pre) celebrateGrowth(post);
   }
@@ -576,9 +704,10 @@
     } else {
       var rep = Engine.applyOffline(now());
       render();
-      if ((rep && rep.died) || Engine.isDead()) {
+      if ((rep && (rep.died || rep.ranAway)) || Engine.isGone()) {
         showFarewell();
       } else {
+        syncTask();
         // おさんぽの結果（成功/失敗/継続）があればそちらを優先表示
         var wr = syncWalk();
         if (!wr) showReturn(rep);
@@ -586,17 +715,18 @@
     }
     function onResume() {
       var rep = Engine.applyOffline(now());
-      if (rep && rep.died) { render(); showFarewell(); return; }
+      if ((rep && (rep.died || rep.ranAway)) || Engine.isGone()) { render(); showFarewell(); return; }
       syncWalk();
+      syncTask();
       render();
     }
     // バックグラウンドへ行く瞬間に「危険の予告」をローカル通知でスケジュール（GAME_DESIGN.md §4）
     function onPause() {
       if (!window.Native) return;
       var MSG = {
-        hunger: { id: 2001, title: 'おなか ぺこぺこだよ…🍚', body: 'ごはんを わすれないでね' },
-        detox:  { id: 2002, title: 'そろそろ おさんぽに いきたいな🐾', body: 'スマホを おいて いっしょに でかけよう' },
-        health: { id: 2003, title: 'ぐあいが わるいみたい…💧', body: 'ごはんと おさんぽを おねがい' }
+        hunger: { id: 2001, title: 'えさが なくなりそう…🍚', body: 'スマホを おいて ごはんさがしに いこう' },
+        sanpo:  { id: 2002, title: 'いっしょの じかんが ほしいな🐾', body: 'どくしょや うんどうの あいだ、となりに いさせて。とおくへ いっちゃう まえに' },
+        health: { id: 2003, title: 'ぐあいが わるいみたい…💧', body: 'えさを わすれないで。おねがい' }
       };
       var plan = Engine.dangerForecast(now()).map(function (e) {
         var m = MSG[e.type];
