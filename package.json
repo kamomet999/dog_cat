@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "test": "node tests/test_engine.js",
+    "snap": "NODE_PATH=$(npm root -g) node tests/visual/snapshot.js",
     "sync": "cap sync"
   },
   "dependencies": {
