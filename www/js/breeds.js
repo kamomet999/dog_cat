@@ -171,12 +171,13 @@
   ];
 
   // レアリティ設定（抽選の重み・表示色・日本語ラベル）
+  // 色は白文字チップが成立する暗色版（DESIGN.md §2 実測コントラスト準拠）
   var RARITY = {
-    common:    { weight: 50, label: 'コモン',     color: '#9aa0a6', stars: 1 },
-    uncommon:  { weight: 25, label: 'アンコモン', color: '#3fa86b', stars: 2 },
-    rare:      { weight: 14, label: 'レア',       color: '#3f7fd6', stars: 3 },
-    epic:      { weight: 8,  label: 'エピック',   color: '#9a4fd6', stars: 4 },
-    legendary: { weight: 3,  label: 'レジェンド', color: '#e0a93a', stars: 5 }
+    common:    { weight: 50, label: 'コモン',     color: '#6d747c', stars: 1 },
+    uncommon:  { weight: 25, label: 'アンコモン', color: '#2e8757', stars: 2 },
+    rare:      { weight: 14, label: 'レア',       color: '#2f6fc4', stars: 3 },
+    epic:      { weight: 8,  label: 'エピック',   color: '#8a42c8', stars: 4 },
+    legendary: { weight: 3,  label: 'レジェンド', color: '#a87613', stars: 5 }
   };
 
   // 性格タイプ（nature）。各品種に1つ。一言はホーム・図鑑詳細で使う

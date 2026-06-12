@@ -4,13 +4,16 @@
   --bg2: #f6e7d8;
   --card: #ffffff;
   --ink: #4a3f35;
-  --ink-soft: #8a7d6d;
+  --ink-soft: #6f6354;     /* 補助文字。on bg1 5.45（DESIGN.md §2） */
   --accent: #ff9a76;
   --accent-d: #f47b54;
-  --coin: #f2b134;
+  --on-accent: #4a3f35;    /* アクセント地の上の文字。白は禁止（2.07で不合格） */
+  --coin: #f2b134;         /* 塗り専用。文字には --coin-text を使う */
+  --coin-text: #9c6d10;    /* コイン系の文字。on白 4.56 */
   --good: #7ac77a;
   --warn: #e8a13a;
-  --bad: #e06464;
+  --bad: #e06464;          /* バーの塗りのみ。UIの警告・文字には使わない */
+  --badge-new: #c2453f;    /* NEWバッジ地色。白文字 4.98 */
   --shadow: 0 8px 24px rgba(120, 90, 60, 0.18);
   --radius: 22px;
 }
@@ -158,7 +161,7 @@ body {
 .care-btn:active { transform: scale(.92); }
 .care-btn .emo { font-size: 24px; }
 .care-btn .lbl { font-size: 11px; font-weight: 700; color: var(--ink); }
-.care-btn .cost { font-size: 10px; color: var(--coin); font-weight: 800; }
+.care-btn .cost { font-size: 10px; color: var(--coin-text); font-weight: 800; }
 .care-btn:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ---- 下部ボタン ---- */
@@ -170,11 +173,11 @@ body {
   transition: transform .1s;
 }
 .big-btn:active { transform: scale(.96); }
-.big-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-d)); color: #fff; }
+.big-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-d)); color: var(--on-accent); }
 .big-btn.ghost { background: var(--card); color: var(--ink); }
 .big-btn:disabled { opacity: .5; cursor: not-allowed; }
 .badge-new {
-  background: var(--bad); color:#fff; font-size: 10px; font-weight: 800;
+  background: var(--badge-new); color:#fff; font-size: 10px; font-weight: 800;
   border-radius: 999px; padding: 1px 7px; margin-left: 2px;
 }
 
@@ -210,17 +213,19 @@ body {
 button.dex-cell { cursor: pointer; transition: transform .1s; }
 button.dex-cell:active { transform: scale(.94); }
 .dex-cell.found { border-color: #ffd9a6; }
-.dex-cell.locked .thumb.silhouette { filter: grayscale(1) brightness(0) opacity(.22); }
+.dex-cell.locked .thumb.silhouette { filter: grayscale(1) brightness(0) opacity(.32); }
 .dex-cell .count-dot {
-  position: absolute; top: 5px; left: 5px; background: var(--coin); color: #fff;
-  font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 999px;
+  position: absolute; top: 5px; left: 5px; background: var(--coin); color: var(--ink);
+  font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px;
 }
 .dex-cell .thumb { width: 64px; height: 64px; margin: 0 auto; }
 .dex-cell .dn { font-size: 11px; font-weight: 700; margin-top: 2px; line-height: 1.2; min-height: 26px; display:flex; align-items:center; justify-content:center;}
 .dex-cell.locked .dn { color: var(--ink-soft); }
-.dex-cell .stars { font-size: 9px; }
-.dex-cell .new-dot { position:absolute; top:5px; right:5px; background:var(--bad); color:#fff;
-  font-size:8px; font-weight:800; padding:1px 5px; border-radius:999px; }
+.dex-cell .stars { font-size: 10px; }
+.dex-cell .new-dot { position:absolute; top:5px; right:5px; background:var(--badge-new); color:#fff;
+  font-size:10px; font-weight:800; padding:1px 5px; border-radius:999px; }
+/* 差別化の旗（図鑑フッターの1行のみ。出す場所はアプリ内でここだけ） */
+.dex-flag { text-align:center; font-size:11px; font-weight:700; color:var(--ink-soft); margin:16px 0 2px; }
 
 /* お迎え（孵化）結果 */
 .hatch-art { width: 160px; height: 160px; margin: 0 auto 6px; }
@@ -268,3 +273,17 @@ hr.soft { border: none; border-top: 1px dashed #e3d6c4; margin: 14px 0; }
 }
 .walk-msg { font-size: 13px; color: #cfe3cf; line-height: 1.7; margin: 4px 0 0; }
 .walk-screen .big-btn.ghost { background: rgba(255,255,255,.12); color: #f2f7ee; box-shadow: none; }
+
+/* ---- アクセシビリティ（DESIGN.md §4・§5） ---- */
+/* キーボード操作時のフォーカスリング（全ボタン） */
+button:focus-visible {
+  outline: 2px solid var(--accent-d);
+  outline-offset: 2px;
+}
+/* 前庭障害への配慮: infinite 系の環境アニメ（呼吸・浮遊）を停止。UI遷移は残す */
+@media (prefers-reduced-motion: reduce) {
+  .pet-stage svg, .pet-stage canvas, .walk-pet { animation: none; }
+}
+
+/* シェアされる瞬間（§10.5）: 控えめなウォーターマーク */
+.watermark { font-size: 10px; font-weight: 700; color: var(--ink-soft); margin-top: 10px; text-align: center; }

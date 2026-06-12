@@ -277,15 +277,34 @@
       '<div class="hatch-name">' + b.name + ' が巣立ったよ</div>' +
       '<div class="hatch-rare"><span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span></div>' +
       '<div class="hatch-desc">' + b.desc + '</div>' +
-      '<div class="mt12" style="font-weight:800;color:var(--coin)">＋' + res.reward + ' コイン' + (res.isNew ? '（はつ登録ボーナス込み）' : '') + '</div>' +
+      '<div class="mt12" style="font-weight:800;color:var(--coin-text)">＋' + res.reward + ' コイン' + (res.isNew ? '（はつ登録ボーナス込み）' : '') + '</div>' +
       '<button id="nextEgg" class="big-btn primary mt12" style="width:100%">つぎの子をおむかえ →</button>' +
       '</div>';
     var m = openModal(html, {
-      onClose: function () { lastArtKey = ''; render(); }
+      onClose: function () { lastArtKey = ''; render(); maybeMilestone(res); }
     });
     Art.hydrate(m.root);
     var nb = m.root.querySelector('#nextEgg');
     if (nb) nb.addEventListener('click', m.close);
+  }
+
+  // 図鑑の節目（10種・20種・30種）。新登録で到達した瞬間だけ出る（DESIGN.md §10.5）
+  function maybeMilestone(res) {
+    if (!res || !res.isNew) return;
+    var prog = Engine.dexProgress();
+    if (prog.found !== 10 && prog.found !== 20 && prog.found !== prog.total) return;
+    var comp = prog.found === prog.total;
+    var html = '<div class="center pop">' +
+      '<div style="font-size:56px;margin:6px">' + (comp ? '👑' : '🎉') + '</div>' +
+      '<h2>' + (comp ? 'ずかん コンプリート！' : 'ずかん ' + prog.found + 'しゅるい たっせい！') + '</h2>' +
+      '<p class="sub">' + (comp ?
+        prog.total + 'しゅるい ぜんぶの子に あえたよ。<br>ここまで いっしょに すごしてくれて ありがとう。' :
+        'いま ' + prog.found + '/' + prog.total + '。このちょうしで ぜんいんに あいにいこう') + '</p>' +
+      '<button id="msOk" class="big-btn primary mt12" style="width:100%">やったね！</button>' +
+      '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
+    var m = openModal(html);
+    var ok = m.root.querySelector('#msOk');
+    if (ok) ok.addEventListener('click', m.close);
   }
 
   // 図鑑
@@ -319,7 +338,9 @@
       '</div>' +
       '<div class="grow-bar"><div class="grow-fill" style="width:' + pct + '%"></div></div>' +
       '<div class="dex-section-title">🐶 いぬ</div><div class="dex-grid">' + grid('dog') + '</div>' +
-      '<div class="dex-section-title">🐱 ねこ</div><div class="dex-grid">' + grid('cat') + '</div>';
+      '<div class="dex-section-title">🐱 ねこ</div><div class="dex-grid">' + grid('cat') + '</div>' +
+      // 差別化の旗。アプリ内でこの1箇所のみ（DESIGN.md §5）
+      '<p class="dex-flag">ぜんぶの子と、むりょうで あえるよ。こうこくも、ないよ</p>';
     var m = openModal(html, {
       onClose: function () {
         // 見たのでNEWを消す
@@ -371,7 +392,7 @@
       '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種' +
       ((st.deaths || 0) > 0 ? ' ／ おほしさまになった子：<b>' + st.deaths + '</b>' : '') +
       ((st.runaways || 0) > 0 ? ' ／ たびに でた子：<b>' + st.runaways + '</b>' : '') + '</p>' +
-      '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--bad)">🗑 データをリセット</button>';
+      '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--badge-new)">🗑 データをリセット</button>';
     var m = openModal(html);
     var rb = m.root.querySelector('#resetBtn');
     if (rb) rb.addEventListener('click', function () {
@@ -403,7 +424,7 @@
     var html = '<div class="center"><h2>おかえりなさい！🐾</h2>' +
       '<p class="sub">' + fmtDur(rep.elapsedMs) + 'ぶり</p>' +
       '<div style="font-size:60px;margin:6px">' + (Engine.stage() === 0 ? '💤' : '🐾') + '</div>' +
-      '<div style="font-weight:800;color:var(--coin);font-size:18px">＋' + rep.coinGain + ' コイン</div>' +
+      '<div style="font-weight:800;color:var(--coin-text);font-size:18px">＋' + rep.coinGain + ' コイン</div>' +
       (msgs.length ? '<p class="mt12">' + msgs.join('<br>') + '</p>' : '<p class="mt12 muted">みんな元気にまってたよ</p>') +
       grewNote +
       '<button id="okBtn" class="big-btn primary mt12" style="width:100%">ただいま！</button></div>';
@@ -495,18 +516,21 @@
     return r;
   }
 
+  // 「自慢の1枚」フォーマット（DESIGN.md §10.5）: ①ペット絵（大）②品種名 ③◯時間はなれた ④れんぞく ⑤ウォーターマーク
   function showWalkSuccess(r) {
     happyUntil = now() + 2000;
+    var b = Engine.breed();
     var html = '<div class="center pop">' +
-      '<h2>🎉 ごはんさがし せいこう！</h2>' +
-      '<p class="sub">' + fmtMin(r.minutes) + ' スマホからはなれられたよ。えらい！</p>' +
-      '<div style="font-size:56px;margin:4px">🐾</div>' +
-      '<div style="font-weight:800;color:var(--coin);font-size:18px">🍖 えさ ×' + r.foods + ' をもってかえった！</div>' +
-      '<div style="font-weight:800;color:var(--accent-d)">＋' + r.coinGain + ' コイン ／ なかよし ＋' + r.xpGain + '</div>' +
-      '<p class="mt12">れんぞく成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（じこしんきろく！）' : '') + '</p>' +
-      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800">✨ おさんぽのあいだに大きくなった！</p>' : '') +
-      '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button></div>';
+      '<div id="wsArt" class="hatch-art"></div>' +
+      '<div class="hatch-name">' + b.name + '</div>' +
+      '<h2 style="margin-top:6px">' + fmtMin(r.minutes) + ' スマホを はなれた</h2>' +
+      '<p class="sub" style="margin-bottom:8px">れんぞく成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（じこしんきろく！）' : '') + '</p>' +
+      '<div style="font-weight:800;color:var(--coin-text)">🍖 えさ ×' + r.foods + '　🪙 ＋' + r.coinGain + '　なかよし ＋' + r.xpGain + '</div>' +
+      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ おさんぽのあいだに大きくなった！</p>' : '') +
+      '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button>' +
+      '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
     var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
+    Art.mount(m.root.querySelector('#wsArt'), Art.petSVG(b, Engine.stage(), 'happy'));
     var ok = m.root.querySelector('#walkOk');
     if (ok) ok.addEventListener('click', m.close);
   }
