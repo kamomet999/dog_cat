@@ -16,12 +16,32 @@
   var Native = {
     isNative: isNative,
 
-    /** アプリ復帰（バックグラウンド→フォアグラウンド）のハンドラ登録 */
-    init: function (onResume) {
+    /** アプリ復帰/退避のハンドラ登録 */
+    init: function (onResume, onPause) {
       if (!P || !P.App) return;
       P.App.addListener('appStateChange', function (s) {
-        if (s.isActive && onResume) onResume();
+        if (s.isActive) { if (onResume) onResume(); }
+        else if (onPause) { onPause(); }
       });
+    },
+
+    /** 危険予告の通知プランを張り替える（id 2001-2003。GAME_DESIGN.md §4） */
+    schedulePlan: function (items) {
+      if (!P || !P.LocalNotifications) return;
+      var cancelIds = [{ id: 2001 }, { id: 2002 }, { id: 2003 }];
+      P.LocalNotifications.cancel({ notifications: cancelIds }).catch(function () {});
+      if (!items || !items.length) return;
+      P.LocalNotifications.requestPermissions().then(function (r) {
+        if (!r || r.display !== 'granted') return;
+        return P.LocalNotifications.schedule({
+          notifications: items.map(function (it) {
+            return {
+              id: it.id, title: it.title, body: it.body,
+              schedule: { at: new Date(it.at), allowWhileIdle: true }
+            };
+          })
+        });
+      }).catch(function () { /* 通知が使えなくてもゲームは続行 */ });
     },
 
     /** おさんぽ開始：満了時刻に「おかえり」通知を予約 */

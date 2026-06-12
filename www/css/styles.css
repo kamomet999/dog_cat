@@ -119,6 +119,14 @@ body {
   background: linear-gradient(90deg, #ffd36b, var(--accent));
   border-radius: 999px; transition: width .4s ease; }
 
+/* いのち（生存ゲージ） */
+.life-row {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 8px; font-size: 13px; letter-spacing: 1px; min-height: 18px;
+}
+.life-label { font-size: 11px; font-weight: 800; color: var(--ink-soft); }
+.life-warn { font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+
 /* ---- ステータス ---- */
 .stats { display: grid; gap: 10px; }
 .stat-row { display: flex; align-items: center; gap: 10px; }

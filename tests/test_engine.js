@@ -88,11 +88,14 @@ test('全品種が抽選で出現しうる（重み>0）', () => {
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v2 の初期状態ができる', () => {
+test('newGame で v3 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 2);
+  assert.strictEqual(s.version, 3);
   assert.ok(s.current);
+  assert.strictEqual(s.current.health, 100);
+  assert.strictEqual(s.current.detox, 100);
+  assert.strictEqual(s.deaths, 0);
   assert.strictEqual(s.walk, null);
   eqJSON(s.walkStats, { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 });
 });
@@ -106,7 +109,7 @@ test('セーブ→ロードで状態が一致する', () => {
   eqJSON(s2, s1);
 });
 
-test('v1セーブが v2 にマイグレーションされる', () => {
+test('v1セーブが 最新版 にマイグレーションされる', () => {
   const storage = makeStorage();
   const v1save = {
     version: 1, coin: 42, luck: 0.1,
@@ -117,10 +120,13 @@ test('v1セーブが v2 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 2);
+  assert.strictEqual(s.version, 3);
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.walk, null);
   assert.strictEqual(s.walkStats.success, 0);
+  assert.strictEqual(s.current.health, 100);  // v3で付与
+  assert.strictEqual(s.current.detox, 100);
+  assert.strictEqual(s.deaths, 0);
 });
 
 console.log('# オフライン進行');
@@ -280,6 +286,131 @@ test('おさんぽ中の二重開始は拒否される', () => {
   w.Engine.newGame('dog', T0, rnd0);
   assert.ok(w.Engine.startWalk(30, T0));
   assert.strictEqual(w.Engine.startWalk(30, T0 + 1000), null);
+});
+
+console.log('# いのち（生存システム）');
+
+/** stage1 まで育てるヘルパ（世話2回で xp16 >= 12） */
+function toStage1(w, t) {
+  w.Engine.care('feed', t);
+  w.Engine.care('play', t + 1000);
+  assert.ok(w.Engine.stage() >= 1);
+}
+
+test('完全放置で約32時間後におわかれ（餓死タイムライン）', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  toStage1(w, T0);
+  const rep = w.Engine.applyOffline(T0 + 40 * H);
+  assert.strictEqual(rep.died, true);
+  assert.strictEqual(w.Engine.getState().current.health, 0);
+  assert.ok(w.Engine.isDead());
+});
+
+test('24時間の放置ではまだ死なない（衰弱はする）', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  toStage1(w, T0);
+  const rep = w.Engine.applyOffline(T0 + 24 * H);
+  assert.strictEqual(rep.died, false);
+  const h = w.Engine.getState().current.health;
+  assert.ok(h > 0 && h < 100, `health=${h}`);
+});
+
+test('おくるみ（stage0）は死なない', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  const rep = w.Engine.applyOffline(T0 + 72 * H);
+  assert.strictEqual(rep.died, false);
+  assert.strictEqual(w.Engine.getState().current.health, 100);
+});
+
+test('ごはんを与えてもおさんぽしないと約4日でおわかれ', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  toStage1(w, T0);
+  let t = T0;
+  let died = false;
+  for (let i = 0; i < 24 && !died; i++) { // 6時間ごとにごはん×4日半
+    t += 6 * H;
+    w.Engine.tick(t);
+    died = w.Engine.isDead();
+    if (!died) { w.Engine.care('feed', t); w.Engine.care('feed', t + 1000); }
+  }
+  assert.ok(died, 'おさんぽなしで死ぬはず');
+  // detox枯渇が原因（hungerは維持していた）
+});
+
+test('おさんぽ成功で おさんぽ充足 が回復する', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  toStage1(w, T0);
+  w.Engine.tick(T0 + 48 * H); // detoxを減らす
+  const before = w.Engine.getState().current.detox;
+  w.Engine.startWalk(60, T0 + 48 * H);
+  w.Engine.checkWalk(T0 + 49 * H, true);
+  const after = w.Engine.getState().current.detox;
+  assert.ok(after > before, `${before} -> ${after}`);
+});
+
+test('衰弱からの回復（ごはん＋おさんぽで いのち が戻る）', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  toStage1(w, T0);
+  w.Engine.applyOffline(T0 + 26 * H); // 衰弱
+  const low = w.Engine.getState().current.health;
+  assert.ok(low < 100 && low > 0);
+  let t = T0 + 26 * H;
+  w.Engine.care('feed', t); w.Engine.care('feed', t + 1000); w.Engine.care('feed', t + 2000);
+  w.Engine.startWalk(120, t); // detox満タンへ
+  w.Engine.checkWalk(t + 2 * H, true);
+  t += 2 * H;
+  for (let i = 0; i < 8; i++) { // 4時間おきにごはんしつつ1日経過
+    t += 4 * H; w.Engine.tick(t); w.Engine.care('feed', t);
+  }
+  const now2 = w.Engine.getState().current.health;
+  assert.ok(now2 > low, `${low} -> ${now2}`);
+});
+
+test('報酬は24h上限・生存シミュレーションは72h上限（分離）', () => {
+  const a = freshWorld(); a.Engine.newGame('dog', T0, rnd0);
+  const b = freshWorld(); b.Engine.newGame('dog', T0, rnd0);
+  a.Engine.applyOffline(T0 + 24 * H);
+  b.Engine.applyOffline(T0 + 72 * H);
+  // 報酬（コイン）は同じ
+  assert.strictEqual(Math.floor(a.Engine.getState().coin), Math.floor(b.Engine.getState().coin));
+  // 生存（detox）は72hぶん減っている
+  assert.ok(b.Engine.getState().current.detox < a.Engine.getState().current.detox);
+});
+
+test('farewell で deaths が増え、あたらしい子（健康）が来る', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  toStage1(w, T0);
+  w.Engine.applyOffline(T0 + 40 * H);
+  assert.ok(w.Engine.isDead());
+  const r = w.Engine.farewell(T0 + 40 * H, rnd0);
+  assert.ok(r && r.next);
+  const s = w.Engine.getState();
+  assert.strictEqual(s.deaths, 1);
+  assert.strictEqual(s.current.health, 100);
+  assert.ok(!w.Engine.isDead());
+});
+
+test('dangerForecast が hunger/detox/health の予測を返す', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  toStage1(w, T0);
+  const ev = w.Engine.dangerForecast(T0);
+  const types = ev.map(e => e.type);
+  assert.ok(types.includes('hunger'));
+  assert.ok(types.includes('detox'));
+  assert.ok(types.includes('health'));
+  ev.forEach(e => assert.ok(e.at > T0));
+  // stage0 では空
+  const w2 = freshWorld();
+  w2.Engine.newGame('dog', T0, rnd0);
+  assert.strictEqual(w2.Engine.dangerForecast(T0).length, 0);
 });
 
 // ---------------------------------------------------------------

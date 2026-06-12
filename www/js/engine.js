@@ -7,9 +7,18 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 2;
+  var VERSION = 3;
   var H = 3600000; // 1時間(ms)
-  var MAX_OFFLINE = 24 * H;
+  var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
+  var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
+
+  // ----- いのち（生存システム。docs/GAME_DESIGN.md が正）-----
+  // 生存条件は「おなか」と「おさんぽ充足(detox)」。どちらかが尽きると いのち が減り、0でおわかれ。
+  var DETOX_DECAY = 100 / 72;   // おさんぽ充足の自然減衰 /h（3日で空）
+  var STARVE_DRAIN = 100 / 24;  // おなか0のあいだの いのち消耗 /h
+  var DETOX_DRAIN = 100 / 24;   // おさんぽ充足0のあいだの いのち消耗 /h
+  var HEALTH_REGEN = 100 / 48;  // 両方>30のときの回復 /h
+  function walkDetoxGain(minutes) { return 30 + minutes / 3; } // 30分=+40 / 1h=+50 / 2h=+70
 
   // ----- おさんぽ（Forest型セッション）-----
   // 開始後はアプリを閉じて過ごす。満了前にアプリへ戻ると失敗（開始直後の猶予あり）。
@@ -54,6 +63,7 @@
       breedId: breedId,
       xp: 0,
       hunger: 72, mood: 72, clean: 78, energy: 78,
+      health: 100, detox: 100,
       careCount: 0
     };
   }
@@ -67,6 +77,7 @@
       dex: {},              // breedId -> { count, firstAt, unseen }
       lastSavedAt: now,
       graduates: 0,
+      deaths: 0,            // おほしさまになった子の数
       walk: null,           // { startedAt, endsAt, minutes } おさんぽ中のみ
       walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }
     };
@@ -91,6 +102,14 @@
         walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }
       };
     }
+    if (s.version === 2) {
+      s = {
+        ...s,
+        version: 3,
+        deaths: 0,
+        current: s.current ? { ...s.current, health: 100, detox: 100 } : null
+      };
+    }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
 
@@ -101,27 +120,47 @@
   }
 
   // ----- 時間進行（純粋計算）-----
-  // state を ms 分だけ進めた新しい state を返す
-  function advance(state, ms) {
-    if (ms <= 0 || !state.current) return { state: state, coinGain: 0, xpGain: 0 };
-    var hours = ms / H;
+  // state を simMs 分シミュレーションし、報酬は rewardMs 分だけ与えた新しい state を返す。
+  // 生存（いのち）は区分線形なので 0.25h 刻みで決定論的に積分する。
+  function advance(state, simMs, rewardMs) {
+    if (rewardMs === undefined) rewardMs = simMs;
+    if (simMs <= 0 || !state.current) return { state: state, coinGain: 0, xpGain: 0, died: false };
     var p = state.current;
-    var hf = clamp(avgStatus(p) / 100, 0.15, 1); // 健康度（瀕死でも0.15は育つ）
+    var stage0 = stageOf(p.xp) === 0; // おくるみは保護（生存消耗なし）
+    var hf = clamp(avgStatus(p) / 100, 0.15, 1); // 快適度（瀕死でも0.15は育つ）
 
-    var xpGain = 18 * hours * hf;
-    var coinGain = (50 * hours) * (0.4 + 0.6 * hf);
+    var rHours = rewardMs / H;
+    var xpGain = 18 * rHours * hf;
+    var coinGain = (50 * rHours) * (0.4 + 0.6 * hf);
+
+    var hunger = p.hunger, mood = p.mood, clean = p.clean, energy = p.energy;
+    var detox = p.detox == null ? 100 : p.detox;
+    var health = p.health == null ? 100 : p.health;
+    var remaining = simMs / H;
+    while (remaining > 0 && health > 0) {
+      var dt = remaining < 0.25 ? remaining : 0.25;
+      remaining -= dt;
+      hunger = clamp(hunger - DECAY.hunger * dt, 0, 100);
+      mood   = clamp(mood   - DECAY.mood   * dt, 0, 100);
+      clean  = clamp(clean  - DECAY.clean  * dt, 0, 100);
+      energy = clamp(energy - DECAY.energy * dt, 0, 100);
+      detox  = clamp(detox  - DETOX_DECAY  * dt, 0, 100);
+      if (!stage0) {
+        var drain = (hunger <= 0 ? STARVE_DRAIN : 0) + (detox <= 0 ? DETOX_DRAIN : 0);
+        if (drain > 0) health = clamp(health - drain * dt, 0, 100);
+        else if (hunger > 30 && detox > 30) health = clamp(health + HEALTH_REGEN * dt, 0, 100);
+      }
+    }
+    var died = !stage0 && health <= 0;
 
     var np = {
-      breedId: p.breedId,
+      ...p,
       xp: p.xp + xpGain,
-      hunger: clamp(p.hunger - DECAY.hunger * hours, 0, 100),
-      mood:   clamp(p.mood   - DECAY.mood   * hours, 0, 100),
-      clean:  clamp(p.clean  - DECAY.clean  * hours, 0, 100),
-      energy: clamp(p.energy - DECAY.energy * hours, 0, 100),
-      careCount: p.careCount
+      hunger: hunger, mood: mood, clean: clean, energy: energy,
+      detox: detox, health: health
     };
     var ns = { ...state, current: np, coin: state.coin + coinGain };
-    return { state: ns, coinGain: coinGain, xpGain: xpGain };
+    return { state: ns, coinGain: coinGain, xpGain: xpGain, died: died };
   }
 
   // ====== 公開API ======
@@ -165,20 +204,22 @@
       if (!s || !s.current) return null;
       var raw = now - s.lastSavedAt;
       if (raw < 0) raw = 0;                 // 端末時計の巻き戻り対策（簡易）
-      var ms = clamp(raw, 0, MAX_OFFLINE);
+      var msReward = clamp(raw, 0, MAX_OFFLINE);
+      var msSim = clamp(raw, 0, MAX_SIM);
       var beforeStage = stageOf(s.current.xp);
       var beforeStatus = { ...s.current };
-      var r = advance(s, ms);
+      var r = advance(s, msSim, msReward);
       var ns = { ...r.state, lastSavedAt: now };
       this._state = ns;
       persist(ns);
       return {
         elapsedMs: raw,
-        cappedMs: ms,
+        cappedMs: msReward,
         coinGain: Math.floor(r.coinGain),
         beforeStage: beforeStage,
         afterStage: stageOf(ns.current.xp),
-        before: beforeStatus
+        before: beforeStatus,
+        died: r.died
       };
     },
 
@@ -188,8 +229,7 @@
       if (!s || !s.current) return;
       var ms = now - s.lastSavedAt;
       if (ms < 0) ms = 0;
-      if (ms > MAX_OFFLINE) ms = MAX_OFFLINE; // タブ放置などの巨大ギャップもオフライン上限に揃える
-      var r = advance(s, ms);
+      var r = advance(s, clamp(ms, 0, MAX_SIM), clamp(ms, 0, MAX_OFFLINE));
       this._state = { ...r.state, lastSavedAt: now };
       persist(this._state);
     },
@@ -202,7 +242,7 @@
       if (!def) return null;
       var p = s.current;
       var np = {
-        breedId: p.breedId,
+        ...p,
         xp: p.xp + (def.xp || 0),
         hunger: clamp(p.hunger + (def.hunger || 0), 0, 100),
         mood:   clamp(p.mood   + (def.mood   || 0), 0, 100),
@@ -229,6 +269,56 @@
     },
 
     canGraduate: function () { return this.stage() >= 3; },
+
+    // ===== いのち（生存システム） =====
+    /** いのちが尽きているか（おくるみは死なない） */
+    isDead: function () {
+      var s = this._state;
+      return !!(s && s.current && stageOf(s.current.xp) >= 1 && s.current.health <= 0);
+    },
+
+    /** おわかれ → あたらしい子（おくるみ）をおむかえ。図鑑には登録されない */
+    farewell: function (now, rnd) {
+      rnd = rnd || Math.random;
+      var s = this._state;
+      if (!s || !s.current || s.current.health > 0) return null;
+      var breed = Breeds.get(s.current.breedId);
+      var next = Breeds.roll(rnd, s.luck);
+      var ns = {
+        ...s,
+        deaths: (s.deaths || 0) + 1,
+        current: freshPet(next.id),
+        walk: null,
+        lastSavedAt: now
+      };
+      this._state = ns;
+      persist(ns);
+      return { breed: breed, next: next };
+    },
+
+    /** 危険の予測（通知スケジュール用）。{type:'hunger'|'detox'|'health', at:epochMs}[] を返す */
+    dangerForecast: function (now) {
+      var s = this._state;
+      if (!s || !s.current || stageOf(s.current.xp) < 1) return [];
+      var p = s.current;
+      var ev = [];
+      if (p.hunger > 0) ev.push({ type: 'hunger', at: now + (p.hunger / DECAY.hunger) * H });
+      var dx = p.detox == null ? 100 : p.detox;
+      if (dx > 0) ev.push({ type: 'detox', at: now + (dx / DETOX_DECAY) * H });
+      // いのち50%割れの予測（0.5h刻みの簡易シミュレーション・96h先まで）
+      var hunger = p.hunger, detox = dx, health = p.health == null ? 100 : p.health;
+      if (health > 50) {
+        for (var t = 0; t < 96; t += 0.5) {
+          hunger = clamp(hunger - DECAY.hunger * 0.5, 0, 100);
+          detox = clamp(detox - DETOX_DECAY * 0.5, 0, 100);
+          var drain = (hunger <= 0 ? STARVE_DRAIN : 0) + (detox <= 0 ? DETOX_DRAIN : 0);
+          if (drain > 0) health -= drain * 0.5;
+          if (health <= 50) { ev.push({ type: 'health', at: now + (t + 0.5) * H }); break; }
+        }
+      }
+      ev.sort(function (a, b) { return a.at - b.at; });
+      return ev;
+    },
 
     // ===== おさんぽ（Forest型セッション） =====
     WALK_OPTIONS: WALK_OPTIONS,
@@ -288,7 +378,12 @@
         var xpGain = WALK_XP_PER_H * hours * mult;
         var coinGain = Math.floor(WALK_COIN_PER_H * hours * mult);
         var stageBefore = stageOf(p.xp);
-        var np = { ...p, xp: p.xp + xpGain, mood: clamp(p.mood + WALK_MOOD, 0, 100) };
+        var np = {
+          ...p,
+          xp: p.xp + xpGain,
+          mood: clamp(p.mood + WALK_MOOD, 0, 100),
+          detox: clamp((p.detox == null ? 100 : p.detox) + walkDetoxGain(w.minutes), 0, 100)
+        };
         var ns = {
           ...s,
           current: np,

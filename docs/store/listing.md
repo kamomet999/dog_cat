@@ -32,6 +32,7 @@
 ■ 放置するほど育つ — アプリを閉じているあいだも、ペットはすこしずつ成長します
 ■ ぜんぶで30種の図鑑 — 柴犬からベンガルまで。レアな子に出会って図鑑をうめよう
 ■ れんぞく成功ボーナス — 毎日つづけるほど、ごほうびアップ
+■ いのちの せってい — ごはんと「スマホをはなれた時間」が たりないと、おわかれが きてしまいます。だから毎日がいとおしい
 ■ 広告ゼロ・登録不要 — 図鑑コンプまで課金はいっさい不要。データはぜんぶ端末の中だけ。やさしい設計です
 
 スマホとちょっと距離を置きたいあなたへ。
@@ -54,6 +55,7 @@ FEATURES
 - Idle growth: your pet keeps growing while the app is closed
 - All 30 breeds to collect, from Shiba Inu to Bengal
 - Streak bonuses for daily success
+- Real stakes: without food and phone-free time, your pet may pass away
 - No ads, no sign-up. Complete the whole collection without paying. All data stays on your device.
 
 ## スクリーンショット構成案（6.7" / 6.5" / 5.5" とAndroid共通）

@@ -7,6 +7,7 @@
 
   var STATS = [
     { key: 'hunger', ico: '🍚', name: 'おなか' },
+    { key: 'detox',  ico: '🐾', name: 'おさんぽ' },
     { key: 'mood',   ico: '😊', name: 'きげん' },
     { key: 'clean',  ico: '🛁', name: 'きれい' },
     { key: 'energy', ico: '⚡', name: 'げんき' }
@@ -40,6 +41,7 @@
     if (now() < happyUntil) return 'happy';
     var st = Engine.getState();
     if (!st || !st.current) return 'normal';
+    if (st.current.health != null && st.current.health < 40) return 'sad'; // 衰弱
     var a = Engine.avgStatus(st.current);
     if (a < 32) return 'sad';
     if (a >= 70) return 'happy';
@@ -88,12 +90,26 @@
   function renderStats() {
     var p = Engine.getState().current;
     STATS.forEach(function (s) {
-      var v = Math.round(p[s.key]);
+      var v = Math.round(p[s.key] == null ? 100 : p[s.key]);
       $('val_' + s.key).textContent = v;
       var bar = $('bar_' + s.key);
       bar.style.width = v + '%';
       bar.style.background = barColor(v);
     });
+    renderLife(p);
+  }
+
+  // いのち（5ハート・health/20）。stage0のおくるみは保護中なので表示しない
+  function renderLife(p) {
+    var el = $('lifeRow');
+    if (!el) return;
+    if (Engine.stage() === 0) { el.innerHTML = ''; return; }
+    var h = p.health == null ? 100 : p.health;
+    var full = Math.max(0, Math.min(5, Math.ceil(h / 20)));
+    var hearts = '';
+    for (var i = 0; i < 5; i++) hearts += i < full ? '❤️' : '🤍';
+    el.innerHTML = '<span class="life-label">いのち</span><span>' + hearts + '</span>' +
+      (h < 50 ? '<span class="life-warn">ぐあいが わるそう…</span>' : '');
   }
 
   function renderGrow() {
@@ -348,7 +364,8 @@
       '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「おさんぽ」で計画的にスマホからはなれると、もっと早く育って ごほうびがもらえます。</p>' +
       '<hr class="soft">' +
       '<p class="muted">おさんぽ成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ デトックス合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
-      '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種</p>' +
+      '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種' +
+      ((st.deaths || 0) > 0 ? ' ／ おほしさまになった子：<b>' + st.deaths + '</b>' : '') + '</p>' +
       '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--bad)">🗑 データをリセット</button>';
     var m = openModal(html);
     var rb = m.root.querySelector('#resetBtn');
@@ -372,6 +389,8 @@
     if (p.hunger < 25) msgs.push('おなかぺこぺこ…🍚');
     if (p.clean < 25) msgs.push('おふろにいれてあげて🛁');
     if (p.mood < 25) msgs.push('ちょっとさみしそう…😢');
+    if (p.detox != null && p.detox < 25) msgs.push('スマホをおいて おさんぽに いきたいな🐾');
+    if (p.health != null && p.health < 50) msgs.push('なんだか ぐあいが わるそう…💧');
     if (rep.afterStage > rep.beforeStage) msgs.push('そのあいだに大きくなったよ！✨');
     var grewNote = rep.elapsedMs > rep.cappedMs ?
       '<p class="muted">※ 放置は24時間ぶんまで反映されます。</p>' : '';
@@ -501,6 +520,30 @@
     if (ng) ng.addEventListener('click', m.close);
   }
 
+  // ---------- おわかれ ----------
+  var farewellOpen = false;
+  function showFarewell() {
+    if (farewellOpen) return;
+    farewellOpen = true;
+    hideWalkOverlay();
+    var b = Engine.breed();
+    var html = '<div class="center">' +
+      '<h2>' + b.name + 'は<br>おほしさまに なりました</h2>' +
+      '<p class="sub">ごはんと おさんぽが たりなかったみたい。<br>いっしょに すごした じかんは きえないよ。</p>' +
+      '<div style="font-size:56px;margin:10px">🌟</div>' +
+      '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">あたらしい子を おむかえする</button>' +
+      '</div>';
+    var m = openModal(html, { closable: false });
+    m.root.querySelector('#fwBtn').addEventListener('click', function () {
+      Engine.farewell(now());
+      farewellOpen = false;
+      lastArtKey = '';
+      m.close();
+      render();
+      showToast('🧺 ねんね中の あかちゃんが やってきた');
+    });
+  }
+
   // ---------- トースト ----------
   var toastTimer = null;
   function showToast(msg, ms) {
@@ -518,6 +561,7 @@
     var pre = Engine.stage();
     Engine.tick(now());
     var post = Engine.stage();
+    if (Engine.isDead()) { render(); showFarewell(); return; }
     syncWalk();
     render();
     if (post > pre) celebrateGrowth(post);
@@ -532,19 +576,39 @@
     } else {
       var rep = Engine.applyOffline(now());
       render();
-      // おさんぽの結果（成功/失敗/継続）があればそちらを優先表示
-      var wr = syncWalk();
-      if (!wr) showReturn(rep);
+      if ((rep && rep.died) || Engine.isDead()) {
+        showFarewell();
+      } else {
+        // おさんぽの結果（成功/失敗/継続）があればそちらを優先表示
+        var wr = syncWalk();
+        if (!wr) showReturn(rep);
+      }
     }
     function onResume() {
-      Engine.applyOffline(now());
+      var rep = Engine.applyOffline(now());
+      if (rep && rep.died) { render(); showFarewell(); return; }
       syncWalk();
       render();
     }
+    // バックグラウンドへ行く瞬間に「危険の予告」をローカル通知でスケジュール（GAME_DESIGN.md §4）
+    function onPause() {
+      if (!window.Native) return;
+      var MSG = {
+        hunger: { id: 2001, title: 'おなか ぺこぺこだよ…🍚', body: 'ごはんを わすれないでね' },
+        detox:  { id: 2002, title: 'そろそろ おさんぽに いきたいな🐾', body: 'スマホを おいて いっしょに でかけよう' },
+        health: { id: 2003, title: 'ぐあいが わるいみたい…💧', body: 'ごはんと おさんぽを おねがい' }
+      };
+      var plan = Engine.dangerForecast(now()).map(function (e) {
+        var m = MSG[e.type];
+        return { id: m.id, title: m.title, body: m.body, at: e.at };
+      });
+      Native.schedulePlan(plan);
+    }
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') onResume();
+      else onPause();
     });
-    if (window.Native) Native.init(onResume); // ネイティブアプリの復帰検知
+    if (window.Native) Native.init(onResume, onPause); // ネイティブアプリの復帰/退避検知
     setInterval(loop, 1000);
   }
 
