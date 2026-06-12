@@ -64,6 +64,16 @@ module.exports = {
       ]
     },
     {
+      name: 'tutorial3',
+      save: null, // ②お散歩ステップ（ユーザー報告の位置不良を検証）
+      steps: [
+        { eval: () => { try { localStorage.removeItem('inuneko_tutorial_done_v1'); } catch (e) {} } },
+        { click: '#introGo' }, { wait: 250 },
+        { click: '[data-sp="dog"]' }, { wait: 700 },
+        { click: '#tutNext' }, { wait: 150 }, { click: '#tutNext' }, { wait: 300 }
+      ]
+    },
+    {
       name: 'tutorial4',
       save: null,
       steps: [

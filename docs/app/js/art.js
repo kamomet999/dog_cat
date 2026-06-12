@@ -17,7 +17,7 @@
     blushShape: 'paw',                  // にくきゅう型ほっぺ＝ブランドのシグネチャー（サイクル3採用）
     body: 'mochi',                      // もちもちブロブ＝スタンプ文法（サイクル4採用。ゆらぎ輪郭mochiwobは44pxにじみで棄却）
     mouthStyle: 'soft',                 // ω口（猫）・へにゃ口（犬）＝スタンプ文法（サイクル4採用）
-    renderer: 'pixelate',               // 'pixelate'=ベクター絵を粗グリッドに落とす（本体・必要最低限のドット感）/ 'vector' / 'pixel'(32pxスプライト・棄却済み)
+    renderer: 'vector',                 // 'vector'=なめらかなSVGそのまま（モザイク感を排除・発案者FB） / 'pixelate' / 'pixel'(棄却)
     pixelGrid: 64                       // pixelate時のラスタライズ解像度（表示192px=3x整数倍）
   };
   function setStyle(s) { STYLE = Object.assign({}, STYLE, s || {}); }

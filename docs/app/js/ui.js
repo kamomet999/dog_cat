@@ -6,19 +6,19 @@
   'use strict';
 
   var STATS = [
-    { key: 'hunger', ico: '🍚', name: 'おなか' },
-    { key: 'sanpo',  ico: '🐾', name: 'さんぽ' },
-    { key: 'mood',   ico: '😊', name: 'きげん' },
+    { key: 'hunger', ico: '🍚', name: 'お腹' },
+    { key: 'sanpo',  ico: '🐾', name: '散歩' },
+    { key: 'mood',   ico: '😊', name: '機嫌' },
     { key: 'clean',  ico: '🛁', name: 'きれい' },
-    { key: 'energy', ico: '⚡', name: 'げんき' }
+    { key: 'energy', ico: '⚡', name: '元気' }
   ];
   var CARE_BTNS = [
     { action: 'feed',  emo: '🍚', lbl: 'ごはん' },
-    { action: 'play',  emo: '🎾', lbl: 'あそぶ' },
-    { action: 'wash',  emo: '🛁', lbl: 'おそうじ' },
+    { action: 'play',  emo: '🎾', lbl: '遊ぶ' },
+    { action: 'wash',  emo: '🛁', lbl: 'お掃除' },
     { action: 'sleep', emo: '💤', lbl: 'ねんね' }
   ];
-  var STAGE_LABEL = ['おくるみ', 'あかちゃん', 'こども', 'せいたい'];
+  var STAGE_LABEL = ['おくるみ', '赤ちゃん', '子ども', '成体'];
 
   var happyUntil = 0;
   var lastArtKey = '';
@@ -111,7 +111,7 @@
     var hearts = '';
     for (var i = 0; i < 5; i++) hearts += i < full ? '❤️' : '🤍';
     var sp = p.sanpo == null ? 100 : p.sanpo;
-    var warn = h < 50 ? 'ぐあいが わるそう…' : (sp <= 0 ? 'とおくへ いきたそうにしている…' : '');
+    var warn = h < 50 ? '具合が悪そう…' : (sp <= 0 ? '遠くへ行きたそうにしている…' : '');
     el.innerHTML = '<span class="life-label">いのち</span><span>' + hearts + '</span>' +
       (warn ? '<span class="life-warn">' + warn + '</span>' : '');
   }
@@ -140,7 +140,7 @@
     var key = breed.id + '_' + stage + '_' + mood + (isMix ? '_m' : '');
     $('petName').textContent = stage === 0 ? 'ねんねちゅう…' : breed.name;
     var R = Breeds.RARITY[breed.rarity]; // ミックスは undefined
-    $('petSub').textContent = stage === 0 ? 'どんな子かは めがあいてからの おたのしみ' : (breed.species === 'dog' ? 'いぬ' : 'ねこ') + '・' + STAGE_LABEL[stage];
+    $('petSub').textContent = stage === 0 ? 'どんな子かは 目が開いてからの お楽しみ' : (breed.species === 'dog' ? 'いぬ' : 'ねこ') + '・' + STAGE_LABEL[stage];
     var rareChip = isMix
       ? '<span class="rarity-chip mix-chip">💞 ミックス</span>'
       : (R ? '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' : '');
@@ -175,7 +175,7 @@
     // 成体は「おみあい」できる（ともだちの子と特徴を継いだミックスを迎える）
     $('mateBtn').style.display = (stage >= 3) ? 'flex' : 'none';
     var prog = Engine.dexProgress();
-    $('dexBtn').innerHTML = '📖 ずかん ' + prog.found + '/' + prog.total +
+    $('dexBtn').innerHTML = '📖 図鑑 ' + prog.found + '/' + prog.total +
       (prog.newCount > 0 ? ' <span class="badge-new">NEW</span>' : '');
   }
 
@@ -258,12 +258,12 @@
   function openIntro() {
     var html = '<div class="intro">' +
       '<div class="intro-hero"><div id="introPet"></div></div>' +
-      '<h2 class="intro-title">スマホを はなれるほど、<br>いぬねこが 育つ。</h2>' +
-      '<p class="intro-lead">スマホを 置いた時間が、この子の <b>ごはん</b> になる。</p>' +
+      '<h2 class="intro-title">スマホを離れるほど、<br>いぬねこが育つ。</h2>' +
+      '<p class="intro-lead">スマホを置いた時間が、この子の <b>ごはん</b> になる。</p>' +
       '<div class="intro-steps">' +
-      '<div class="intro-step"><span class="ist-ico">🍖</span><span><b>ごはんさがし</b><br>スマホをふせると えさが たまる</span></div>' +
-      '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>おさんぽ</b><br>どくしょ・えいご・うんどうの あいだ となりに</span></div>' +
-      '<div class="intro-step"><span class="ist-ico">📖</span><span><b>ずかんを あつめる</b><br>いぬねこ 30しゅるい〜（広告ゼロ・登録なし）</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">🍖</span><span><b>ごはん探し</b><br>スマホを伏せると エサが貯まる</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>お散歩</b><br>読書・英語・運動の間、となりに</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">📖</span><span><b>図鑑を集める</b><br>いぬねこ30種類〜（広告ゼロ・登録なし）</span></div>' +
       '</div>' +
       '<button id="introGo" class="big-btn primary" style="width:100%">はじめる</button>' +
       '</div>';
@@ -277,10 +277,10 @@
 
   // 種選択（初回・閉じられない）
   function openSpeciesPicker() {
-    var html = '<h2>ようこそ！🐾</h2><p class="sub">ねんね中の あかちゃんが まってるよ。<br>どっちの子を おむかえする？</p>' +
+    var html = '<h2>ようこそ！🐾</h2><p class="sub">ねんね中の赤ちゃんが待ってるよ。<br>どっちの子を迎える？</p>' +
       '<div class="care-grid" style="grid-template-columns:1fr 1fr;gap:14px">' +
-      '<button class="care-btn" data-sp="dog" style="padding:14px 4px"><div id="bundleDog" style="width:96px;height:96px;margin:auto"></div><span class="lbl">いぬの あかちゃん</span></button>' +
-      '<button class="care-btn" data-sp="cat" style="padding:14px 4px"><div id="bundleCat" style="width:96px;height:96px;margin:auto"></div><span class="lbl">ねこの あかちゃん</span></button>' +
+      '<button class="care-btn" data-sp="dog" style="padding:14px 4px"><div id="bundleDog" style="width:96px;height:96px;margin:auto"></div><span class="lbl">いぬの赤ちゃん</span></button>' +
+      '<button class="care-btn" data-sp="cat" style="padding:14px 4px"><div id="bundleCat" style="width:96px;height:96px;margin:auto"></div><span class="lbl">ねこの赤ちゃん</span></button>' +
       '</div>';
     var m = openModal(html, { closable: false });
     Art.mount(m.root.querySelector('#bundleDog'), Art.bundleSVG({ art: { color: '#e3b76b', color2: '#fff3df' } }));
@@ -304,11 +304,11 @@
   function markTutorialDone() { try { localStorage.setItem(TUT_KEY, '1'); } catch (e) {} }
 
   var TUT_STEPS = [
-    { sel: '#petArt', title: 'いまは ねんねちゅう', text: 'なでたり ごはんを あげると、<b>もうすぐ めをさまして</b> どんな子か わかるよ。タップで なでてみて。', place: 'below' },
-    { sel: '#walkBtn', title: '① ごはんさがし＝スマホをふせる', text: '“スマホを ふせる” と、その時間が この子の <b>えさ</b> になるよ。これが いちばん大事！', place: 'above' },
-    { sel: '#taskBtn', title: '② おさんぽ＝べんきょう・うんどうの時間', text: 'どくしょ・えいご・うんどうの あいだ、となりに いてくれる。ごはんさがしとは べつの “いいじかん”。', place: 'above' },
-    { sel: '#stats', title: 'おなか・きげん・いのち', text: 'ごはんは ストックから <span class="calm">じどうで</span> たべるよ。毎日ひらかなくても、<span class="calm">わすれても せめないよ</span>。', place: 'below' },
-    { sel: '#dexBtn', title: '③ ずかんを あつめる', text: 'そだてた子は ここに登録。いぬねこ 30しゅるい〜、ともだちと「おみあい」もできるよ！', place: 'above' }
+    { sel: '#petArt', title: 'いまは ねんね中', text: '撫でたり ごはんをあげると、<b>もうすぐ目を覚まして</b> どんな子か分かるよ。タップで撫でてみて。', place: 'below' },
+    { sel: '#walkBtn', title: '① ごはん探し＝スマホを伏せる', text: '“スマホを伏せる” と、その時間が この子の <b>エサ</b> になるよ。これが一番大事！', place: 'above' },
+    { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動の間、となりにいてくれる。ごはん探しとは別の “いい時間”。', place: 'above' },
+    { sel: '#stats', title: 'お腹・機嫌・いのち', text: 'ごはんは ストックから <span class="calm">自動で</span> 食べるよ。毎日ひらかなくても、<span class="calm">忘れても責めないよ</span>。', place: 'below' },
+    { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。いぬねこ30種類〜、友達と「おみあい」もできるよ！', place: 'above' }
   ];
 
   function startTutorial(force) {
@@ -323,13 +323,15 @@
       var r = el.getBoundingClientRect();
       var pad = 8;
       var hole = { left: r.left - pad, top: r.top - pad, w: r.width + pad * 2, h: r.height + pad * 2 };
-      var below = step.place === 'below';
-      var tipTop = below ? hole.top + hole.h + 12 : 'auto';
-      var tipBottom = below ? 'auto' : (window.innerHeight - hole.top + 12);
+      var vh = window.innerHeight;
+      var holeCenter = hole.top + hole.h / 2;
+      // 対象が画面の上半分なら吹き出しは下、下半分なら上に置く＝常に画面内＆対象と重ならない。
+      // 端に貼り付けると枠外に出てタップできないので、24pxの安全マージンで固定配置する。
+      var tipPos = (holeCenter < vh / 2) ? 'bottom:24px;' : 'top:24px;';
       root.innerHTML =
         '<div class="tut-mask">' +
         '<div class="tut-hole" style="left:' + hole.left + 'px;top:' + hole.top + 'px;width:' + hole.w + 'px;height:' + hole.h + 'px"></div>' +
-        '<div class="tut-tip" style="' + (below ? 'top:' + tipTop + 'px;' : 'bottom:' + tipBottom + 'px;') + '">' +
+        '<div class="tut-tip" style="' + tipPos + '">' +
         '<div class="tut-title">' + step.title + '</div>' +
         '<p class="tut-text">' + step.text + '</p>' +
         '<div class="tut-foot"><span class="tut-dots">' + dots(i) + '</span>' +
@@ -379,7 +381,7 @@
     var comp = prog.found === prog.total;
     var html = '<div class="center pop">' +
       '<div style="font-size:56px;margin:6px">' + (comp ? '👑' : '🎉') + '</div>' +
-      '<h2>' + (comp ? 'ずかん コンプリート！' : 'ずかん ' + prog.found + 'しゅるい たっせい！') + '</h2>' +
+      '<h2>' + (comp ? '図鑑 コンプリート！' : '図鑑 ' + prog.found + '種類 達成！') + '</h2>' +
       '<p class="sub">' + (comp ?
         prog.total + 'しゅるい ぜんぶの子に あえたよ。<br>ここまで いっしょに すごしてくれて ありがとう。' :
         'いま ' + prog.found + '/' + prog.total + '。このちょうしで ぜんいんに あいにいこう') + '</p>' +
@@ -457,7 +459,7 @@
 
     var html = '<h2>📖 いぬねこ図鑑</h2>' +
       '<div class="dex-stats">' +
-      '<span class="dex-pill">たっせい ' + pct + '%（' + prog.found + '/' + prog.total + '）</span>' +
+      '<span class="dex-pill">達成 ' + pct + '%（' + prog.found + '/' + prog.total + '）</span>' +
       '<span class="dex-pill">🐶 ' + prog.dogFound + '/' + prog.dogTotal + '</span>' +
       '<span class="dex-pill">🐱 ' + prog.catFound + '/' + prog.catTotal + '</span>' +
       (premium ? '<span class="dex-pill" style="background:#fff0d6">⭐ プレミアム</span>' : '') +
@@ -520,14 +522,14 @@
 
   // ---------- おみあい（ブリード。コードのコピペで遺伝） ----------
   function openMateMenu() {
-    if (!Engine.canMate()) return showToast('せいたいに なってから おみあいできるよ');
+    if (!Engine.canMate()) return showToast('成体になってから おみあいできるよ');
     var html = '<div class="center">' +
       '<div style="font-size:44px">💞</div>' +
       '<h2>おみあい</h2>' +
-      '<p class="sub">ともだちの子と「おみあい」すると、<br>ふたりの とくちょうを ついだ ミックスの子が やってくるよ。<br>（おなじ どうぶつ どうし／コードを こうかんするだけ・つうしんなし）</p>' +
-      '<button id="mateShow" class="big-btn primary mt12" style="width:100%">📤 じぶんの コードを みせる</button>' +
-      '<button id="mateInput" class="big-btn ghost mt12" style="width:100%">📥 あいての コードを いれる</button>' +
-      '<p class="muted mt12" style="font-size:11px">おみあいすると、いまの子は 巣立って 図鑑に のこります。</p>' +
+      '<p class="sub">友達の子と「おみあい」すると、<br>二人の特徴を継いだ ミックスの子が やってくるよ。<br>（同じ動物どうし／コードを交換するだけ・通信なし）</p>' +
+      '<button id="mateShow" class="big-btn primary mt12" style="width:100%">📤 自分のコードを見せる</button>' +
+      '<button id="mateInput" class="big-btn ghost mt12" style="width:100%">📥 相手のコードを入れる</button>' +
+      '<p class="muted mt12" style="font-size:11px">おみあいすると、今の子は巣立って図鑑に残ります。</p>' +
       '</div>';
     var m = openModal(html);
     m.root.querySelector('#mateShow').addEventListener('click', function () { m.close(); openMateShare(); });
@@ -536,14 +538,14 @@
 
   function openMateShare() {
     var code = Engine.mateCode();
-    if (!code) return showToast('せいたいに なってから おみあいできるよ');
+    if (!code) return showToast('成体になってから おみあいできるよ');
     var b = Engine.breed();
     var html = '<div class="center">' +
       '<h2>📤 おみあいコード</h2>' +
-      '<p class="sub">この <b>' + b.name + '</b> の コードを ともだちに おくってね。<br>あいてが いれると ミックスの子が うまれるよ。</p>' +
+      '<p class="sub">この <b>' + b.name + '</b> のコードを友達に送ってね。<br>相手が入れると ミックスの子が生まれるよ。</p>' +
       '<div class="mate-code" id="mateCode">' + code + '</div>' +
       '<button id="copyCode" class="big-btn primary mt12" style="width:100%">📋 コピーする</button>' +
-      '<button id="shareCode" class="big-btn ghost mt12" style="width:100%">📨 おくる（シェア）</button>' +
+      '<button id="shareCode" class="big-btn ghost mt12" style="width:100%">📨 送る（シェア）</button>' +
       '</div>';
     var m = openModal(html, { onClose: openMateMenu });
     m.root.querySelector('#copyCode').addEventListener('click', function () {
@@ -558,8 +560,8 @@
 
   function openMateInput() {
     var html = '<div class="center">' +
-      '<h2>📥 あいての コード</h2>' +
-      '<p class="sub">ともだちから もらった おみあいコードを はりつけてね。</p>' +
+      '<h2>📥 相手のコード</h2>' +
+      '<p class="sub">友達から もらった おみあいコードを貼り付けてね。</p>' +
       '<input id="codeIn" class="mate-input" placeholder="INU-XXXX-XXXX-..." autocomplete="off" autocapitalize="characters" />' +
       '<div id="codePrev" class="mate-prev"></div>' +
       '<button id="doMate" class="big-btn primary mt12" style="width:100%" disabled>おみあいする</button>' +
@@ -585,7 +587,7 @@
       }
       if (mine && g.species !== mine.species) {
         parsed = null; btn.disabled = true;
-        prev.innerHTML = '<span class="mate-bad">' + (g.species === 'dog' ? 'いぬ' : 'ねこ') + 'の子だね。おなじ どうぶつ どうしだけ おみあいできるよ。</span>';
+        prev.innerHTML = '<span class="mate-bad">' + (g.species === 'dog' ? 'いぬ' : 'ねこ') + 'の子だね。同じ動物どうしだけ おみあいできるよ。</span>';
         return;
       }
       parsed = g; btn.disabled = false;
@@ -595,7 +597,7 @@
     btn.addEventListener('click', function () {
       if (!parsed) return;
       var r = Engine.breedWith(parsed, now(), Math.random);
-      if (r.error) return showToast(r.error === 'species' ? 'おなじ どうぶつ どうしだけだよ' : 'おみあいできなかった…');
+      if (r.error) return showToast(r.error === 'species' ? '同じ動物どうしだけだよ' : 'おみあいできなかった…');
       m.close();
       lastArtKey = '';
       render();
@@ -694,15 +696,15 @@
     if (!rep || rep.elapsedMs < 60000) return;
     var p = Engine.getState().current;
     var msgs = [];
-    if (p.hunger < 25) msgs.push('おなかぺこぺこ…🍚');
-    if (p.clean < 25) msgs.push('おふろにいれてあげて🛁');
-    if (p.mood < 25) msgs.push('ちょっとさみしそう…😢');
-    if (p.sanpo != null && p.sanpo < 25) msgs.push('そろそろ いっしょに「いいじかん」を すごしたいな🐾');
-    if (p.health != null && p.health < 50) msgs.push('なんだか ぐあいが わるそう…💧');
-    if (rep.autoFed > 0) msgs.push('るすのあいだに ごはんを ' + rep.autoFed + 'かい たべたよ🍚');
-    if (rep.afterStage > rep.beforeStage) msgs.push('そのあいだに大きくなったよ！✨');
+    if (p.hunger < 25) msgs.push('お腹ぺこぺこ…🍚');
+    if (p.clean < 25) msgs.push('お風呂に入れてあげて🛁');
+    if (p.mood < 25) msgs.push('ちょっと寂しそう…😢');
+    if (p.sanpo != null && p.sanpo < 25) msgs.push('そろそろ いっしょに「いい時間」を過ごしたいな🐾');
+    if (p.health != null && p.health < 50) msgs.push('なんだか具合が悪そう…💧');
+    if (rep.autoFed > 0) msgs.push('留守の間に ごはんを ' + rep.autoFed + '回 食べたよ🍚');
+    if (rep.afterStage > rep.beforeStage) msgs.push('その間に大きくなったよ！✨');
     var grewNote = rep.elapsedMs > rep.cappedMs ?
-      '<p class="muted">※ 放置は24時間ぶんまで反映されます。</p>' : '';
+      '<p class="muted">※ 放置は24時間分まで反映されます。</p>' : '';
     var html = '<div class="center"><h2>おかえりなさい！🐾</h2>' +
       '<p class="sub">' + fmtDur(rep.elapsedMs) + 'ぶり</p>' +
       '<div style="font-size:60px;margin:6px">' + (Engine.stage() === 0 ? '💤' : '🐾') + '</div>' +
@@ -732,10 +734,10 @@
         '<span class="lbl">' + fmtMin(min) + '</span>' +
         '<span class="cost" style="color:var(--accent-d)">🍖 ×' + (FOOD_BY_MIN[min] || 2) + '</span></button>';
     }).join('');
-    var html = '<h2>🍖 ごはんさがし</h2>' +
-      '<p class="sub">スマホを ふせて おるすばん。<br>その じかんが、この子の <b>えさ</b> に かわるよ。</p>' +
+    var html = '<h2>🍖 ごはん探し</h2>' +
+      '<p class="sub">スマホを伏せて お留守番。<br>その時間が、この子の <b>エサ</b> に変わるよ。</p>' +
       '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:12px">' + btns + '</div>' +
-      '<p class="muted mt12" style="font-size:11px">とちゅうで アプリを ひらくと しっぱい（さいしょの 60秒は セーフ）。れんぞく成功で ごほうびアップ。</p>';
+      '<p class="muted mt12" style="font-size:11px">途中でアプリを開くと失敗（最初の60秒はセーフ）。連続成功でご褒美アップ。</p>';
     var m = openModal(html);
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-min]'), function (btn) {
       btn.addEventListener('click', function () {
@@ -805,10 +807,10 @@
     var html = '<div class="center pop">' +
       '<div id="wsArt" class="hatch-art"></div>' +
       '<div class="hatch-name">' + b.name + '</div>' +
-      '<h2 style="margin-top:6px">' + fmtMin(r.minutes) + ' スマホを はなれた</h2>' +
-      '<p class="sub" style="margin-bottom:8px">れんぞく成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（じこしんきろく！）' : '') + '</p>' +
-      '<div style="font-weight:800;color:var(--coin-text)">🍖 えさ ×' + r.foods + '　🪙 ＋' + r.coinGain + '　なかよし ＋' + r.xpGain + '</div>' +
-      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ おさんぽのあいだに大きくなった！</p>' : '') +
+      '<h2 style="margin-top:6px">' + fmtMin(r.minutes) + ' スマホを離れた</h2>' +
+      '<p class="sub" style="margin-bottom:8px">連続成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（自己新記録！）' : '') + '</p>' +
+      '<div style="font-weight:800;color:var(--coin-text)">🍖 エサ ×' + r.foods + '　🪙 ＋' + r.coinGain + '　なかよし ＋' + r.xpGain + '</div>' +
+      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ お散歩の間に大きくなった！</p>' : '') +
       '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button>' +
       '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
     var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
@@ -820,12 +822,12 @@
   function showWalkFail(r) {
     var gentle = r.reason === 'cancel';
     var html = '<div class="center">' +
-      '<h2>' + (gentle ? 'ごはんさがしを やめたよ' : 'あっ…！') + '</h2>' +
+      '<h2>' + (gentle ? 'ごはん探しを やめたよ' : 'あっ…！') + '</h2>' +
       '<p class="sub">' + (gentle ?
-        'またこんど、いっしょにでかけようね。' :
-        'とちゅうでスマホをひらいちゃった…。<br>ごはんは みつからなかった。ちょっとしょんぼりしてる…') + '</p>' +
+        'また今度、いっしょに出かけようね。' :
+        '途中でスマホを開いちゃった…。<br>ごはんは見つからなかった。ちょっとしょんぼりしてる…') + '</p>' +
       '<div style="font-size:56px;margin:4px">' + (gentle ? '🐾' : '💧') + '</div>' +
-      '<p class="muted">れんぞく成功はリセット。つぎはきっとだいじょうぶ！</p>' +
+      '<p class="muted">連続成功はリセット。次はきっと大丈夫！</p>' +
       '<button id="walkNg" class="big-btn primary mt12" style="width:100%">うん…</button></div>';
     var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
     var ng = m.root.querySelector('#walkNg');
@@ -837,7 +839,7 @@
 
   function openTaskPicker() {
     if (Engine.task()) return;
-    if (Engine.walk()) return showToast('いまは ごはんさがしちゅうだよ');
+    if (Engine.walk()) return showToast('いまは ごはん探し中だよ');
     var kinds = Engine.TASK_KINDS.map(function (k) {
       return '<button class="care-btn task-kind" data-kind="' + k + '" style="padding:10px 2px">' +
         '<span class="emo">' + (TASK_EMO[k] || '🐾') + '</span><span class="lbl">' + k + '</span></button>';
@@ -845,11 +847,11 @@
     var mins = Engine.TASK_OPTIONS.map(function (m2) {
       return '<button class="care-btn task-min" data-min="' + m2 + '" style="padding:10px 2px"><span class="lbl">' + m2 + 'ふん</span></button>';
     }).join('');
-    var html = '<h2>🐾 おさんぽ（いいじかん）</h2>' +
-      '<p class="sub">どくしょ・えいご・うんどうなど、じぶんできめた「いいじかん」のあいだ、' +
-      'この子は となりを おさんぽしてる気分。<br>KindleやえいごアプリをつかってもOK。<b>失敗はないよ</b>。</p>' +
-      '<p class="muted" style="font-size:11px;margin:-6px 0 10px">⏱ じかんを はかるだけの <b>しょうじきタイマー</b>。とちゅうで なにを しても じゆう。じぶんを しんじて つづけよう。</p>' +
-      '<div class="dex-section-title">なにをする？</div>' +
+    var html = '<h2>🐾 お散歩（いい時間）</h2>' +
+      '<p class="sub">読書・英語・運動など、自分で決めた「いい時間」の間、' +
+      'この子は となりを散歩してる気分。<br>Kindleや英語アプリを使ってもOK。<b>失敗はないよ</b>。</p>' +
+      '<p class="muted" style="font-size:11px;margin:-6px 0 10px">⏱ 時間を計るだけの <b>正直タイマー</b>。途中で何をしても自由。自分を信じて続けよう。</p>' +
+      '<div class="dex-section-title">何をする？</div>' +
       '<div class="care-grid" style="grid-template-columns:repeat(5,1fr);gap:8px">' + kinds + '</div>' +
       '<div class="dex-section-title">どのくらい？</div>' +
       '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:8px">' + mins + '</div>' +
@@ -915,14 +917,14 @@
   function openFoodModal() {
     var info = Engine.foodInfo();
     var st = Engine.getState();
-    var days = info.days >= 1 ? ('あと約' + Math.floor(info.days) + '日ぶん') : 'もうすぐ なくなりそう…';
+    var days = info.days >= 1 ? ('あと約' + Math.floor(info.days) + '日分') : 'もうすぐ なくなりそう…';
     var html = '<h2>🍚 ごはん</h2>' +
-      '<p class="sub">えさは <b>スマホをはなれた時間</b> でたまるよ。<br>ストックがあるあいだは じどうで たべてくれる。</p>' +
+      '<p class="sub">エサは <b>スマホを離れた時間</b> で貯まるよ。<br>ストックがある間は 自動で食べてくれる。</p>' +
       '<div class="center" style="font-size:34px;margin:4px">🍖 ×' + info.stock + '</div>' +
-      '<p class="center muted">' + (info.stock > 0 ? days : 'えさがないよ。ごはんさがしに いこう') + '</p>' +
-      '<button id="handFeed" class="big-btn primary mt12" style="width:100%"' + (info.stock < 1 ? ' disabled' : '') + '>🤲 てであげる（なかよしアップ）</button>' +
-      '<button id="buyFood" class="big-btn ghost mt12" style="width:100%"' + (st.coin < Engine.FOOD_COST ? ' disabled' : '') + '>🪙 えさを かう（' + Engine.FOOD_COST + 'コイン）</button>' +
-      '<p class="muted mt12">たくさん ほしいときは「🍖 ごはんさがし」（スマホをふせる）が いちばん。</p>';
+      '<p class="center muted">' + (info.stock > 0 ? days : 'エサがないよ。ごはん探しに行こう') + '</p>' +
+      '<button id="handFeed" class="big-btn primary mt12" style="width:100%"' + (info.stock < 1 ? ' disabled' : '') + '>🤲 手であげる（なかよしアップ）</button>' +
+      '<button id="buyFood" class="big-btn ghost mt12" style="width:100%"' + (st.coin < Engine.FOOD_COST ? ' disabled' : '') + '>🪙 エサを買う（' + Engine.FOOD_COST + 'コイン）</button>' +
+      '<p class="muted mt12">たくさん欲しいときは「🍖 ごはん探し」（スマホを伏せる）が一番。</p>';
     var m = openModal(html);
     var hf = m.root.querySelector('#handFeed');
     if (hf) hf.addEventListener('click', function () {
@@ -956,16 +958,16 @@
     var away = Engine.isAway();
     var html = away
       ? '<div class="center">' +
-        '<h2>' + b.name + 'は<br>たびに でました</h2>' +
-        '<p class="sub">いっしょの「いいじかん」が たりなくて、<br>あたらしい かぞくを さがしに いったみたい。<br>どこかで げんきに しているよ。</p>' +
+        '<h2>' + b.name + 'は<br>旅に出ました</h2>' +
+        '<p class="sub">いっしょの「いい時間」が足りなくて、<br>新しい家族を探しに行ったみたい。<br>どこかで元気にしているよ。</p>' +
         '<div style="font-size:56px;margin:10px">🎒</div>' +
-        '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">あたらしい子を おむかえする</button>' +
+        '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">新しい子を迎える</button>' +
         '</div>'
       : '<div class="center">' +
         '<h2>' + b.name + 'は<br>おほしさまに なりました</h2>' +
-        '<p class="sub">ごはんが たりなかったみたい。<br>いっしょに すごした じかんは きえないよ。</p>' +
+        '<p class="sub">ごはんが足りなかったみたい。<br>いっしょに過ごした時間は消えないよ。</p>' +
         '<div style="font-size:56px;margin:10px">🌟</div>' +
-        '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">あたらしい子を おむかえする</button>' +
+        '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">新しい子を迎える</button>' +
         '</div>';
     var m = openModal(html, { closable: false });
     m.root.querySelector('#fwBtn').addEventListener('click', function () {
@@ -974,7 +976,7 @@
       lastArtKey = '';
       m.close();
       render();
-      showToast('🧺 ねんね中の あかちゃんが やってきた');
+      showToast('🧺 ねんね中の赤ちゃんが やってきた');
     });
   }
 
