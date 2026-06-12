@@ -267,6 +267,9 @@ button.dex-cell:active { transform: scale(.94); }
   color: var(--ink); background: #fff; }
 .mate-input:focus { outline: none; border-color: var(--accent-d); }
 .mate-prev { min-height: 22px; font-size: 12px; font-weight: 700; margin-top: 10px; }
+.task-custom { width: 100%; font-family: inherit; font-size: 14px; font-weight: 700; text-align: center;
+  border: 2px solid #e3d6c4; border-radius: 12px; padding: 10px; margin: 8px 0 2px; color: var(--ink); background: #fff; }
+.task-custom:focus { outline: none; border-color: var(--accent-d); }
 .mate-ok { color: #2e8757; }
 .mate-bad { color: var(--ink-soft); }
 .mix-chip { background: linear-gradient(135deg, #f7a8c4, #c98ad6); color: #fff; }

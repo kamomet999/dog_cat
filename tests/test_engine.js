@@ -92,10 +92,10 @@ test('無料抽選は無料ティアのみ／課金抽選は全品種', () => {
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v7 の初期状態ができる', () => {
+test('newGame で v8 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 7);
+  assert.strictEqual(s.version, 8);
   assert.strictEqual(s.premium, false);
   eqJSON(s.album, []);
   assert.strictEqual(s.foodStock, 6);
@@ -146,7 +146,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 7);
+  assert.strictEqual(s.version, 8);
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
@@ -321,7 +321,8 @@ console.log('# いのち（生存システム）');
 
 /** stage1 まで育てるヘルパ（世話2回で xp16 >= 12） */
 function toStage1(w, t) {
-  w.Engine.care('play', t);
+  // GROW[1]=15。おそうじ(xp+8)を2回で 16 ≥ 15 → 赤ちゃん
+  w.Engine.care('wash', t);
   w.Engine.care('wash', t + 1000);
   assert.ok(w.Engine.stage() >= 1);
 }
@@ -504,7 +505,7 @@ test('えさストック: てであげる消費・在庫切れ・コイン購入
   assert.ok(buy && !buy.error);
 });
 
-test('てであげると 自動給餌にない なかよし＋機嫌ボーナス', () => {
+test('てであげると 自動給餌にない なかよし(xp)ボーナス', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   w.Engine.tick(T0 + 6 * H);
@@ -513,8 +514,8 @@ test('てであげると 自動給餌にない なかよし＋機嫌ボーナス
   assert.ok(r && !r.error);
   const p1 = w.Engine.getState().current;
   assert.ok(p1.hunger > p0.hunger);
-  assert.ok(p1.mood > p0.mood);
-  assert.ok(p1.xp > p0.xp);
+  assert.ok(p1.xp > p0.xp); // 手であげると なかよし(xp)が増える
+  assert.strictEqual(p1.mood, undefined); // 機嫌は廃止
 });
 
 test('スマホを触らない時間で えさが少しずつ貯まる（passive 0.1/h）', () => {
@@ -555,7 +556,7 @@ function adultWorld(breedId) {
   const storage = makeStorage();
   const save = {
     version: 7, premium: false, coin: 0, luck: 0,
-    current: { breedId, xp: 200, hunger: 80, mood: 80, clean: 80, energy: 80, health: 100, sanpo: 100, runawayH: 0, away: false, careCount: 5, mix: undefined },
+    current: { breedId, xp: 800, hunger: 80, clean: 80, health: 100, sanpo: 100, runawayH: 0, away: false, careCount: 5, mix: undefined },
     dex: {}, lastSavedAt: T0, graduates: 0, deaths: 0, runaways: 0,
     foodStock: 6, task: null, walk: null,
     walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }, album: []

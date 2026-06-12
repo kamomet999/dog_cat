@@ -8,15 +8,11 @@
   var STATS = [
     { key: 'hunger', ico: '🍚', name: 'お腹' },
     { key: 'sanpo',  ico: '🐾', name: '散歩' },
-    { key: 'mood',   ico: '😊', name: '機嫌' },
-    { key: 'clean',  ico: '🛁', name: 'きれい' },
-    { key: 'energy', ico: '⚡', name: '元気' }
+    { key: 'clean',  ico: '🛁', name: 'きれい' }
   ];
   var CARE_BTNS = [
     { action: 'feed',  emo: '🍚', lbl: 'ごはん' },
-    { action: 'play',  emo: '🎾', lbl: '遊ぶ' },
-    { action: 'wash',  emo: '🛁', lbl: 'お掃除' },
-    { action: 'sleep', emo: '💤', lbl: 'ねんね' }
+    { action: 'wash',  emo: '🛁', lbl: 'お掃除' }
   ];
   var STAGE_LABEL = ['おくるみ', '赤ちゃん', '子ども', '成体'];
 
@@ -59,6 +55,7 @@
     }).join('');
 
     var care = $('care');
+    care.style.gridTemplateColumns = 'repeat(' + CARE_BTNS.length + ',1fr)';
     care.innerHTML = CARE_BTNS.map(function (b) {
       return '<button class="care-btn" data-act="' + b.action + '">' +
         '<span class="emo">' + b.emo + '</span><span class="lbl">' + b.lbl + '</span></button>';
@@ -263,7 +260,7 @@
       '<div class="intro-steps">' +
       '<div class="intro-step"><span class="ist-ico">🍖</span><span><b>ごはん探し</b><br>スマホを伏せると エサが貯まる</span></div>' +
       '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>お散歩</b><br>読書・英語・運動の間、となりに</span></div>' +
-      '<div class="intro-step"><span class="ist-ico">📖</span><span><b>図鑑を集める</b><br>いぬねこ30種類〜（広告ゼロ・登録なし）</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">📖</span><span><b>図鑑を集める</b><br>犬・猫それぞれ30種〜（広告ゼロ・登録なし）</span></div>' +
       '</div>' +
       '<button id="introGo" class="big-btn primary" style="width:100%">はじめる</button>' +
       '</div>';
@@ -308,7 +305,7 @@
     { sel: '#walkBtn', title: '① ごはん探し＝スマホを伏せる', text: '“スマホを伏せる” と、その時間が この子の <b>エサ</b> になるよ。これが一番大事！', place: 'above' },
     { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動の間、となりにいてくれる。ごはん探しとは別の “いい時間”。', place: 'above' },
     { sel: '#stats', title: 'お腹・機嫌・いのち', text: 'ごはんは ストックから <span class="calm">自動で</span> 食べるよ。毎日ひらかなくても、<span class="calm">忘れても責めないよ</span>。', place: 'below' },
-    { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。いぬねこ30種類〜、友達と「おみあい」もできるよ！', place: 'above' }
+    { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。犬・猫それぞれ30種〜、友達と「おみあい」もできるよ！', place: 'above' }
   ];
 
   function startTutorial(force) {
@@ -698,7 +695,6 @@
     var msgs = [];
     if (p.hunger < 25) msgs.push('お腹ぺこぺこ…🍚');
     if (p.clean < 25) msgs.push('お風呂に入れてあげて🛁');
-    if (p.mood < 25) msgs.push('ちょっと寂しそう…😢');
     if (p.sanpo != null && p.sanpo < 25) msgs.push('そろそろ いっしょに「いい時間」を過ごしたいな🐾');
     if (p.health != null && p.health < 50) msgs.push('なんだか具合が悪そう…💧');
     if (rep.autoFed > 0) msgs.push('留守の間に ごはんを ' + rep.autoFed + '回 食べたよ🍚');
@@ -834,44 +830,66 @@
     if (ng) ng.addEventListener('click', m.close);
   }
 
-  // ---------- さんぽ（学習・運動などの いい時間。失敗なし） ----------
-  var TASK_EMO = { 'どくしょ': '📖', 'えいご': '🔤', 'うんどう': '💪', 'ジョグ': '🏃', 'しゅうちゅう': '🎯' };
+  // ---------- お散歩（いい時間。失敗なし。内容・時間はカスタム可） ----------
+  // かわいい言い換え（自己鍛錬っぽさを消す）＋「じぶんで」自由入力
+  var TASK_PRESETS = [
+    { kind: 'ほんよみ', emo: '📖' },
+    { kind: 'えいご',   emo: '🔤' },
+    { kind: 'うんどう', emo: '🏃' }
+  ];
+  var TASK_EMO = { 'ほんよみ': '📖', 'えいご': '🔤', 'うんどう': '🏃', 'じぶんで': '✏️' };
 
   function openTaskPicker() {
     if (Engine.task()) return;
     if (Engine.walk()) return showToast('いまは ごはん探し中だよ');
-    var kinds = Engine.TASK_KINDS.map(function (k) {
-      return '<button class="care-btn task-kind" data-kind="' + k + '" style="padding:10px 2px">' +
-        '<span class="emo">' + (TASK_EMO[k] || '🐾') + '</span><span class="lbl">' + k + '</span></button>';
-    }).join('');
+    var kinds = TASK_PRESETS.map(function (k) {
+      return '<button class="care-btn task-kind" data-kind="' + k.kind + '" style="padding:10px 2px">' +
+        '<span class="emo">' + k.emo + '</span><span class="lbl">' + k.kind + '</span></button>';
+    }).join('') +
+      '<button class="care-btn task-kind" data-kind="__custom" style="padding:10px 2px">' +
+      '<span class="emo">✏️</span><span class="lbl">じぶんで</span></button>';
     var mins = Engine.TASK_OPTIONS.map(function (m2) {
-      return '<button class="care-btn task-min" data-min="' + m2 + '" style="padding:10px 2px"><span class="lbl">' + m2 + 'ふん</span></button>';
-    }).join('');
+      return '<button class="care-btn task-min" data-min="' + m2 + '" style="padding:10px 2px"><span class="lbl">' + m2 + '分</span></button>';
+    }).join('') +
+      '<button class="care-btn task-min" data-min="__custom" style="padding:10px 2px"><span class="emo">✏️</span><span class="lbl">じぶんで</span></button>';
     var html = '<h2>🐾 お散歩（いい時間）</h2>' +
-      '<p class="sub">読書・英語・運動など、自分で決めた「いい時間」の間、' +
+      '<p class="sub">本よみ・英語・運動など、自分で決めた「いい時間」の間、' +
       'この子は となりを散歩してる気分。<br>Kindleや英語アプリを使ってもOK。<b>失敗はないよ</b>。</p>' +
       '<p class="muted" style="font-size:11px;margin:-6px 0 10px">⏱ 時間を計るだけの <b>正直タイマー</b>。途中で何をしても自由。自分を信じて続けよう。</p>' +
-      '<div class="dex-section-title">何をする？</div>' +
-      '<div class="care-grid" style="grid-template-columns:repeat(5,1fr);gap:8px">' + kinds + '</div>' +
+      '<div class="dex-section-title">なにする？</div>' +
+      '<div class="care-grid" style="grid-template-columns:repeat(4,1fr);gap:8px">' + kinds + '</div>' +
+      '<input id="customKind" class="task-custom" maxlength="12" placeholder="じぶんの「いい時間」を入力（例：ピアノ）" style="display:none">' +
       '<div class="dex-section-title">どのくらい？</div>' +
-      '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:8px">' + mins + '</div>' +
+      '<div class="care-grid" style="grid-template-columns:repeat(4,1fr);gap:8px">' + mins + '</div>' +
+      '<input id="customMin" class="task-custom" type="number" min="' + Engine.TASK_MIN + '" max="' + Engine.TASK_MAX + '" placeholder="分（' + Engine.TASK_MIN + '〜' + Engine.TASK_MAX + '）" style="display:none">' +
       '<button id="taskStart" class="big-btn primary mt12" style="width:100%" disabled>はじめる</button>';
     var m = openModal(html);
-    var kind = null, min = null;
+    var kindSel = null, minSel = null;
+    var ckInput = m.root.querySelector('#customKind');
+    var cmInput = m.root.querySelector('#customMin');
+    function effKind() { return kindSel === '__custom' ? (ckInput.value.trim() || 'じぶんで') : kindSel; }
+    function effMin() {
+      if (minSel === '__custom') { var v = parseInt(cmInput.value, 10); return (v >= Engine.TASK_MIN && v <= Engine.TASK_MAX) ? v : null; }
+      return minSel;
+    }
     function refresh() {
-      m.root.querySelectorAll('.task-kind').forEach(function (b) { b.style.outline = b.getAttribute('data-kind') === kind ? '3px solid var(--accent-d)' : 'none'; });
-      m.root.querySelectorAll('.task-min').forEach(function (b) { b.style.outline = parseInt(b.getAttribute('data-min'), 10) === min ? '3px solid var(--accent-d)' : 'none'; });
-      m.root.querySelector('#taskStart').disabled = !(kind && min);
+      m.root.querySelectorAll('.task-kind').forEach(function (b) { b.style.outline = b.getAttribute('data-kind') === kindSel ? '3px solid var(--accent-d)' : 'none'; });
+      m.root.querySelectorAll('.task-min').forEach(function (b) { b.style.outline = b.getAttribute('data-min') === String(minSel) ? '3px solid var(--accent-d)' : 'none'; });
+      ckInput.style.display = kindSel === '__custom' ? 'block' : 'none';
+      cmInput.style.display = minSel === '__custom' ? 'block' : 'none';
+      m.root.querySelector('#taskStart').disabled = !(kindSel && effMin());
     }
     m.root.querySelectorAll('.task-kind').forEach(function (b) {
-      b.addEventListener('click', function () { kind = b.getAttribute('data-kind'); refresh(); });
+      b.addEventListener('click', function () { kindSel = b.getAttribute('data-kind'); refresh(); if (kindSel === '__custom') ckInput.focus(); });
     });
     m.root.querySelectorAll('.task-min').forEach(function (b) {
-      b.addEventListener('click', function () { min = parseInt(b.getAttribute('data-min'), 10); refresh(); });
+      b.addEventListener('click', function () { var d = b.getAttribute('data-min'); minSel = d === '__custom' ? '__custom' : parseInt(d, 10); refresh(); if (minSel === '__custom') cmInput.focus(); });
     });
+    ckInput.addEventListener('input', refresh);
+    cmInput.addEventListener('input', refresh);
     m.root.querySelector('#taskStart').addEventListener('click', function () {
-      var t = Engine.startTask(kind, min, now());
-      if (!t) return;
+      var t = Engine.startTask(effKind(), effMin(), now());
+      if (!t) return showToast('時間は ' + Engine.TASK_MIN + '〜' + Engine.TASK_MAX + '分で えらんでね');
       if (window.Native) Native.taskStarted(t);
       m.close();
       renderTaskRow();
@@ -886,7 +904,7 @@
     if (!t) { el.innerHTML = ''; el.style.display = 'none'; return; }
     var remain = Math.max(0, t.endsAt - now());
     el.style.display = 'flex';
-    el.innerHTML = '<span>' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + 'で おさんぽちゅう… のこり ' + fmtMMSS(remain) + '</span>' +
+    el.innerHTML = '<span>' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + 'で お散歩中… 残り ' + fmtMMSS(remain) + '</span>' +
       '<button id="taskCancel">やめる</button>';
     var c = el.querySelector('#taskCancel');
     if (c) c.addEventListener('click', function () {

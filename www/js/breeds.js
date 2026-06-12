@@ -98,6 +98,81 @@
       desc: 'まっしろもふもふ。サモエドスマイルにいやされる。',
       art: { base: 'dog', ear: 'prick', color: '#f5f1e8', color2: '#ffffff', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
     },
+    {
+      id: 'labrador', species: 'dog', name: 'ラブラドール', rarity: 'common', nature: 'ひとなつっこい',
+      desc: '金色の毛なみ。やさしくて かしこい人気者。',
+      art: { base: 'dog', ear: 'flop', color: '#e8c87a', color2: '#f3dcab', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'jackrussell', species: 'dog', name: 'ジャックラッセル', rarity: 'uncommon', nature: 'げんきいっぱい',
+      desc: '小さな体に あふれる元気。やんちゃ大将。',
+      art: { base: 'dog', ear: 'flop', color: '#fbf6ee', color2: '#c98a4f', pattern: 'patch', eye: '#2a1d12', fluffy: false }
+    },
+    {
+      id: 'schnauzer', species: 'dog', name: 'シュナウザー', rarity: 'uncommon', nature: 'おりこう',
+      desc: 'りっぱな おひげが トレードマーク。',
+      art: { base: 'dog', ear: 'prick', color: '#8a8580', color2: '#c8c2b8', pattern: 'solid', eye: '#2a1d12', fluffy: true }
+    },
+    {
+      id: 'yorkie', species: 'dog', name: 'ヨークシャテリア', rarity: 'uncommon', nature: 'きれいずき',
+      desc: '動く宝石とよばれる つややかな毛。',
+      art: { base: 'dog', ear: 'prick', color: '#6a5a48', color2: '#c98a4f', pattern: 'tan', eye: '#2a1d12', fluffy: true }
+    },
+    {
+      id: 'sheltie', species: 'dog', name: 'シェルティ', rarity: 'rare', nature: 'おりこう',
+      desc: 'ふさふさの えりまき。かしこい牧羊犬。',
+      art: { base: 'dog', ear: 'flop', color: '#c87f3a', color2: '#fbf3e8', pattern: 'tan', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'boston', species: 'dog', name: 'ボストンテリア', rarity: 'common', nature: 'おしゃべり',
+      desc: 'タキシードを着たような白黒。アメリカの紳士。',
+      art: { base: 'dog', ear: 'bigprick', color: '#2c2622', color2: '#ffffff', pattern: 'tuxedo', eye: '#1f1209', fluffy: false }
+    },
+    {
+      id: 'cavalier', species: 'dog', name: 'キャバリア', rarity: 'uncommon', nature: 'やさしい',
+      desc: 'たれ耳と やさしい瞳。おうさまに愛された犬。',
+      art: { base: 'dog', ear: 'flop', color: '#fbf2e6', color2: '#b5532f', pattern: 'patch', eye: '#2a1d12', fluffy: true }
+    },
+    {
+      id: 'bernese', species: 'dog', name: 'バーニーズ', rarity: 'rare', nature: 'のんびりや',
+      desc: '三色の大きな体。山のやさしい巨人。',
+      art: { base: 'dog', ear: 'flop', color: '#2c2622', color2: '#b5532f', pattern: 'tan', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'stbernard', species: 'dog', name: 'セントバーナード', rarity: 'epic', nature: 'おっとり',
+      desc: '雪山の救助犬。どっしり やさしい大型犬。',
+      art: { base: 'dog', ear: 'flop', color: '#c8763a', color2: '#fbf3e8', pattern: 'patch', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'bichon', species: 'dog', name: 'ビションフリーゼ', rarity: 'uncommon', nature: 'あまえんぼう',
+      desc: 'まんまる わたあめみたいな白い毛。',
+      art: { base: 'dog', ear: 'flop', color: '#fbf6ee', color2: '#efe2cf', pattern: 'solid', eye: '#2a1d12', fluffy: true }
+    },
+    {
+      id: 'papillon', species: 'dog', name: 'パピヨン', rarity: 'rare', nature: 'こうきしん',
+      desc: 'ちょうちょの羽のような大きな耳。',
+      art: { base: 'dog', ear: 'bigprick', color: '#fbf2e6', color2: '#3a3330', pattern: 'patch', eye: '#2a1d12', fluffy: true }
+    },
+    {
+      id: 'whippet', species: 'dog', name: 'ウィペット', rarity: 'rare', nature: 'クール',
+      desc: 'しなやかな すらり体型。風のように走る。',
+      art: { base: 'dog', ear: 'flop', color: '#c9b89a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'shikoku', species: 'dog', name: '四国犬', rarity: 'rare', nature: 'いちず',
+      desc: '凛とした和犬。胡麻色の毛と巻き尾。',
+      art: { base: 'dog', ear: 'prick', color: '#c98a4f', color2: '#fbf3e8', pattern: 'tan', eye: '#3b2a1a', fluffy: false, tail: 'curl' }
+    },
+    {
+      id: 'spitz', species: 'dog', name: '日本スピッツ', rarity: 'uncommon', nature: 'げんきいっぱい',
+      desc: 'まっしろふわふわ。くるんと巻いた尻尾。',
+      art: { base: 'dog', ear: 'prick', color: '#ffffff', color2: '#f5f1e8', pattern: 'solid', eye: '#1f1209', fluffy: true, tail: 'curl' }
+    },
+    {
+      id: 'greatdane', species: 'dog', name: 'グレートデン', rarity: 'epic', nature: 'おっとり',
+      desc: '見上げるほど大きい。やさしい巨犬。',
+      art: { base: 'dog', ear: 'prick', color: '#d9bf8f', color2: '#3a3330', pattern: 'patch', eye: '#3b2a1a', fluffy: false }
+    },
 
     // ---------------- 猫 ----------------
     {
@@ -174,6 +249,81 @@
       id: 'sphynx', species: 'cat', name: 'スフィンクス', rarity: 'epic', nature: 'ひとなつっこい',
       desc: '毛のないふしぎな猫。じつはとても人なつっこい。',
       art: { base: 'cat', ear: 'prick', color: '#d8b59a', color2: '#b08a6a', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'chashiro', species: 'cat', name: '茶白', rarity: 'common', nature: 'のんびりや',
+      desc: 'オレンジと白の人なつっこい和猫。',
+      art: { base: 'cat', ear: 'prick', color: '#e0913f', color2: '#fbf6ee', pattern: 'patch', eye: '#d9b13a', fluffy: false }
+    },
+    {
+      id: 'sabashiro', species: 'cat', name: 'サバ白', rarity: 'common', nature: 'げんきいっぱい',
+      desc: 'グレーと白の元気もの。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf6ee', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'britishshort', species: 'cat', name: 'ブリティッシュSH', rarity: 'uncommon', nature: 'おっとり',
+      desc: 'まるい顔とふくよかな体。青灰色の人気猫。',
+      art: { base: 'cat', ear: 'round', color: '#8a9aa5', color2: '#aebac2', pattern: 'solid', eye: '#e8a83a', fluffy: false }
+    },
+    {
+      id: 'exotic', species: 'cat', name: 'エキゾチックSH', rarity: 'rare', nature: 'のんびりや',
+      desc: 'ぺたんこ顔の短毛ペルシャ。のんびり屋。',
+      art: { base: 'cat', ear: 'round', color: '#e0c08a', color2: '#fbf2e6', pattern: 'solid', eye: '#e8a83a', fluffy: true }
+    },
+    {
+      id: 'tonkinese', species: 'cat', name: 'トンキニーズ', rarity: 'uncommon', nature: 'おしゃべり',
+      desc: 'シャムとバーミーズの間。よくおしゃべり。',
+      art: { base: 'cat', ear: 'prick', color: '#c8a06a', color2: '#8a6a4a', pattern: 'point', eye: '#7ab3e0', fluffy: false }
+    },
+    {
+      id: 'somali', species: 'cat', name: 'ソマリ', rarity: 'rare', nature: 'こうきしん',
+      desc: 'きつねのような ふさふさ尻尾の長毛アビシニアン。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#e0a558', pattern: 'tabby', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'korat', species: 'cat', name: 'コラット', rarity: 'rare', nature: 'クール',
+      desc: 'タイの幸運の猫。銀がかった青い毛。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#9aa6ad', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'burmese', species: 'cat', name: 'バーミーズ', rarity: 'uncommon', nature: 'あまえんぼう',
+      desc: 'つやめく こげ茶の毛と金の瞳。甘えん坊。',
+      art: { base: 'cat', ear: 'prick', color: '#5a4a3a', color2: '#7a6a52', pattern: 'solid', eye: '#e8a83a', fluffy: false }
+    },
+    {
+      id: 'singapura', species: 'cat', name: 'シンガプーラ', rarity: 'epic', nature: 'げんきいっぱい',
+      desc: '世界最小級の猫。小さくても好奇心いっぱい。',
+      art: { base: 'cat', ear: 'bigprick', color: '#c8a06a', color2: '#e0c896', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'devonrex', species: 'cat', name: 'デボンレックス', rarity: 'rare', nature: 'きまぐれ',
+      desc: '巻き毛と大きな耳。妖精のような猫。',
+      art: { base: 'cat', ear: 'bigprick', color: '#9a8a7a', color2: '#c8b8a8', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'selkirk', species: 'cat', name: 'セルカークレックス', rarity: 'rare', nature: 'おっとり',
+      desc: 'もこもこの巻き毛。羊のような長毛猫。',
+      art: { base: 'cat', ear: 'round', color: '#ece5d8', color2: '#d8c4a8', pattern: 'solid', eye: '#e8a83a', fluffy: true }
+    },
+    {
+      id: 'egyptianmau', species: 'cat', name: 'エジプシャンマウ', rarity: 'epic', nature: 'ぼうけんずき',
+      desc: '自然にできた美しい斑点。俊足のハンター。',
+      art: { base: 'cat', ear: 'prick', color: '#b8c0c6', color2: '#3a4248', pattern: 'spot', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'ocicat', species: 'cat', name: 'オシキャット', rarity: 'rare', nature: 'ぼうけんずき',
+      desc: '野生のオセロットみたいな斑点。人なつっこい。',
+      art: { base: 'cat', ear: 'prick', color: '#c8a06a', color2: '#5a4632', pattern: 'spot', eye: '#d9b13a', fluffy: false }
+    },
+    {
+      id: 'ragamuffin', species: 'cat', name: 'ラガマフィン', rarity: 'uncommon', nature: 'やさしい',
+      desc: 'ふわふわ長毛で だっこ大好き。ラグドールの親戚。',
+      art: { base: 'cat', ear: 'round', color: '#ece5d8', color2: '#b5957a', pattern: 'point', eye: '#7ab3e0', fluffy: true }
+    },
+    {
+      id: 'lykoi', species: 'cat', name: 'ライコイ', rarity: 'legendary', nature: 'きまぐれ',
+      desc: 'オオカミ猫とよばれる めずらしい毛なみ。',
+      art: { base: 'cat', ear: 'prick', color: '#6a625a', color2: '#c8c2b8', pattern: 'solid', eye: '#d9b13a', fluffy: false }
     },
 
     // ============ プレミアム（¥500で解放）見本 ============

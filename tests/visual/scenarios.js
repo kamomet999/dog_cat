@@ -10,14 +10,15 @@ const T0 = 1750000000000;
 const DAY = 86400000;
 
 function petBase(over) {
+  // v8: 指標は3つ（hunger/sanpo/clean）。xp 300 = 子ども（GROW[2]=200, GROW[3]=760）
   return Object.assign({
-    breedId: 'shiba', xp: 90, hunger: 64, mood: 70, clean: 60, energy: 75,
+    breedId: 'shiba', xp: 300, hunger: 64, clean: 60,
     health: 100, sanpo: 60, runawayH: 0, away: false, careCount: 12
   }, over || {});
 }
 function saveBase(over) {
   return Object.assign({
-    version: 7, premium: false, coin: 180, luck: 0.05,
+    version: 8, premium: false, coin: 180, luck: 0.05,
     current: petBase(),
     dex: { shiba: { count: 3, firstAt: T0 - DAY * 3, unseen: false } },
     lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0,
@@ -26,9 +27,9 @@ function saveBase(over) {
     album: []
   }, over || {});
 }
-// 成体（おみあい可能）
+// 成体（おみあい可能。GROW[3]=760）
 function adultSave(over) {
-  return saveBase(Object.assign({ current: petBase({ xp: 200 }) }, over || {}));
+  return saveBase(Object.assign({ current: petBase({ xp: 800 }) }, over || {}));
 }
 
 module.exports = {
@@ -105,7 +106,7 @@ module.exports = {
       save: saveBase({ current: petBase({ sanpo: 38 }) }),
       steps: [
         { click: '#taskBtn' }, { wait: 350 },
-        { click: '[data-kind="どくしょ"]' }, { click: '[data-min="30"]' }, { wait: 200 }
+        { click: '[data-kind="ほんよみ"]' }, { click: '[data-min="30"]' }, { wait: 200 }
       ]
     },
     {

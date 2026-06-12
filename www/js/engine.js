@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 7;
+  var VERSION = 8;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -26,12 +26,13 @@
   var AUTO_FEED_AT = 40;        // おなかがこれ未満になったら自動給餌
   // ----- えさ（食料の源泉はスマホを置いた時間。GAME_DESIGN.md §2.5）-----
   var FOOD_COST = 20;                  // コインでの購入（コイン=放置時間の蓄積→これも間接デトックス由来）
-  var HAND_FEED_BONUS = { mood: 8, xp: 4 }; // 自動給餌でなく「てであげる」と仲が深まる
+  var HAND_FEED_BONUS = { xp: 6 };     // 自動給餌でなく「てであげる」と仲が深まる（なかよし＝xp）
   function walkFoodGain(minutes) { return minutes >= 120 ? 8 : minutes >= 60 ? 4 : 2; } // ごはんさがし（伏せセッション）の持ち帰り
   var STARTER_STOCK = 6;
-  // さんぽ（課題セッション）: 読書・英語・運動など。失敗なし・時間ぶんゲージ回復
-  var TASK_KINDS = ['どくしょ', 'えいご', 'うんどう', 'ジョグ', 'しゅうちゅう'];
-  var TASK_OPTIONS = [15, 30, 60];     // 分
+  // さんぽ（課題セッション）: 読書・英語・運動＋自由入力。失敗なし・時間ぶんゲージ回復
+  var TASK_KINDS = ['ほんよみ', 'えいご', 'うんどう']; // ＋UIで「じぶんで」自由入力
+  var TASK_OPTIONS = [15, 30, 60];     // 分（＋UIでカスタム分）
+  var TASK_MIN = 5, TASK_MAX = 180;    // カスタム分の許容範囲
   function taskSanpoGain(minutes) { return 20 + minutes; } // 15分=+35 / 30分=+50 / 60分=+80
 
   // ----- おさんぽ（Forest型セッション）-----
@@ -45,16 +46,15 @@
   var WALK_FAIL_MOOD = -12;          // 失敗時の機嫌ダウン
 
   // 成長に必要な累積なかよし度（xp）。index=到達stage
-  var GROW = [0, 12, 70, 180]; // 0:おくるみ(ねんね) 1:赤ちゃん 2:子 3:成体
+  // 巣立ち(成体)まで体感60時間イメージ（放置xp≈12.6/h・hf0.7想定で 760≈60h）。赤ちゃんは早めに目覚める
+  var GROW = [0, 15, 200, 760]; // 0:おくるみ(ねんね) 1:赤ちゃん 2:子 3:成体
 
-  // 1時間あたりの自然減衰量（hungerは12hで空＝1日3〜4食ペース）
-  var DECAY = { hunger: 8.34, mood: 8.34, clean: 6.25, energy: 10 };
+  // 1時間あたりの自然減衰量（hungerは12hで空＝1日3〜4食ペース）。指標は3つ（おなか/さんぽ/きれい）に簡素化
+  var DECAY = { hunger: 8.34, clean: 6.25 };
 
-  // 世話アクション効果（ごはんは在庫制の feed() に分離。GAME_DESIGN.md §2.5）
+  // 世話アクション効果（ごはんは在庫制の feed()／さんぽは task。残る世話は おそうじ のみ）
   var CARE = {
-    play:  { mood: 32, energy: -8, xp: 8, coin: 3, label: 'あそぶ' },
-    wash:  { clean: 42, xp: 8, coin: 3, label: 'おそうじ' },
-    sleep: { energy: 45, mood: 5, xp: 6, coin: 2, label: 'ねんね' }
+    wash:  { clean: 42, xp: 8, coin: 3, label: 'おそうじ' }
   };
 
   var REROLL_COST = 30;
@@ -68,14 +68,15 @@
   }
 
   function avgStatus(p) {
-    return (p.hunger + p.mood + p.clean + p.energy) / 4;
+    // 快適度は おなか と きれい の平均（機嫌・元気は廃止）
+    return (p.hunger + p.clean) / 2;
   }
 
   function freshPet(breedId) {
     return {
       breedId: breedId,
       xp: 0,
-      hunger: 72, mood: 72, clean: 78, energy: 78,
+      hunger: 72, clean: 78,
       health: 100, sanpo: 100,
       runawayH: 0, away: false,
       careCount: 0
@@ -152,6 +153,12 @@
     if (s.version === 6) {
       s = { ...s, version: 7, album: [] }; // おみあい（ミックスのアルバム）導入
     }
+    if (s.version === 7) {
+      // 指標を3つ（おなか/さんぽ/きれい）に簡素化＝機嫌・元気を撤去
+      var c7 = s.current ? { ...s.current } : null;
+      if (c7) { delete c7.mood; delete c7.energy; }
+      s = { ...s, version: 8, current: c7 };
+    }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
 
@@ -176,7 +183,7 @@
     var xpGain = 18 * rHours * hf * mixBoost;
     var coinGain = (50 * rHours) * (0.4 + 0.6 * hf);
 
-    var hunger = p.hunger, mood = p.mood, clean = p.clean, energy = p.energy;
+    var hunger = p.hunger, clean = p.clean;
     var sanpo = p.sanpo == null ? 100 : p.sanpo;
     var health = p.health == null ? 100 : p.health;
     var runawayH = p.runawayH || 0;
@@ -195,9 +202,7 @@
         earnLeft -= edt;
       }
       hunger = clamp(hunger - DECAY.hunger * dt, 0, 100);
-      mood   = clamp(mood   - DECAY.mood   * dt, 0, 100);
       clean  = clamp(clean  - DECAY.clean  * dt, 0, 100);
-      energy = clamp(energy - DECAY.energy * dt, 0, 100);
       sanpo  = clamp(sanpo  - SANPO_DECAY  * dt, 0, 100);
       // 自動給餌（ストックがあるかぎり、何日先まででも勝手にごはんを食べる）
       if (!stage0 && hunger < AUTO_FEED_AT && stock >= 1) {
@@ -224,7 +229,7 @@
     var np = {
       ...p,
       xp: p.xp + xpGain,
-      hunger: hunger, mood: mood, clean: clean, energy: energy,
+      hunger: hunger, clean: clean,
       sanpo: sanpo, health: health,
       runawayH: runawayH, away: away
     };
@@ -458,6 +463,8 @@
     FOOD_COST: FOOD_COST,
     TASK_KINDS: TASK_KINDS,
     TASK_OPTIONS: TASK_OPTIONS,
+    TASK_MIN: TASK_MIN,
+    TASK_MAX: TASK_MAX,
 
     /** えさストック（表示用に切り捨てた数と「あと何日ぶん」） */
     foodInfo: function () {
@@ -478,7 +485,6 @@
         ...p,
         xp: p.xp + HAND_FEED_BONUS.xp,
         hunger: clamp(p.hunger + FOOD_HUNGER, 0, 100),
-        mood: clamp(p.mood + HAND_FEED_BONUS.mood, 0, 100),
         careCount: p.careCount + 1
       };
       var ns = { ...s, current: np, foodStock: stock - 1, lastSavedAt: now };
@@ -506,7 +512,10 @@
     startTask: function (kind, minutes, now) {
       var s = this._state;
       if (!s || !s.current || s.task || s.walk) return null;
-      if (TASK_OPTIONS.indexOf(minutes) < 0) return null;
+      minutes = Math.round(minutes);
+      // プリセット(15/30/60)＋カスタム（5〜180分）を許容
+      if (!(minutes >= TASK_MIN && minutes <= TASK_MAX)) return null;
+      kind = (kind && String(kind).slice(0, 12)) || 'おさんぽ';
       var ns = { ...s, task: { startedAt: now, endsAt: now + minutes * 60000, minutes: minutes, kind: kind }, lastSavedAt: now };
       this._state = ns;
       persist(ns);
@@ -550,9 +559,7 @@
         ...p,
         xp: p.xp + (def.xp || 0),
         hunger: clamp(p.hunger + (def.hunger || 0), 0, 100),
-        mood:   clamp(p.mood   + (def.mood   || 0), 0, 100),
         clean:  clamp(p.clean  + (def.clean  || 0), 0, 100),
-        energy: clamp(p.energy + (def.energy || 0), 0, 100),
         careCount: p.careCount + 1
       };
       var ns = { ...s, current: np, coin: s.coin + (def.coin || 0), lastSavedAt: now };
@@ -566,7 +573,7 @@
       var s = this._state;
       if (!s || !s.current) return null;
       var p = s.current;
-      var np = { ...p, mood: clamp(p.mood + 10, 0, 100), energy: clamp(p.energy - 2, 0, 100), xp: p.xp + 3 };
+      var np = { ...p, xp: p.xp + 3 }; // なでなで＝なかよし（xp）少し
       var ns = { ...s, current: np, lastSavedAt: now };
       this._state = ns;
       persist(ns);
@@ -694,11 +701,7 @@
         var xpGain = WALK_XP_PER_H * hours * mult;
         var coinGain = Math.floor(WALK_COIN_PER_H * hours * mult);
         var stageBefore = stageOf(p.xp);
-        var np = {
-          ...p,
-          xp: p.xp + xpGain,
-          mood: clamp(p.mood + WALK_MOOD, 0, 100)
-        };
+        var np = { ...p, xp: p.xp + xpGain };
         var foods = walkFoodGain(w.minutes);
         var ns = {
           ...s,
@@ -724,10 +727,9 @@
           stageBefore: stageBefore, stageAfter: stageOf(np.xp)
         };
       } else {
-        var np2 = { ...p, mood: clamp(p.mood + WALK_FAIL_MOOD, 0, 100) };
         var ns2 = {
           ...s,
-          current: np2,
+          current: { ...p },
           walk: null,
           walkStats: { ...st, fail: st.fail + 1, streak: 0 },
           lastSavedAt: now

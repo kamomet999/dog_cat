@@ -29,9 +29,9 @@ www/
   index.html              画面の骨格
   css/styles.css          全スタイル。配色トークンは :root（DESIGN.md §2 と一致させる）
   js/
-    engine.js   ★中核ロジック。時間減衰・生存・成長・図鑑・永続化。VERSION=5
+    engine.js   ★中核ロジック。時間減衰・生存・成長・図鑑・永続化。VERSION=8
     ui.js        描画・イベント・メインループ。Date.now() はこの層からのみ注入
-    breeds.js    30品種データ・RARITY・NATURES（性格）
+    breeds.js    品種データ（無料=犬猫各30／＋プレミアム）・RARITY・NATURES（性格）
     art.js       手続き的SVG生成（プレースホルダ）
     native.js    Capacitor連携（ローカル通知・haptics・復帰/退避検知）
 tests/
@@ -47,7 +47,7 @@ codemagic.yaml            CI（android-debug / android-release / ios-release）
 - `docs/DESIGN.md` — ブランド・配色・モーション・原則・**凍結前チェックリスト(§11)**
 - `docs/art/CHARACTER_DESIGN.md` — アートの設計書（**§0: 現アートは仮。nanobananaで差し替え予定。docが正**）
 - `docs/MARKETING.md` / `docs/store/` — マーケ分析・ストア掲載文・プライバシーポリシー
-- `docs/MONETIZATION.md` — **課金モデル**（無料30種／¥500で全品種。延命課金は永久になし）
+- `docs/MONETIZATION.md` — **課金モデル**（無料60種＝犬猫各30／¥500で全品種。延命課金は永久になし）
 - `docs/BREEDING_SPEC.md` — v1.1「おみあい」（ブリード）仕様
 
 ## 絶対に守る規約
@@ -92,7 +92,7 @@ npm run snap -- home food    # シナリオ名で絞り込み
 
 ## やることの優先順位（2026-06時点）
 1. 凍結前チェックリスト(DESIGN.md §11) — **完了済み**
-2. 課金フリーミアムの仕組み（無料30種／¥500で全品種・`MONETIZATION.md`）— **仕組み完成**。残=プレミアム品種データ拡充＋実機の課金プラグイン接続
+2. 課金フリーミアムの仕組み（無料60種（犬猫各30）／¥500で全品種・`MONETIZATION.md`）— **仕組み完成**。残=プレミアム品種データ拡充＋実機の課金プラグイン接続
 3. ブリード（おみあい）— 友人とコード交換で特徴を継承した子。`BREEDING_SPEC.md`。**実装済み**（encode/decodeMate・breedWith・album・UI・テスト）。残=実機でのコード共有テスト
 4. プレイできるMVPの配信: `npm run build:web` → `docs/app/`（GitHub Pages `/dog_cat/app/`。Mac不要で自分のスマホで遊べる）**配信中**
 5. ストア素材（スクショ5枚構成＝listing.md／フィーチャーグラフィック）
