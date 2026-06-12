@@ -17,7 +17,7 @@ function petBase(over) {
 }
 function saveBase(over) {
   return Object.assign({
-    version: 5, coin: 180, luck: 0.05,
+    version: 6, premium: false, coin: 180, luck: 0.05,
     current: petBase(),
     dex: { shiba: { count: 3, firstAt: T0 - DAY * 3, unseen: false } },
     lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0,
@@ -29,6 +29,12 @@ function saveBase(over) {
 module.exports = {
   T0,
   scenarios: [
+    {
+      name: 'intro',
+      save: null, // セーブなし＝初回。説明画面が出る
+      fullPage: true,
+      steps: [{ wait: 500 }]
+    },
     {
       name: 'home',
       save: saveBase()
@@ -60,6 +66,42 @@ module.exports = {
         }
       }),
       steps: [{ click: '#dexBtn' }, { wait: 450 }]
+    },
+    {
+      name: 'dex-premium-locked',
+      save: saveBase(),
+      fullPage: true,
+      steps: [
+        { click: '#dexBtn' }, { wait: 450 },
+        { eval: () => { const m = document.querySelector('.modal'); if (m) m.scrollTop = 99999; } },
+        { wait: 300 }
+      ]
+    },
+    {
+      name: 'dex-premium-unlocked',
+      save: saveBase({
+        premium: true,
+        dex: {
+          shiba:  { count: 3, firstAt: T0 - DAY * 3, unseen: false },
+          akita:  { count: 1, firstAt: T0 - DAY * 1, unseen: true },
+          persian:{ count: 1, firstAt: T0 - DAY * 2, unseen: false }
+        }
+      }),
+      fullPage: true,
+      steps: [
+        { click: '#dexBtn' }, { wait: 450 },
+        { eval: () => { const m = document.querySelector('.modal'); if (m) m.scrollTop = 99999; } },
+        { wait: 300 }
+      ]
+    },
+    {
+      name: 'premium-modal',
+      save: saveBase(),
+      steps: [
+        { click: '#dexBtn' }, { wait: 450 },
+        { eval: () => { const b = document.querySelector('#premBtn'); if (b) b.click(); } },
+        { wait: 400 }
+      ]
     },
     {
       name: 'success',

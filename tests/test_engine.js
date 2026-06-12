@@ -76,31 +76,53 @@ test('品種は30種以上で、定義が揃っている', () => {
   assert.ok(dogs >= 15 && cats >= 15, `dog=${dogs} cat=${cats}`);
 });
 
-test('全品種が抽選で出現しうる（重み>0）', () => {
+test('無料抽選は無料ティアのみ／課金抽選は全品種', () => {
   const w = freshWorld();
-  const seen = new Set();
-  // [0,1) を細かく走査して全品種に到達できることを確認
+  const freeCount = w.Breeds.ALL.filter(w.Breeds.isFree).length;
+  const seenFree = new Set(), seenAll = new Set();
   for (let i = 0; i < 5000; i++) {
-    seen.add(w.Breeds.roll(() => i / 5000, 0).id);
+    seenFree.add(w.Breeds.roll(() => i / 5000, 0, false).id); // 無料
+    seenAll.add(w.Breeds.roll(() => i / 5000, 0, true).id);   // 課金
   }
-  assert.strictEqual(seen.size, w.Breeds.ALL.length);
+  assert.strictEqual(seenFree.size, freeCount);            // 無料は30種だけ
+  assert.strictEqual(seenAll.size, w.Breeds.ALL.length);   // 課金で全種
+  // 無料プールにプレミアム種が混ざらない
+  assert.ok(![...seenFree].some(id => w.Breeds.isPremium(w.Breeds.get(id))));
 });
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v5 の初期状態ができる', () => {
+test('newGame で v6 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 5);
+  assert.strictEqual(s.version, 6);
+  assert.strictEqual(s.premium, false);
   assert.strictEqual(s.foodStock, 6);
   assert.strictEqual(s.task, null);
   assert.ok(s.current);
+  assert.ok(w.Breeds.isFree(w.Breeds.get(s.current.breedId))); // 初回は必ず無料種
   assert.strictEqual(s.current.health, 100);
   assert.strictEqual(s.current.sanpo, 100);
   assert.strictEqual(s.deaths, 0);
   assert.strictEqual(s.runaways, 0);
   assert.strictEqual(s.walk, null);
   eqJSON(s.walkStats, { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 });
+});
+
+test('unlockPremium で全品種が解放される', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  assert.strictEqual(w.Engine.isPremium(), false);
+  const prog0 = w.Engine.dexProgress();
+  assert.strictEqual(prog0.total, prog0.freeTotal); // 無料時の目標は30種
+  const r = w.Engine.unlockPremium(T0);
+  assert.ok(r.unlocked);
+  assert.strictEqual(w.Engine.isPremium(), true);
+  const prog1 = w.Engine.dexProgress();
+  assert.strictEqual(prog1.total, w.Breeds.ALL.length); // 課金後は全種が目標
+  assert.ok(prog1.premiumTotal > 0);
+  // 二重解放は no-op
+  assert.ok(w.Engine.unlockPremium(T0).already);
 });
 
 test('セーブ→ロードで状態が一致する', () => {
@@ -123,7 +145,8 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 5);
+  assert.strictEqual(s.version, 6);
+  assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
   assert.strictEqual(s.walk, null);
