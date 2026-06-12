@@ -74,8 +74,11 @@ codemagic.yaml            CI（android-debug / android-release / ios-release）
 ### テスト（必ず緑にしてからコミット）
 ```bash
 npm test          # engine単体テスト（vmサンドボックス。依存不要・即時）
+npm run e2e       # E2E（Playwrightで実ブラウザのユーザージャーニー19本・約40秒）
+npm run e2e -- 巣立ち   # 名前の部分一致で絞り込み
 ```
 スキーマ・定数を変えたらテスト期待値も同時に直す。テストが落ちたまま進めない。
+UI・フローを変えたら `npm run e2e` も回す（tests/e2e/e2e.js にジャーニーを追加する）。
 
 ### スナップショット検証ループ（動画事例の核＝AIに画面を見せる）
 ```bash
