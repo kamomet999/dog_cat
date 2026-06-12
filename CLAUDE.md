@@ -93,7 +93,7 @@ npm run snap -- home food    # シナリオ名で絞り込み
 ## やることの優先順位（2026-06時点）
 1. 凍結前チェックリスト(DESIGN.md §11) — **完了済み**
 2. 課金フリーミアムの仕組み（無料30種／¥500で全品種・`MONETIZATION.md`）— **仕組み完成**。残=プレミアム品種データ拡充＋実機の課金プラグイン接続
-3. ブリード（おみあい）— 友人とコード交換で特徴を継承した子。`BREEDING_SPEC.md`。**次の目玉**
-4. プレイできるMVPの配信: `npm run build:web` → `docs/app/`（GitHub Pages `/dog_cat/app/`。Mac不要で自分のスマホで遊べる）
+3. ブリード（おみあい）— 友人とコード交換で特徴を継承した子。`BREEDING_SPEC.md`。**実装済み**（encode/decodeMate・breedWith・album・UI・テスト）。残=実機でのコード共有テスト
+4. プレイできるMVPの配信: `npm run build:web` → `docs/app/`（GitHub Pages `/dog_cat/app/`。Mac不要で自分のスマホで遊べる）**配信中**
 5. ストア素材（スクショ5枚構成＝listing.md／フィーチャーグラフィック）
 6. 実機プレイテストによる生存バランス調整（ごはん4〜5日・家出10日の肌感）

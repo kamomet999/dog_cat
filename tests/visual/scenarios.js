@@ -17,13 +17,18 @@ function petBase(over) {
 }
 function saveBase(over) {
   return Object.assign({
-    version: 6, premium: false, coin: 180, luck: 0.05,
+    version: 7, premium: false, coin: 180, luck: 0.05,
     current: petBase(),
     dex: { shiba: { count: 3, firstAt: T0 - DAY * 3, unseen: false } },
     lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0,
     foodStock: 6, task: null, walk: null,
-    walkStats: { success: 5, fail: 1, streak: 2, best: 3, totalMin: 240 }
+    walkStats: { success: 5, fail: 1, streak: 2, best: 3, totalMin: 240 },
+    album: []
   }, over || {});
+}
+// 成体（おみあい可能）
+function adultSave(over) {
+  return saveBase(Object.assign({ current: petBase({ xp: 200 }) }, over || {}));
 }
 
 module.exports = {
@@ -100,6 +105,32 @@ module.exports = {
       steps: [
         { click: '#dexBtn' }, { wait: 450 },
         { eval: () => { const b = document.querySelector('#premBtn'); if (b) b.click(); } },
+        { wait: 400 }
+      ]
+    },
+    {
+      name: 'mate-menu',
+      save: adultSave(),
+      steps: [{ click: '#mateBtn' }, { wait: 350 }]
+    },
+    {
+      name: 'mate-share',
+      save: adultSave(),
+      steps: [{ click: '#mateBtn' }, { wait: 300 }, { click: '#mateShow' }, { wait: 350 }]
+    },
+    {
+      name: 'dex-album',
+      save: saveBase({
+        album: [
+          { at: T0 - DAY, species: 'dog', nature: 'げんきいっぱい', parents: ['柴犬', 'コーギー'],
+            art: { base: 'dog', ear: 'bigprick', color: '#e0913f', color2: '#fbf2e6', pattern: 'tan', eye: '#2a1d12', fluffy: false, tail: 'curl' } },
+          { at: T0 - DAY * 2, species: 'dog', nature: 'じゆうじん', parents: ['ハスキー', 'ポメラニアン'],
+            art: { base: 'dog', ear: 'prick', color: '#8aa0b0', color2: '#f6dcab', pattern: 'patch', eye: '#7ab3e0', fluffy: true } }
+        ]
+      }),
+      steps: [
+        { click: '#dexBtn' }, { wait: 450 },
+        { eval: () => { const t = [...document.querySelectorAll('.dex-section-title')].find(e => e.textContent.includes('おみあい')); if (t) t.scrollIntoView(); } },
         { wait: 400 }
       ]
     },

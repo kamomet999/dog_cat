@@ -72,6 +72,7 @@
     $('actBtn').addEventListener('click', onAct);
     $('walkBtn').addEventListener('click', openWalkPicker);
     $('taskBtn').addEventListener('click', openTaskPicker);
+    $('mateBtn').addEventListener('click', openMateMenu);
     $('settingsBtn').addEventListener('click', openSettings);
   }
 
@@ -134,13 +135,16 @@
     var breed = Engine.breed();
     var stage = Engine.stage();
     var mood = petMood();
-    var key = breed.id + '_' + stage + '_' + mood;
+    var isMix = !!breed.mix;
+    var key = breed.id + '_' + stage + '_' + mood + (isMix ? '_m' : '');
     $('petName').textContent = stage === 0 ? 'ねんねちゅう…' : breed.name;
-    var R = Breeds.RARITY[breed.rarity];
+    var R = Breeds.RARITY[breed.rarity]; // ミックスは undefined
     $('petSub').textContent = stage === 0 ? 'どんな子かは めがあいてからの おたのしみ' : (breed.species === 'dog' ? 'いぬ' : 'ねこ') + '・' + STAGE_LABEL[stage];
+    var rareChip = isMix
+      ? '<span class="rarity-chip mix-chip">💞 ミックス</span>'
+      : (R ? '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' : '');
     $('petRarity').innerHTML = stage === 0 ? '' :
-      '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' +
-      (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '');
+      rareChip + (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '');
     if (key !== lastArtKey) {
       Art.mount($('petArt'), Art.petSVG(breed, stage, mood));
       lastArtKey = key;
@@ -167,6 +171,8 @@
       act.innerHTML = '🍼 そだてちゅう';
       act.disabled = true;
     }
+    // 成体は「おみあい」できる（ともだちの子と特徴を継いだミックスを迎える）
+    $('mateBtn').style.display = (stage >= 3) ? 'flex' : 'none';
     var prog = Engine.dexProgress();
     $('dexBtn').innerHTML = '📖 ずかん ' + prog.found + '/' + prog.total +
       (prog.newCount > 0 ? ' <span class="badge-new">NEW</span>' : '');
@@ -291,20 +297,23 @@
 
   // 巣立ち結果
   function showGraduate(res) {
-    var b = res.breed, R = Breeds.RARITY[b.rarity];
+    var b = res.breed, isMix = !!b.mix, R = Breeds.RARITY[b.rarity];
+    var rareChip = isMix ? '<span class="rarity-chip mix-chip">💞 ミックス</span>'
+      : (R ? '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' : '');
     var html = '<div class="center pop">' +
       (res.isNew ? '<div class="badge-new" style="display:inline-block;margin-bottom:6px">ずかん NEW!</div>' : '') +
-      '<div class="hatch-art">' + Art.slot(b.id) + '</div>' +
+      '<div class="hatch-art">' + (isMix ? '<div id="gradArt" style="width:100%;height:100%"></div>' : Art.slot(b.id)) + '</div>' +
       '<div class="hatch-name">' + b.name + ' が巣立ったよ</div>' +
-      '<div class="hatch-rare"><span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span></div>' +
-      '<div class="hatch-desc">' + b.desc + '</div>' +
+      '<div class="hatch-rare">' + rareChip + '</div>' +
+      '<div class="hatch-desc">' + (b.desc || '') + '</div>' +
       '<div class="mt12" style="font-weight:800;color:var(--coin-text)">＋' + res.reward + ' コイン' + (res.isNew ? '（はつ登録ボーナス込み）' : '') + '</div>' +
       '<button id="nextEgg" class="big-btn primary mt12" style="width:100%">つぎの子をおむかえ →</button>' +
       '</div>';
     var m = openModal(html, {
       onClose: function () { lastArtKey = ''; render(); maybeMilestone(res); }
     });
-    Art.hydrate(m.root);
+    if (isMix) Art.mount(m.root.querySelector('#gradArt'), Art.petSVG(b, 3, 'happy'));
+    else Art.hydrate(m.root);
     var nb = m.root.querySelector('#nextEgg');
     if (nb) nb.addEventListener('click', m.close);
   }
@@ -378,6 +387,20 @@
         '</div>';
     }
 
+    // 💞 アルバム（おみあいで生まれたミックス。30種図鑑とは別・BREEDING_SPEC §4）
+    var album = Engine.album();
+    var albumBlock = '';
+    if (album.length) {
+      var cells = album.map(function (e, i) {
+        var label = (e.parents ? e.parents[0] + '×' + e.parents[1] : 'ミックス');
+        return '<div class="dex-cell found"><div class="thumb" id="al' + i + '"></div>' +
+          '<div class="dn" style="font-size:10px">' + label + '</div>' +
+          '<div class="stars">' + (e.nature || '') + '</div></div>';
+      }).join('');
+      albumBlock = '<div class="dex-section-title">💞 おみあいアルバム（' + album.length + '）</div>' +
+        '<div class="dex-grid">' + cells + '</div>';
+    }
+
     var html = '<h2>📖 いぬねこ図鑑</h2>' +
       '<div class="dex-stats">' +
       '<span class="dex-pill">たっせい ' + pct + '%（' + prog.found + '/' + prog.total + '）</span>' +
@@ -389,6 +412,7 @@
       '<div class="dex-section-title">🐶 いぬ</div><div class="dex-grid">' + grid(freeDogs) + '</div>' +
       '<div class="dex-section-title">🐱 ねこ</div><div class="dex-grid">' + grid(freeCats) + '</div>' +
       premBlock +
+      albumBlock +
       // 差別化の旗（広告ゼロは不変。アプリ内でこの1箇所のみ・DESIGN.md §5）
       '<p class="dex-flag">基本むりょうで あそべる。こうこくも、ないよ</p>';
     var m = openModal(html, {
@@ -399,6 +423,11 @@
       }
     });
     Art.hydrate(m.root);
+    // アルバムのミックスは合成品種なので直接マウント（slot/hydrateは品種IDのみ対応）
+    album.forEach(function (e, i) {
+      var el = m.root.querySelector('#al' + i);
+      if (el) Art.mount(el, Art.petSVG({ id: 'al' + i, mix: true, species: e.species, name: 'ミックス', rarity: 'mix', nature: e.nature, art: e.art }, 2, 'normal'));
+    });
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-dex]'), function (cell) {
       cell.addEventListener('click', function () { openDexDetail(cell.getAttribute('data-dex')); });
     });
@@ -433,6 +462,115 @@
     if (bp) bp.addEventListener('click', function () { doUnlock('⭐ プレミアム図鑑を 解放した！'); });
     var rp = m.root.querySelector('#restorePrem');
     if (rp) rp.addEventListener('click', function () { doUnlock('購入を ふくげんしました'); });
+  }
+
+  // ---------- おみあい（ブリード。コードのコピペで遺伝） ----------
+  function openMateMenu() {
+    if (!Engine.canMate()) return showToast('せいたいに なってから おみあいできるよ');
+    var html = '<div class="center">' +
+      '<div style="font-size:44px">💞</div>' +
+      '<h2>おみあい</h2>' +
+      '<p class="sub">ともだちの子と「おみあい」すると、<br>ふたりの とくちょうを ついだ ミックスの子が やってくるよ。<br>（おなじ どうぶつ どうし／コードを こうかんするだけ・つうしんなし）</p>' +
+      '<button id="mateShow" class="big-btn primary mt12" style="width:100%">📤 じぶんの コードを みせる</button>' +
+      '<button id="mateInput" class="big-btn ghost mt12" style="width:100%">📥 あいての コードを いれる</button>' +
+      '<p class="muted mt12" style="font-size:11px">おみあいすると、いまの子は 巣立って 図鑑に のこります。</p>' +
+      '</div>';
+    var m = openModal(html);
+    m.root.querySelector('#mateShow').addEventListener('click', function () { m.close(); openMateShare(); });
+    m.root.querySelector('#mateInput').addEventListener('click', function () { m.close(); openMateInput(); });
+  }
+
+  function openMateShare() {
+    var code = Engine.mateCode();
+    if (!code) return showToast('せいたいに なってから おみあいできるよ');
+    var b = Engine.breed();
+    var html = '<div class="center">' +
+      '<h2>📤 おみあいコード</h2>' +
+      '<p class="sub">この <b>' + b.name + '</b> の コードを ともだちに おくってね。<br>あいてが いれると ミックスの子が うまれるよ。</p>' +
+      '<div class="mate-code" id="mateCode">' + code + '</div>' +
+      '<button id="copyCode" class="big-btn primary mt12" style="width:100%">📋 コピーする</button>' +
+      '<button id="shareCode" class="big-btn ghost mt12" style="width:100%">📨 おくる（シェア）</button>' +
+      '</div>';
+    var m = openModal(html, { onClose: openMateMenu });
+    m.root.querySelector('#copyCode').addEventListener('click', function () {
+      copyText(code, function (ok) { showToast(ok ? '📋 コピーした！' : 'コピーできなかった…手で えらんでね'); });
+    });
+    m.root.querySelector('#shareCode').addEventListener('click', function () {
+      var msg = 'うちの「' + b.name + '」と おみあいしない？🐾\nおみあいコード: ' + code + '\n#いぬねこ図鑑';
+      if (navigator.share) navigator.share({ text: msg }).catch(function () {});
+      else copyText(msg, function (ok) { showToast(ok ? '📋 さそい文を コピーした！' : 'コピーできなかった…'); });
+    });
+  }
+
+  function openMateInput() {
+    var html = '<div class="center">' +
+      '<h2>📥 あいての コード</h2>' +
+      '<p class="sub">ともだちから もらった おみあいコードを はりつけてね。</p>' +
+      '<input id="codeIn" class="mate-input" placeholder="INU-XXXX-XXXX-..." autocomplete="off" autocapitalize="characters" />' +
+      '<div id="codePrev" class="mate-prev"></div>' +
+      '<button id="doMate" class="big-btn primary mt12" style="width:100%" disabled>おみあいする</button>' +
+      '</div>';
+    var m = openModal(html, { onClose: openMateMenu });
+    var input = m.root.querySelector('#codeIn');
+    var prev = m.root.querySelector('#codePrev');
+    var btn = m.root.querySelector('#doMate');
+    var parsed = null;
+    // クリップボードから自動読み取り（同意的に・失敗は無視）
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(function (t) {
+        if (t && /^(INU|NEK)-/.test(t.trim()) && !input.value) { input.value = t.trim(); check(); }
+      }).catch(function () {});
+    }
+    function check() {
+      var g = Engine.decodeMate(input.value);
+      var mine = Engine.breed();
+      if (g.error) {
+        parsed = null; btn.disabled = true;
+        prev.innerHTML = input.value.length > 3 ? '<span class="mate-bad">コードが ただしくないみたい…</span>' : '';
+        return;
+      }
+      if (mine && g.species !== mine.species) {
+        parsed = null; btn.disabled = true;
+        prev.innerHTML = '<span class="mate-bad">' + (g.species === 'dog' ? 'いぬ' : 'ねこ') + 'の子だね。おなじ どうぶつ どうしだけ おみあいできるよ。</span>';
+        return;
+      }
+      parsed = g; btn.disabled = false;
+      prev.innerHTML = '<span class="mate-ok">✓ ' + g.name + '（' + (g.species === 'dog' ? 'いぬ' : 'ねこ') + '）と おみあいできるよ</span>';
+    }
+    input.addEventListener('input', check);
+    btn.addEventListener('click', function () {
+      if (!parsed) return;
+      var r = Engine.breedWith(parsed, now(), Math.random);
+      if (r.error) return showToast(r.error === 'species' ? 'おなじ どうぶつ どうしだけだよ' : 'おみあいできなかった…');
+      m.close();
+      lastArtKey = '';
+      render();
+      showMateResult(r);
+    });
+  }
+
+  function showMateResult(r) {
+    happyUntil = now() + 2000;
+    var b = Engine.breed(); // 生まれたおくるみ
+    var title = r.isMix ? 'ミックスの子が やってきた！' : (b.name + 'の あかちゃん！');
+    var html = '<div class="center pop">' +
+      '<div id="mrArt" class="hatch-art"></div>' +
+      '<h2>' + title + '</h2>' +
+      '<p class="sub">' + r.parents[0] + ' と ' + r.parents[1] + ' の子。<br>' +
+      (r.isMix ? 'せかいに ひとつだけの ミックス。' : 'おなじ品種どうしなので 純血の子だよ。') +
+      (r.mutated ? '<br>✨ めずらしい とくちょうが あらわれた！' : '') + '</p>' +
+      (r.reward > 0 ? '<div style="font-weight:800;color:var(--coin-text)">巣立ちボーナス ＋' + r.reward + ' コイン' + (r.isNew ? '（図鑑はつ登録）' : '') + '</div>' : '') +
+      '<button id="mrOk" class="big-btn primary mt12" style="width:100%">おむかえする →</button>' +
+      '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
+    var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
+    Art.mount(m.root.querySelector('#mrArt'), Art.petSVG(b, 0, 'happy')); // おくるみ姿
+    m.root.querySelector('#mrOk').addEventListener('click', m.close);
+  }
+
+  function copyText(text, cb) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { cb(true); }, function () { cb(false); });
+    } else { cb(false); }
   }
 
   // 図鑑の詳細ページ（閉じると図鑑にもどる）

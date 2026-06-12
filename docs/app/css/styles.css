@@ -240,6 +240,19 @@ button.dex-cell:active { transform: scale(.94); }
 .intro-step .ist-ico { font-size:24px; flex:0 0 auto; }
 .intro-step b { font-size:13px; }
 
+/* おみあい（ブリード） */
+.mate-code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 16px; font-weight: 800;
+  letter-spacing: 1px; background: #f4ece0; border-radius: 14px; padding: 14px 10px; margin: 12px 0 4px;
+  word-break: break-all; color: var(--ink); }
+.mate-input { width: 100%; font-family: ui-monospace, Menlo, monospace; font-size: 15px; font-weight: 700;
+  text-align: center; border: 2px solid #e3d6c4; border-radius: 14px; padding: 12px; margin-top: 8px;
+  color: var(--ink); background: #fff; }
+.mate-input:focus { outline: none; border-color: var(--accent-d); }
+.mate-prev { min-height: 22px; font-size: 12px; font-weight: 700; margin-top: 10px; }
+.mate-ok { color: #2e8757; }
+.mate-bad { color: var(--ink-soft); }
+.mix-chip { background: linear-gradient(135deg, #f7a8c4, #c98ad6); color: #fff; }
+
 /* プレミアム（¥500課金で全品種解放） */
 .dex-cell.premium .prem-lock { position:absolute; top:5px; right:5px; font-size:13px; }
 .dex-cell.premium { border-color:#f1d79a; background:#fff8ec; }
