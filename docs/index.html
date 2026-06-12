@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>いぬねこ図鑑</title>
+<meta name="description" content="スマホをはなれて そだてる いぬねこ。広告ゼロ・登録不要のデジタルデトックス育成アプリ。">
+<style>
+  :root{
+    --bg1:#fdf6ec; --bg2:#f6e7d8; --card:#fff;
+    --ink:#4a3f35; --ink-soft:#6f6354;
+    --accent:#ff9a76; --accent-d:#f47b54; --on-accent:#4a3f35;
+    --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;
+  }
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    box-shadow:0 8px 24px rgba(120,90,60,.16);
+    padding:36px 28px;max-width:420px;width:100%;text-align:center;
+  }
+  .logo{font-size:54px}
+  h1{font-size:24px;font-weight:800;margin:10px 0 4px}
+  .sub{color:var(--ink-soft);font-size:13px;margin-bottom:22px}
+  .desc{font-size:14px;line-height:1.8;margin-bottom:24px}
+  .desc b{color:var(--accent-d)}
+  a.btn{
+    display:block;text-decoration:none;font-weight:800;font-size:15px;
+    border-radius:18px;padding:14px;margin-top:10px;
+  }
+  a.primary{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:var(--on-accent)}
+  a.ghost{background:#f4ece0;color:var(--ink)}
+  footer{margin-top:22px;color:var(--ink-soft);font-size:11px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🐾</div>
+    <h1>いぬねこ図鑑</h1>
+    <div class="sub">スマホをはなれて そだてる いぬねこ</div>
+    <p class="desc">
+      スマホを置いた時間が、この子のごはんになる。<br>
+      30種の いぬとねこを、<b>ぜんぶ無料</b>で あつめよう。<br>
+      <b>広告ゼロ・登録不要。</b>
+    </p>
+    <a class="btn ghost" href="./privacy.html">プライバシーポリシー</a>
+    <footer>© 2026 いぬねこ図鑑</footer>
+  </div>
+</body>
+</html>
