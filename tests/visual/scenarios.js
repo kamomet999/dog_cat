@@ -45,6 +45,47 @@ module.exports = {
       save: saveBase()
     },
     {
+      name: 'tutorial1',
+      save: null, // 初回フロー: intro → はじめる → 種選択 → チュートリアル
+      steps: [
+        { eval: () => { try { localStorage.removeItem('inuneko_tutorial_done_v1'); } catch (e) {} } },
+        { click: '#introGo' }, { wait: 250 },
+        { click: '[data-sp="dog"]' }, { wait: 700 }
+      ]
+    },
+    {
+      name: 'tutorial2',
+      save: null,
+      steps: [
+        { eval: () => { try { localStorage.removeItem('inuneko_tutorial_done_v1'); } catch (e) {} } },
+        { click: '#introGo' }, { wait: 250 },
+        { click: '[data-sp="dog"]' }, { wait: 700 },
+        { click: '#tutNext' }, { wait: 300 }
+      ]
+    },
+    {
+      name: 'tutorial4',
+      save: null,
+      steps: [
+        { eval: () => { try { localStorage.removeItem('inuneko_tutorial_done_v1'); } catch (e) {} } },
+        { click: '#introGo' }, { wait: 250 },
+        { click: '[data-sp="dog"]' }, { wait: 700 },
+        { click: '#tutNext' }, { wait: 200 }, { click: '#tutNext' }, { wait: 200 },
+        { click: '#tutNext' }, { wait: 300 }
+      ]
+    },
+    {
+      name: 'tutorial5',
+      save: null,
+      steps: [
+        { eval: () => { try { localStorage.removeItem('inuneko_tutorial_done_v1'); } catch (e) {} } },
+        { click: '#introGo' }, { wait: 250 },
+        { click: '[data-sp="dog"]' }, { wait: 700 },
+        { click: '#tutNext' }, { wait: 150 }, { click: '#tutNext' }, { wait: 150 },
+        { click: '#tutNext' }, { wait: 150 }, { click: '#tutNext' }, { wait: 300 }
+      ]
+    },
+    {
       name: 'food',
       save: saveBase({ foodStock: 4 }),
       steps: [{ click: '[data-act="feed"]' }, { wait: 350 }]
@@ -74,7 +115,14 @@ module.exports = {
     },
     {
       name: 'dex-premium-locked',
-      save: saveBase(),
+      save: saveBase({
+        dex: {
+          shiba: { count: 3, firstAt: T0 - DAY * 3, unseen: false },
+          golden: { count: 1, firstAt: T0 - DAY * 2, unseen: false },
+          chihuahua: { count: 1, firstAt: T0 - DAY * 2, unseen: false },
+          kijitora: { count: 1, firstAt: T0 - DAY, unseen: false }
+        }
+      }),
       fullPage: true,
       steps: [
         { click: '#dexBtn' }, { wait: 450 },
@@ -133,6 +181,12 @@ module.exports = {
         { eval: () => { const t = [...document.querySelectorAll('.dex-section-title')].find(e => e.textContent.includes('おみあい')); if (t) t.scrollIntoView(); } },
         { wait: 400 }
       ]
+    },
+    {
+      name: 'settings',
+      save: saveBase({ graduates: 7, walkStats: { success: 18, fail: 3, streak: 4, best: 9, totalMin: 1240 } }),
+      fullPage: true,
+      steps: [{ click: '#settingsBtn' }, { wait: 400 }]
     },
     {
       name: 'success',

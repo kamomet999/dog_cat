@@ -119,14 +119,15 @@
   function renderGrow() {
     var p = Engine.getState().current;
     var stage = Engine.stageOf(p.xp);
-    $('growStage').textContent = STAGE_LABEL[stage];
+    // stage0（おくるみ）は「めざめまで」と表示して、いつ姿が見えるかの目安にする（ペルソナP1/P3）
+    $('growStage').textContent = stage === 0 ? 'めざめまで' : STAGE_LABEL[stage];
     var G = Engine.GROW;
     var pct;
     if (stage >= 3) { pct = 100; $('growPct').textContent = 'MAX'; }
     else {
       var lo = G[stage], hi = G[stage + 1];
       pct = Math.max(0, Math.min(100, (p.xp - lo) / (hi - lo) * 100));
-      $('growPct').textContent = 'つぎまで ' + Math.ceil(hi - p.xp);
+      $('growPct').textContent = stage === 0 ? 'もうすぐ めをさます' : 'つぎまで ' + Math.ceil(hi - p.xp);
     }
     $('growFill').style.width = pct + '%';
   }
@@ -290,9 +291,61 @@
         lastArtKey = '';
         m.close();
         render();
-        showToast('🧺 あかちゃんを おむかえした！');
+        // 初回はチュートリアルが説明するのでトーストは出さない（吹き出しとの重なり防止）
+        if (!tutorialDone()) setTimeout(function () { startTutorial(); }, 450);
+        else showToast('🧺 あかちゃんを おむかえした！');
       });
     });
+  }
+
+  // ---------- 操作チュートリアル（コーチマーク。初回だけ・スキップ可） ----------
+  var TUT_KEY = 'inuneko_tutorial_done_v1';
+  function tutorialDone() { try { return localStorage.getItem(TUT_KEY) === '1'; } catch (e) { return false; } }
+  function markTutorialDone() { try { localStorage.setItem(TUT_KEY, '1'); } catch (e) {} }
+
+  var TUT_STEPS = [
+    { sel: '#petArt', title: 'いまは ねんねちゅう', text: 'なでたり ごはんを あげると、<b>もうすぐ めをさまして</b> どんな子か わかるよ。タップで なでてみて。', place: 'below' },
+    { sel: '#walkBtn', title: '① ごはんさがし＝スマホをふせる', text: '“スマホを ふせる” と、その時間が この子の <b>えさ</b> になるよ。これが いちばん大事！', place: 'above' },
+    { sel: '#taskBtn', title: '② おさんぽ＝べんきょう・うんどうの時間', text: 'どくしょ・えいご・うんどうの あいだ、となりに いてくれる。ごはんさがしとは べつの “いいじかん”。', place: 'above' },
+    { sel: '#stats', title: 'おなか・きげん・いのち', text: 'ごはんは ストックから <span class="calm">じどうで</span> たべるよ。毎日ひらかなくても、<span class="calm">わすれても せめないよ</span>。', place: 'below' },
+    { sel: '#dexBtn', title: '③ ずかんを あつめる', text: 'そだてた子は ここに登録。いぬねこ 30しゅるい〜、ともだちと「おみあい」もできるよ！', place: 'above' }
+  ];
+
+  function startTutorial(force) {
+    if (!force && tutorialDone()) return;
+    var t = $('toast'); if (t) t.classList.remove('show'); // 吹き出しと重ならないようトーストを消す
+    var root = $('modalRoot');
+    var i = 0;
+    function render1() {
+      var step = TUT_STEPS[i];
+      var el = $(step.sel.slice(1));
+      if (!el) { i++; if (i < TUT_STEPS.length) return render1(); return finish(); }
+      var r = el.getBoundingClientRect();
+      var pad = 8;
+      var hole = { left: r.left - pad, top: r.top - pad, w: r.width + pad * 2, h: r.height + pad * 2 };
+      var below = step.place === 'below';
+      var tipTop = below ? hole.top + hole.h + 12 : 'auto';
+      var tipBottom = below ? 'auto' : (window.innerHeight - hole.top + 12);
+      root.innerHTML =
+        '<div class="tut-mask">' +
+        '<div class="tut-hole" style="left:' + hole.left + 'px;top:' + hole.top + 'px;width:' + hole.w + 'px;height:' + hole.h + 'px"></div>' +
+        '<div class="tut-tip" style="' + (below ? 'top:' + tipTop + 'px;' : 'bottom:' + tipBottom + 'px;') + '">' +
+        '<div class="tut-title">' + step.title + '</div>' +
+        '<p class="tut-text">' + step.text + '</p>' +
+        '<div class="tut-foot"><span class="tut-dots">' + dots(i) + '</span>' +
+        '<span><button class="tut-skip" id="tutSkip">スキップ</button>' +
+        '<button class="tut-next" id="tutNext">' + (i === TUT_STEPS.length - 1 ? 'あそぶ！' : 'つぎへ') + '</button></span></div>' +
+        '</div></div>';
+      root.querySelector('#tutNext').addEventListener('click', function () { i++; (i < TUT_STEPS.length) ? render1() : finish(); });
+      root.querySelector('#tutSkip').addEventListener('click', finish);
+    }
+    function dots(active) {
+      var s = '';
+      for (var k = 0; k < TUT_STEPS.length; k++) s += '<i class="tut-dot' + (k === active ? ' on' : '') + '"></i>';
+      return s;
+    }
+    function finish() { markTutorialDone(); root.innerHTML = ''; }
+    render1();
   }
 
   // 巣立ち結果
@@ -371,19 +424,20 @@
     var premDogs = Breeds.ofSpecies('dog').filter(Breeds.isPremium);
     var premCats = Breeds.ofSpecies('cat').filter(Breeds.isPremium);
 
-    // プレミアム枠（未解放=CTA／解放後=コレクション）
-    var premBlock;
+    // プレミアム枠（未解放=CTA／解放後=コレクション）。
+    // 初日からの課金圧を避けるため、CTAは3種あつめてから出す（ペルソナP1/P2/P3指摘）。
+    var premBlock = '';
     if (premium) {
       premBlock = '<div class="dex-section-title">⭐ プレミアム図鑑（' + prog.premiumFound + '/' + prog.premiumTotal + '）</div>' +
         '<div class="dex-grid">' + grid(premDogs.concat(premCats)) + '</div>';
-    } else {
+    } else if (prog.found >= 3) {
       premBlock = '<div class="prem-cta">' +
-        '<div class="prem-cta-title">⭐ プレミアム図鑑</div>' +
-        '<p class="prem-cta-sub">いまは メジャーな ' + prog.freeTotal + 'しゅるい。<br>' +
-        Breeds.PREMIUM.price + 'で <b>すべての公式品種</b>（犬・猫を ぞくぞく追加）を あつめられるよ。</p>' +
+        '<div class="prem-cta-title">⭐ もっと あつめたい人へ</div>' +
+        '<p class="prem-cta-sub"><b>広告ゼロ・買い切り。延命や復活の課金はナシ。</b><br>' +
+        Breeds.PREMIUM.price + 'で <b>すべての公式品種</b>（犬・猫を ぞくぞく追加）を解放できるよ。<br>' +
+        'メジャーな ' + prog.freeTotal + 'しゅるいは ずっと むりょう。</p>' +
         '<div class="dex-grid prem-peek">' + grid(premDogs.slice(0, 3).concat(premCats.slice(0, 3))) + '</div>' +
         '<button id="premBtn" class="big-btn primary" style="width:100%;margin-top:10px">' + Breeds.PREMIUM.price + 'で すべて解放</button>' +
-        '<p class="muted" style="margin-top:8px;font-size:11px">買い切り・広告ゼロ。延命や復活の課金はありません。</p>' +
         '</div>';
     }
 
@@ -615,8 +669,11 @@
       (Engine.isPremium()
         ? '<p class="muted">⭐ プレミアム図鑑：<b>解放ずみ</b>（ぜんぶの公式品種が あつまります）</p>'
         : '<button id="premSet" class="big-btn primary" style="width:100%">⭐ プレミアム図鑑を 解放（' + Breeds.PREMIUM.price + '）</button>') +
+      '<button id="tutAgain" class="big-btn ghost mt12" style="width:100%">📖 あそびかたを もういちど みる</button>' +
       '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--badge-new)">🗑 データをリセット</button>';
     var m = openModal(html);
+    var ta = m.root.querySelector('#tutAgain');
+    if (ta) ta.addEventListener('click', function () { m.close(); setTimeout(function () { startTutorial(true); }, 250); });
     var ps = m.root.querySelector('#premSet');
     if (ps) ps.addEventListener('click', function () { m.close(); openPremiumModal(); });
     var rb = m.root.querySelector('#resetBtn');
@@ -666,19 +723,19 @@
   }
   function fmtMin(min) { return min >= 60 ? (min / 60) + 'じかん' : min + 'ぷん'; }
 
+  var FOOD_BY_MIN = { 30: 2, 60: 4, 120: 8 };
   function openWalkPicker() {
     if (Engine.walk()) return;
     var btns = Engine.WALK_OPTIONS.map(function (min) {
       return '<button class="care-btn" data-min="' + min + '" style="padding:14px 4px">' +
         '<span class="emo">' + (min <= 30 ? '🐾' : min <= 60 ? '🌳' : '⛰') + '</span>' +
-        '<span class="lbl">' + fmtMin(min) + '</span></button>';
+        '<span class="lbl">' + fmtMin(min) + '</span>' +
+        '<span class="cost" style="color:var(--accent-d)">🍖 ×' + (FOOD_BY_MIN[min] || 2) + '</span></button>';
     }).join('');
-    var html = '<h2>🍖 ごはんさがしに でかける</h2>' +
-      '<p class="sub">スマホをふせて、そのあいだは もどってこないでね。<br>' +
-      'ぶじに帰ってこられたら <b>えさ</b> をもってかえるよ（30分=2・1時間=4・2時間=8）。<br>' +
-      '<b>とちゅうでアプリをひらくと失敗</b>しちゃう…！</p>' +
+    var html = '<h2>🍖 ごはんさがし</h2>' +
+      '<p class="sub">スマホを ふせて おるすばん。<br>その じかんが、この子の <b>えさ</b> に かわるよ。</p>' +
       '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:12px">' + btns + '</div>' +
-      '<p class="muted mt12">ながく でかけるほど ごほうびアップ。れんぞく成功でさらにアップ！<br>※はじめてから60秒いないなら、もどってもセーフだよ。</p>';
+      '<p class="muted mt12" style="font-size:11px">とちゅうで アプリを ひらくと しっぱい（さいしょの 60秒は セーフ）。れんぞく成功で ごほうびアップ。</p>';
     var m = openModal(html);
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-min]'), function (btn) {
       btn.addEventListener('click', function () {
@@ -791,6 +848,7 @@
     var html = '<h2>🐾 おさんぽ（いいじかん）</h2>' +
       '<p class="sub">どくしょ・えいご・うんどうなど、じぶんできめた「いいじかん」のあいだ、' +
       'この子は となりを おさんぽしてる気分。<br>KindleやえいごアプリをつかってもOK。<b>失敗はないよ</b>。</p>' +
+      '<p class="muted" style="font-size:11px;margin:-6px 0 10px">⏱ じかんを はかるだけの <b>しょうじきタイマー</b>。とちゅうで なにを しても じゆう。じぶんを しんじて つづけよう。</p>' +
       '<div class="dex-section-title">なにをする？</div>' +
       '<div class="care-grid" style="grid-template-columns:repeat(5,1fr);gap:8px">' + kinds + '</div>' +
       '<div class="dex-section-title">どのくらい？</div>' +

@@ -240,6 +240,24 @@ button.dex-cell:active { transform: scale(.94); }
 .intro-step .ist-ico { font-size:24px; flex:0 0 auto; }
 .intro-step b { font-size:13px; }
 
+/* 操作チュートリアル（コーチマーク） */
+.tut-mask { position: fixed; inset: 0; z-index: 70; }
+.tut-hole { position: absolute; border-radius: 16px; box-shadow: 0 0 0 9999px rgba(40,30,20,.62);
+  border: 2px solid #fff; transition: all .2s ease; pointer-events: none; }
+.tut-tip { position: absolute; left: 50%; transform: translateX(-50%); width: calc(100% - 36px); max-width: 380px;
+  background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 14px 16px; }
+.tut-title { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+.tut-text { font-size: 13px; line-height: 1.6; color: var(--ink); margin: 0 0 10px; }
+.tut-text b { color: var(--accent-d); }
+.tut-text .calm { color: var(--ink); font-weight: 800; } /* 安心文は煽り色を使わない（原則2） */
+.tut-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tut-dots { display: flex; gap: 5px; }
+.tut-dot { width: 7px; height: 7px; border-radius: 50%; background: #e3d6c4; display: inline-block; }
+.tut-dot.on { background: var(--accent-d); }
+.tut-skip { border: none; background: transparent; color: var(--ink-soft); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; padding: 8px; }
+.tut-next { border: none; background: var(--accent); color: var(--on-accent); font-family: inherit;
+  font-size: 13px; font-weight: 800; border-radius: 999px; padding: 8px 18px; cursor: pointer; }
+
 /* おみあい（ブリード） */
 .mate-code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 16px; font-weight: 800;
   letter-spacing: 1px; background: #f4ece0; border-radius: 14px; padding: 14px 10px; margin: 12px 0 4px;
