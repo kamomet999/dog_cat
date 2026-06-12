@@ -657,7 +657,7 @@
     var st = Engine.getState();
     var ws = st.walkStats || { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 };
     var html = '<h2>⚙ せってい</h2>' +
-      '<p class="sub">「いぬねこ図鑑」 v2.0 — スマホをはなれて、そだてる いぬねこ</p>' +
+      '<p class="sub">「いぬねこ図鑑」 β8（2026-06-12）— スマホを離れて、育てる いぬねこ</p>' +
       '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「おさんぽ」で計画的にスマホからはなれると、もっと早く育って ごほうびがもらえます。</p>' +
       '<hr class="soft">' +
       '<p class="muted">おさんぽ成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ デトックス合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
