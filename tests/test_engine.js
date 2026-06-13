@@ -92,10 +92,10 @@ test('無料抽選は無料ティアのみ／課金抽選は全品種', () => {
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v12 の初期状態ができる', () => {
+test('newGame で v13 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 12);
+  assert.strictEqual(s.version, 13);
   assert.strictEqual(s.premium, false);
   eqJSON(s.album, []);
   assert.strictEqual(s.foodStock, 6);
@@ -164,7 +164,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 12);
+  assert.strictEqual(s.version, 13);
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
@@ -701,6 +701,22 @@ test('記号模様: コードで往復＋おみあいで親から遺伝する', 
     if (m === 'star' || m === 'heart') fromParent++;
   }
   assert.ok(fromParent >= 30, `模様の大半が親由来 (${fromParent}/40)`); // 約94%期待
+});
+
+test('目スタイル: コードで往復＋おみあいで親から遺伝する', () => {
+  const a = adultWorld('shiba');
+  a.Engine.getState().current.eyeStyle = 'ojou';
+  const g = a.Engine.decodeMate(a.Engine.mateCode());
+  assert.strictEqual(g.eyeStyle, 'ojou', 'mateコードで目スタイルが往復する');
+  let fromParent = 0;
+  for (let i = 0; i < 40; i++) {
+    const w = adultWorld('corgi');
+    w.Engine.getState().current.eyeStyle = 'downer';
+    w.Engine.breedWith(g, T0, Math.random); // 相手=ojou / 自分=downer
+    const e = w.Engine.eyeStyleOf();
+    if (e === 'ojou' || e === 'downer') fromParent++;
+  }
+  assert.ok(fromParent >= 30, `目の大半が親由来 (${fromParent}/40)`);
 });
 
 test('別の種とはおみあいできない（いぬ×ねこ不可）', () => {

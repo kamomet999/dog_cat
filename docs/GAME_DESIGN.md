@@ -128,6 +128,7 @@
 | セーブ | ✅ VERSION 11。`taskStats`・`reminders`・`allowApps`(v10)＋`wardrobe`(owned/equipped・v11)。`migrate()` v9→v10→v11。task に `place` を追加 |
 | きせかえ | ✅ おさんぽ成功で確率ドロップ（Engine.WEAR_IDS 全12種・checkTask が rnd で抽選・初回自動装備）。equipWear/wardrobe API。UIは👕クローゼット＋ホームでペットに重ね描画 |
 | 記号模様 | ✅ 個体ごとの体の模様（none/●/▲/♥/★/◎/◆・レア度つき MARK_RARITY）。freshPet で rollMark（none55%〜◆1%）。おみあいで親から遺伝（6%変異）。mateコードに3bitで同梱（MATE_VER据え置き）。VERSION 12・ホームで体に重ね描画＋レア度チップ |
+| 目スタイル | ✅ 5種(バッチリ/元気/ダウナー/真面目/お嬢様)。**目なしベース `<id>_noeye`＋SVG目レイヤー**をホームで合成（図鑑等は従来の目付き）。色・模様と独立に遺伝、mateコードに1バイト追加（MATE_VER 2）。VERSION 13。新しい子の犬猫選択（おみあい除く）／性格でタップ反応も同梱 |
 | エンジン | 自動給餌・受動獲得は advance() 内で決定論的に積分。✅ おすわりは既存 walk を流用（継続時間→餌・長いほど増量・180分追加）。✅ さんぽ checkTask に餌ボーナス（taskFoodGain）＋ダッシュボード統計（bumpTaskStats：継続日数/累計/種類別）。✅ taskScore/allowApps/reminders のAPI |
 | ネイティブ | appStateChange（離席検知・既存）／ローカル通知（既存）。★ 時間指定リマインドを daily repeat で予約（native.js に追加） |
 | 通知 | id1002=さんぽ完了／2001-2003=危険予告（バックグラウンド移行時に張り替え）。★ id3001-…=時間指定リマインド（daily） |

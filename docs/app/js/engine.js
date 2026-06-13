@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 12;
+  var VERSION = 13;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -111,7 +111,8 @@
       health: 100, sanpo: 100,
       runawayH: 0, away: false,
       careCount: 0,
-      mark: rollMark(rnd)
+      mark: rollMark(rnd),
+      eyeStyle: rollEye(rnd)
     };
   }
 
@@ -220,6 +221,10 @@
       // 体の記号模様（個体の特徴）。既存の子は none から
       s = { ...s, version: 12, current: s.current ? { ...s.current, mark: s.current.mark || 'none' } : null };
     }
+    if (s.version === 12) {
+      // 目スタイル（個体の特徴）。既存の子は batchiri から
+      s = { ...s, version: 13, current: s.current ? { ...s.current, eyeStyle: s.current.eyeStyle || 'batchiri' } : null };
+    }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
 
@@ -302,7 +307,7 @@
 
   // ====== おみあい（ブリード）: サーバーなし・コードのコピペで遺伝 ======
   // docs/BREEDING_SPEC.md が正。成体どうしの特徴をランダム継承した「ミックス」を産む。
-  var MATE_VER = 1;
+  var MATE_VER = 2; // v2: 目スタイル(eyeStyle)を1バイト追加
   var EARS = ['prick', 'flop', 'round', 'fold', 'bigprick'];
   var PATTERNS = ['solid', 'tan', 'patch', 'spot', 'tabby', 'calico', 'tuxedo', 'point'];
   var TAILS = ['normal', 'curl'];
@@ -319,6 +324,10 @@
     for (k in MARK_WEIGHT) { if (!Object.prototype.hasOwnProperty.call(MARK_WEIGHT, k)) continue; acc += MARK_WEIGHT[k]; if (r < acc) return k; }
     return 'none';
   }
+
+  // 目のスタイル（個体ごと・色や模様とは独立に遺伝）。目なしベース＋このレイヤーを合成して描画。
+  var EYE_STYLES = ['batchiri', 'genki', 'downer', 'majime', 'ojou']; // バッチリ/元気/ダウナー/真面目/お嬢様
+  function rollEye(rnd) { return EYE_STYLES[Math.floor((rnd || Math.random)() * EYE_STYLES.length) % EYE_STYLES.length]; }
 
   function natureList() { return Object.keys(Breeds.NATURES); } // 15種（idx 0-14）
   function idxOf(arr, v) { var i = arr.indexOf(v); return i < 0 ? 0 : i; }
@@ -353,10 +362,10 @@
   function genomeOf(state) {
     var p = state.current;
     if (p.mix) {
-      return { species: p.mix.species, breedIdx: null, nature: p.mix.nature, art: p.mix.art, name: 'ミックス', mark: p.mark || 'none' };
+      return { species: p.mix.species, breedIdx: null, nature: p.mix.nature, art: p.mix.art, name: 'ミックス', mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
     }
     var b = Breeds.get(p.breedId);
-    return { species: b.species, breedIdx: Breeds.ALL.indexOf(b), nature: b.nature, art: b.art, name: b.name, mark: p.mark || 'none' };
+    return { species: b.species, breedIdx: Breeds.ALL.indexOf(b), nature: b.nature, art: b.art, name: b.name, mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
   }
   function genomeToBytes(g) {
     var nat = natureList();
@@ -378,15 +387,16 @@
     b[4] = c1[0]; b[5] = c1[1]; b[6] = c1[2];
     b[7] = c2[0]; b[8] = c2[1]; b[9] = c2[2];
     b[10] = ce[0]; b[11] = ce[1]; b[12] = ce[2];
-    var sum = 0; for (var i = 0; i < 13; i++) sum = (sum + b[i]) & 255;
-    b[13] = sum;
+    b[13] = idxOf(EYE_STYLES, g.eyeStyle || 'batchiri'); // 目スタイル(MATE_VER2)
+    var sum = 0; for (var i = 0; i < 14; i++) sum = (sum + b[i]) & 255;
+    b[14] = sum;
     return b;
   }
   function bytesToGenome(b) {
-    if (!b || b.length < 14) return { error: 'format' };
+    if (!b || b.length < 15) return { error: 'format' };
     if (b[0] !== MATE_VER) return { error: 'version' };
-    var sum = 0; for (var i = 0; i < 13; i++) sum = (sum + b[i]) & 255;
-    if (sum !== b[13]) return { error: 'checksum' };
+    var sum = 0; for (var i = 0; i < 14; i++) sum = (sum + b[i]) & 255;
+    if (sum !== b[14]) return { error: 'checksum' };
     var nat = natureList();
     var natIdx = (b[2] >> 3) & 15;
     var mk = ((b[1] >> 6) & 1) | (((b[1] >> 7) & 1) << 1) | (((b[2] >> 7) & 1) << 2);
@@ -395,6 +405,7 @@
       breedIdx: b[3] === 255 ? null : b[3],
       nature: natIdx === 15 ? HYBRID_NATURE : (nat[natIdx] || nat[0]),
       mark: MARK_IDS[mk] || 'none',
+      eyeStyle: EYE_STYLES[b[13]] || 'batchiri',
       art: {
         base: (b[1] & 1) ? 'cat' : 'dog',
         fluffy: !!(b[1] & 2),
@@ -677,6 +688,8 @@
     MARK_IDS: MARK_IDS,
     MARK_RARITY: MARK_RARITY,
     markOf: function () { return (this._state && this._state.current && this._state.current.mark) || 'none'; },
+    EYE_STYLES: EYE_STYLES,
+    eyeStyleOf: function () { return (this._state && this._state.current && this._state.current.eyeStyle) || 'batchiri'; },
 
     // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める） =====
     WEAR_IDS: WEAR_IDS,
@@ -1007,8 +1020,9 @@
       var mutated = genes ? genes.mutated : false;
 
       var newPet = freshPet(childIsMix ? 'mix' : child.id, rnd);
-      // 記号模様も遺伝: 親A/Bから50%、6%で突然変異
+      // 記号模様・目スタイルも遺伝: 親A/Bから50%、6%で突然変異
       newPet.mark = inherit(rnd, mine.mark || 'none', partner.mark || 'none', rollMark, 0.06, null);
+      newPet.eyeStyle = inherit(rnd, mine.eyeStyle || 'batchiri', partner.eyeStyle || 'batchiri', rollEye, 0.06, null);
       if (childIsMix) {
         newPet.mix = { species: mine.species, nature: genes.nature, art: genes.art, parents: parents };
       }

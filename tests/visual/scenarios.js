@@ -167,6 +167,12 @@ module.exports = {
       save: saveBase({ current: petBase({ xp: 300, mark: 'star' }) }),
       steps: [{ wait: 300 }]
     },
+    { name: 'home-eye-batchiri', save: saveBase({ current: petBase({ xp: 300, eyeStyle: 'batchiri' }) }), steps: [{ wait: 300 }] },
+    { name: 'home-eye-downer',   save: saveBase({ current: petBase({ xp: 300, eyeStyle: 'downer' }) }),   steps: [{ wait: 300 }] },
+    { name: 'home-eye-ojou',     save: saveBase({ current: petBase({ xp: 300, eyeStyle: 'ojou' }) }),     steps: [{ wait: 300 }] },
+    { name: 'home-eye-majime',   save: saveBase({ current: petBase({ xp: 300, eyeStyle: 'majime' }) }),   steps: [{ wait: 300 }] },
+    { name: 'home-eye-husky',    save: saveBase({ current: petBase({ breedId: 'husky', xp: 300, eyeStyle: 'batchiri' }) }), steps: [{ wait: 300 }] },
+    { name: 'home-eye-cat',      save: saveBase({ current: petBase({ breedId: 'siamese', xp: 300, eyeStyle: 'genki' }), dex: { siamese: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
     {
       name: 'dex',
       save: saveBase({

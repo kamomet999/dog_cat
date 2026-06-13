@@ -52,6 +52,23 @@ function prompt(b) {
     + `Original character — do NOT copy any existing brand or the "Bonless" characters.`;
 }
 
+// 目なしベース（正面）。目は後からSVGレイヤーで合成するため、顔の目の位置は「なにもない毛のまま」。
+function noEyesPrompt(b) {
+  const a = b.art;
+  return `A super-cute kawaii mascot illustration of a ${b.name} (${b.species === 'dog' ? 'dog' : 'cat'}), `
+    + `soft pastel picture-book / watercolor style. Chubby rounded fluffy body, big head, short stubby limbs, `
+    + `sitting front-facing, full body, centered. `
+    + `IMPORTANT: draw the face with NO EYES at all — leave the eye area as smooth plain fur (the eyes will be added later as a separate layer). `
+    + `Keep rosy blushing cheeks, a small nose and a gentle tiny smile mouth, but absolutely no eyes, no eye sockets, no eyelashes, no closed-eye lines. `
+    + `Thick SOFT outline in warm dark-brown (NOT black), flat soft shading. `
+    + `Main fur color ${a.color}, accent ${a.color2}, ${PAT[a.pattern] || a.pattern} markings, ${EAR[a.ear] || a.ear} ears`
+    + `${a.fluffy ? ', extra fluffy fur' : ''}${a.tail === 'curl' ? ', curled tail' : ''}. `
+    + `Adorable, clean, LINE-sticker friendliness. Symmetric front view, head upright and centered so eyes could be placed later. `
+    + `Place the character ALONE on a completely flat, uniform, solid pure chroma-green background `
+    + `(RGB 0,224,0) that fills the whole frame edge to edge — NO checkerboard, NO gradient, NO shadow, `
+    + `NO pattern. 1:1 square. No text, no watermark. Original character — do NOT copy any brand.`;
+}
+
 // おすわり画面用の「おすわり／まて」専用ポーズ（ホームの正面ポートレートとは別カット）。
 function sitPrompt(b) {
   const a = b.art;
@@ -191,6 +208,7 @@ async function genOne(b, key, opts) {
   // --walk: さんぽ用の四足歩行ポーズ(<id>_walk.png) / --sit: おすわり専用ポーズ(<id>_sit.png) / 無指定は座り正面(<id>.png)。
   const POSE = has('--walk') ? { suffix: '_walk', promptFn: walkPrompt }
     : has('--sit') ? { suffix: '_sit', promptFn: sitPrompt }
+    : has('--noeyes') ? { suffix: '_noeye', promptFn: noEyesPrompt }
     : { suffix: '', promptFn: prompt };
 
   let ok = 0; const fails = [];

@@ -438,3 +438,7 @@ button:focus-visible {
 #app { line-break: strict; }
 .sub, .muted, .tut-text, .intro-lead, .prem-cta-sub, .hatch-desc, .pet-sub, .walk-msg, .modal p { text-wrap: pretty; }
 h2, .modal h2, .intro-title, .pet-name { text-wrap: balance; }
+
+/* 目レイヤー（目なしベースに重ねる。ホームのペットのみ） */
+.pet-stage .pet-eyes { position: absolute; inset: 0; pointer-events: none; }
+.pet-stage .pet-eyes .eye-svg { width: 100%; height: 100%; display: block; }

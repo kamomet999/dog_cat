@@ -721,6 +721,25 @@
       'style="width:100%;height:100%;object-fit:contain;display:block">';
   }
 
+  // 目レイヤー（目なしベース <id>_noeye に重ねる5スタイル）。512座標＝スプライトと同じ。
+  function eyeLayerSVG(style) {
+    var INK = '#2a2018', WH = '#ffffff', L = [190, 184], R = [322, 184];
+    function one(cx, cy, flip) {
+      var s = flip ? -1 : 1;
+      if (style === 'genki')
+        return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="26" ry="30" fill="' + INK + '"/><circle cx="' + (cx - 9) + '" cy="' + (cy - 11) + '" r="10" fill="' + WH + '"/><circle cx="' + (cx + 7) + '" cy="' + (cy + 9) + '" r="5" fill="' + WH + '"/>';
+      if (style === 'downer')
+        return '<path d="M' + (cx - 26) + ' ' + (cy - 2) + ' Q' + cx + ' ' + (cy - 13) + ' ' + (cx + 26) + ' ' + (cy - 2) + '" fill="none" stroke="' + INK + '" stroke-width="6" stroke-linecap="round"/><ellipse cx="' + cx + '" cy="' + (cy + 7) + '" rx="17" ry="11" fill="' + INK + '"/><circle cx="' + (cx - 6) + '" cy="' + (cy + 3) + '" r="4" fill="' + WH + '" opacity=".8"/>';
+      if (style === 'majime')
+        return '<circle cx="' + cx + '" cy="' + cy + '" r="16" fill="' + INK + '"/><circle cx="' + (cx - 5) + '" cy="' + (cy - 6) + '" r="4" fill="' + WH + '"/><path d="M' + (cx - 18) + ' ' + (cy - 24) + ' L' + (cx + 18) + ' ' + (cy - 22) + '" stroke="' + INK + '" stroke-width="5" stroke-linecap="round"/>';
+      if (style === 'ojou')
+        return '<path d="M' + (cx - 24) + ' ' + cy + ' Q' + cx + ' ' + (cy - 20) + ' ' + (cx + 24) + ' ' + (cy - 4) + ' Q' + cx + ' ' + (cy + 14) + ' ' + (cx - 24) + ' ' + cy + ' Z" fill="' + INK + '"/><circle cx="' + (cx - 7) + '" cy="' + (cy - 7) + '" r="6" fill="' + WH + '"/><path d="M' + (cx + s * 22) + ' ' + (cy - 4) + ' l' + (s * 12) + ' -8 M' + (cx + s * 22) + ' ' + cy + ' l' + (s * 14) + ' -2" stroke="' + INK + '" stroke-width="3.4" stroke-linecap="round"/>';
+      // batchiri（既定・うるうる）
+      return '<circle cx="' + cx + '" cy="' + cy + '" r="27" fill="' + INK + '"/><circle cx="' + (cx - 9) + '" cy="' + (cy - 10) + '" r="9" fill="' + WH + '"/><circle cx="' + (cx + 6) + '" cy="' + (cy + 7) + '" r="4.5" fill="' + WH + '" opacity=".85"/>';
+    }
+    return '<svg class="eye-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">' + one(L[0], L[1], false) + one(R[0], R[1], true) + '</svg>';
+  }
+
   function petSVG(breed, stage, mood, pose) {
     if (stage <= 0) return STYLE.renderer === 'pixel' ? pixelBundleSVG(breed) : bundleSVG(breed);
     // めざめ後は生成画像があればそれを使う（おくるみ stage0 は正体を隠すのでスプライト不使用）。
@@ -803,7 +822,7 @@
     return '<span class="art-slot" data-pa="' + breedId + '" style="display:block;width:100%;height:100%"></span>';
   }
 
-  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle, mount: mount, hydrate: hydrate, slot: slot, registerSprites: registerSprites, hasSprite: hasSprite };
+  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle, mount: mount, hydrate: hydrate, slot: slot, registerSprites: registerSprites, hasSprite: hasSprite, spriteImg: spriteImg, eyeLayerSVG: eyeLayerSVG };
   // 起動時に空マニフェストを許容（manifest.js が無くてもSVGで動く）
   if (global.INUNEKO_SPRITES) registerSprites(global.INUNEKO_SPRITES);
 })(typeof window !== 'undefined' ? window : this);
