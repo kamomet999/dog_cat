@@ -382,7 +382,7 @@ button:focus-visible {
 }
 /* 前庭障害への配慮: infinite 系の環境アニメ（呼吸・浮遊）を停止。UI遷移は残す */
 @media (prefers-reduced-motion: reduce) {
-  .pet-stage svg, .pet-stage canvas, .walk-pet { animation: none; }
+  .pet-stage svg, .pet-stage canvas, .walk-pet, .sanpo-scene-pet { animation: none; }
 }
 
 /* シェアされる瞬間（§10.5）: 控えめなウォーターマーク */
@@ -394,3 +394,22 @@ button:focus-visible {
   border: 1px solid #e3d6c4; background: var(--card); color: var(--ink); cursor: pointer; }
 .allow-chip.on { background: var(--accent); color: var(--on-accent); border-color: transparent; }
 .rem-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--ink); margin: 8px 0; }
+
+/* おさんぽ全画面（場所選び→歩く景色）。GAME_DESIGN v6 */
+#sanpoOverlay { display: none; }
+.sanpo-setup { position: fixed; inset: 0; z-index: 60; background: #fdf6ec; color: var(--ink);
+  overflow-y: auto; padding: 18px 18px 28px; }
+.sheet-x { position: absolute; top: 12px; right: 12px; border: none; background: rgba(0,0,0,.10); color: var(--ink);
+  width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; z-index: 2; font-family: inherit; }
+.place-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.place-cell { border: none; border-radius: 14px; padding: 16px 4px; font-family: inherit; cursor: pointer;
+  color: #3a2f1a; font-weight: 800; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  box-shadow: var(--shadow); }
+.place-cell .pemo { font-size: 26px; line-height: 1; }
+.place-cell.on { outline: 3px solid var(--accent-d); }
+.sanpo-screen { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.sanpo-top { display: flex; gap: 8px; margin-top: 48px; flex-wrap: wrap; justify-content: center; }
+.place-pill { background: rgba(255,255,255,.88); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-weight: 800; font-size: 13px; }
+.sanpo-scene-pet { width: 150px; height: 150px; margin: auto; animation: walkfloat 1.1s ease-in-out infinite; }
+.sanpo-card { width: 100%; background: var(--card); border-radius: 22px 22px 0 0; padding: 18px 20px 26px;
+  box-shadow: 0 -6px 20px rgba(0,0,0,.12); }

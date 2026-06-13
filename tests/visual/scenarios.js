@@ -118,7 +118,17 @@ module.exports = {
       save: saveBase({ current: petBase({ sanpo: 38 }) }),
       steps: [
         { click: '#taskBtn' }, { wait: 350 },
-        { click: '[data-kind="ほんよみ"]' }, { click: '[data-min="30"]' }, { wait: 200 }
+        { click: '[data-place="park"]' }, { click: '[data-kind="ほんよみ"]' }, { click: '[data-min="30"]' }, { wait: 200 }
+      ]
+    },
+    {
+      // おさんぽ中の景色画面（場所＝かわ・四足歩行）
+      name: 'sanpo-scene',
+      save: saveBase({ current: petBase({ xp: 300 }) }),
+      steps: [
+        { click: '#taskBtn' }, { wait: 300 },
+        { click: '[data-place="river"]' }, { click: '[data-kind="うんどう"]' }, { click: '[data-min="30"]' }, { wait: 150 },
+        { click: '#sanpoStart' }, { wait: 350 }
       ]
     },
     {

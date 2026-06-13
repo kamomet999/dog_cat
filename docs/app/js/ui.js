@@ -68,7 +68,7 @@
     $('dexBtn').addEventListener('click', openDex);
     $('actBtn').addEventListener('click', onAct);
     $('walkBtn').addEventListener('click', openWalkPicker);
-    $('taskBtn').addEventListener('click', openTaskPicker);
+    $('taskBtn').addEventListener('click', openSanpo);
     $('roomBtn').addEventListener('click', openRoomModal);
     $('settingsBtn').addEventListener('click', openSettings);
   }
@@ -1004,8 +1004,8 @@
         allowChipsHtml() +
         '<button id="walkCancel" class="big-btn ghost" style="margin-top:18px">あきらめる</button>' +
         '</div>';
-      // おすわり中は座り姿（正面の座りスプライト）
-      Art.mount(ov.querySelector('#walkPet'), Art.petSVG(Engine.breed(), Engine.stage(), 'happy'));
+      // おすわり中は専用の座りポーズ（_sit があれば、無ければ正面スプライト）
+      Art.mount(ov.querySelector('#walkPet'), Art.petSVG(Engine.breed(), Engine.stage(), 'happy', 'sit'));
       Array.prototype.forEach.call(ov.querySelectorAll('.allow-chip[data-url]'), function (c) {
         c.addEventListener('click', function () { if (window.Native) Native.openApp(c.getAttribute('data-url')); });
       });
@@ -1091,61 +1091,114 @@
   ];
   var TASK_EMO = { 'ほんよみ': '📖', 'えいご': '🔤', 'うんどう': '🏃', 'ダイエット': '🥗', 'じぶんで': '✏️' };
 
-  function openTaskPicker() {
-    if (Engine.task()) return;
+  // おさんぽの「場所」（景色）。背景はCSSグラデ＋絵文字（あとで本格背景画像に差し替え可）。
+  var PLACES = [
+    { id: 'park',     name: 'こうえん', emo: '🌳', grad: 'linear-gradient(170deg,#9ad98f,#5ba86a 72%)' },
+    { id: 'river',    name: 'かわ',     emo: '🏞️', grad: 'linear-gradient(170deg,#9bd9ec,#5aa9c9 72%)' },
+    { id: 'town',     name: 'まち',     emo: '🏙️', grad: 'linear-gradient(170deg,#ffdca8,#f0a96b 72%)' },
+    { id: 'mountain', name: 'やま',     emo: '⛰️', grad: 'linear-gradient(170deg,#bcdfa6,#6f9e6a 72%)' },
+    { id: 'beach',    name: 'うみ',     emo: '🏖️', grad: 'linear-gradient(170deg,#c2f1ed,#5fc4c0 72%)' },
+    { id: 'night',    name: 'よみち',   emo: '🌙', grad: 'linear-gradient(170deg,#515d88,#2b3350 72%)' }
+  ];
+  function placeOf(id) { for (var i = 0; i < PLACES.length; i++) if (PLACES[i].id === id) return PLACES[i]; return PLACES[0]; }
+
+  // 🐾 おさんぽ：全画面。散歩中なら景色画面、未開始なら設定（場所→なにする→どのくらい）。
+  function openSanpo() {
     if (Engine.walk()) return showToast('いまは おすわり中だよ');
+    if (Engine.task()) { renderSanpoScene(); return; }
+    renderSanpoSetup();
+  }
+  function hideSanpoOverlay() { var ov = $('sanpoOverlay'); ov.innerHTML = ''; ov.style.display = 'none'; }
+
+  function renderSanpoSetup() {
+    var ov = $('sanpoOverlay');
+    var places = PLACES.map(function (p) {
+      return '<button class="place-cell" data-place="' + p.id + '" style="background:' + p.grad + '">' +
+        '<span class="pemo">' + p.emo + '</span><span>' + p.name + '</span></button>';
+    }).join('');
     var kinds = TASK_PRESETS.map(function (k) {
       return '<button class="care-btn task-kind" data-kind="' + k.kind + '" style="padding:10px 2px">' +
         '<span class="emo">' + k.emo + '</span><span class="lbl">' + k.kind + '</span></button>';
     }).join('') +
-      '<button class="care-btn task-kind" data-kind="__custom" style="padding:10px 2px">' +
-      '<span class="emo">✏️</span><span class="lbl">じぶんで</span></button>';
+      '<button class="care-btn task-kind" data-kind="__custom" style="padding:10px 2px"><span class="emo">✏️</span><span class="lbl">じぶんで</span></button>';
     var mins = Engine.TASK_OPTIONS.map(function (m2) {
       return '<button class="care-btn task-min" data-min="' + m2 + '" style="padding:10px 2px"><span class="lbl">' + m2 + '分</span></button>';
     }).join('') +
       '<button class="care-btn task-min" data-min="__custom" style="padding:10px 2px"><span class="emo">✏️</span><span class="lbl">じぶんで</span></button>';
-    var html = '<h2>🐾 お散歩（いい時間）</h2>' +
-      '<p class="sub">本よみ・英語・運動など、自分で決めた「いい時間」の間、' +
-      'この子は となりを散歩してる気分。<br>Kindleや英語アプリを使ってもOK。<b>失敗はないよ</b>。</p>' +
-      '<p class="muted" style="font-size:11px;margin:-6px 0 10px">⏱ 時間を計るだけの <b>正直タイマー</b>。途中で何をしても自由。自分を信じて続けよう。</p>' +
+    ov.innerHTML = '<div class="sanpo-setup">' +
+      '<button id="sanpoClose" class="sheet-x" aria-label="とじる">✕</button>' +
+      '<h2 style="margin:2px 0">🐾 おさんぽ</h2>' +
+      '<p class="muted" style="font-size:12px;margin:0 0 8px">スマホを置いて、すきな いいことを。<br>Kindleや勉強・運動の間、この子と さんぽ気分。<b>失敗はないよ</b>。</p>' +
+      '<div class="dex-section-title">どこへ いく？</div>' +
+      '<div class="place-grid">' + places + '</div>' +
       '<div class="dex-section-title">なにする？</div>' +
       '<div class="care-grid" style="grid-template-columns:repeat(4,1fr);gap:8px">' + kinds + '</div>' +
-      '<input id="customKind" class="task-custom" maxlength="12" placeholder="じぶんの「いい時間」を入力（例：ピアノ）" style="display:none">' +
+      '<input id="customKind" class="task-custom" maxlength="12" placeholder="じぶんの「いい時間」（例：ピアノ）" style="display:none">' +
       '<div class="dex-section-title">どのくらい？</div>' +
       '<div class="care-grid" style="grid-template-columns:repeat(4,1fr);gap:8px">' + mins + '</div>' +
       '<input id="customMin" class="task-custom" type="number" min="' + Engine.TASK_MIN + '" max="' + Engine.TASK_MAX + '" placeholder="分（' + Engine.TASK_MIN + '〜' + Engine.TASK_MAX + '）" style="display:none">' +
-      '<button id="taskStart" class="big-btn primary mt12" style="width:100%" disabled>はじめる</button>';
-    var m = openModal(html);
-    var kindSel = null, minSel = null;
-    var ckInput = m.root.querySelector('#customKind');
-    var cmInput = m.root.querySelector('#customMin');
+      '<button id="sanpoStart" class="big-btn primary mt12" style="width:100%" disabled>はじめる</button>' +
+      '</div>';
+    ov.style.display = 'block';
+
+    var placeSel = null, kindSel = null, minSel = null;
+    var ckInput = ov.querySelector('#customKind');
+    var cmInput = ov.querySelector('#customMin');
     function effKind() { return kindSel === '__custom' ? (ckInput.value.trim() || 'じぶんで') : kindSel; }
     function effMin() {
       if (minSel === '__custom') { var v = parseInt(cmInput.value, 10); return (v >= Engine.TASK_MIN && v <= Engine.TASK_MAX) ? v : null; }
       return minSel;
     }
     function refresh() {
-      m.root.querySelectorAll('.task-kind').forEach(function (b) { b.style.outline = b.getAttribute('data-kind') === kindSel ? '3px solid var(--accent-d)' : 'none'; });
-      m.root.querySelectorAll('.task-min').forEach(function (b) { b.style.outline = b.getAttribute('data-min') === String(minSel) ? '3px solid var(--accent-d)' : 'none'; });
+      ov.querySelectorAll('.place-cell').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-place') === placeSel); });
+      ov.querySelectorAll('.task-kind').forEach(function (b) { b.style.outline = b.getAttribute('data-kind') === kindSel ? '3px solid var(--accent-d)' : 'none'; });
+      ov.querySelectorAll('.task-min').forEach(function (b) { b.style.outline = b.getAttribute('data-min') === String(minSel) ? '3px solid var(--accent-d)' : 'none'; });
       ckInput.style.display = kindSel === '__custom' ? 'block' : 'none';
       cmInput.style.display = minSel === '__custom' ? 'block' : 'none';
-      m.root.querySelector('#taskStart').disabled = !(kindSel && effMin());
+      ov.querySelector('#sanpoStart').disabled = !(placeSel && kindSel && effMin());
     }
-    m.root.querySelectorAll('.task-kind').forEach(function (b) {
-      b.addEventListener('click', function () { kindSel = b.getAttribute('data-kind'); refresh(); if (kindSel === '__custom') ckInput.focus(); });
-    });
-    m.root.querySelectorAll('.task-min').forEach(function (b) {
-      b.addEventListener('click', function () { var d = b.getAttribute('data-min'); minSel = d === '__custom' ? '__custom' : parseInt(d, 10); refresh(); if (minSel === '__custom') cmInput.focus(); });
-    });
+    ov.querySelectorAll('.place-cell').forEach(function (b) { b.addEventListener('click', function () { placeSel = b.getAttribute('data-place'); refresh(); }); });
+    ov.querySelectorAll('.task-kind').forEach(function (b) { b.addEventListener('click', function () { kindSel = b.getAttribute('data-kind'); refresh(); if (kindSel === '__custom') ckInput.focus(); }); });
+    ov.querySelectorAll('.task-min').forEach(function (b) { b.addEventListener('click', function () { var d = b.getAttribute('data-min'); minSel = d === '__custom' ? '__custom' : parseInt(d, 10); refresh(); if (minSel === '__custom') cmInput.focus(); }); });
     ckInput.addEventListener('input', refresh);
     cmInput.addEventListener('input', refresh);
-    m.root.querySelector('#taskStart').addEventListener('click', function () {
-      var t = Engine.startTask(effKind(), effMin(), now());
+    ov.querySelector('#sanpoClose').addEventListener('click', hideSanpoOverlay);
+    ov.querySelector('#sanpoStart').addEventListener('click', function () {
+      var t = Engine.startTask(effKind(), effMin(), now(), placeSel);
       if (!t) return showToast('時間は ' + Engine.TASK_MIN + '〜' + Engine.TASK_MAX + '分で えらんでね');
       if (window.Native) Native.taskStarted(t);
-      m.close();
+      renderSanpoScene();
       renderTaskRow();
-      showToast('🐾 いってらっしゃい！');
+      lastArtKey = ''; render();
+    });
+  }
+
+  function renderSanpoScene() {
+    var ov = $('sanpoOverlay');
+    var t = Engine.task();
+    if (!t) { hideSanpoOverlay(); return; }
+    var p = placeOf(t.place);
+    var remain = Math.max(0, t.endsAt - now());
+    ov.innerHTML = '<div class="sanpo-screen" style="background:' + p.grad + '">' +
+      '<button id="sanpoBack" class="sheet-x" aria-label="ホームへ">✕</button>' +
+      '<div class="sanpo-top"><span class="place-pill">' + p.emo + ' ' + p.name + '</span>' +
+      '<span class="place-pill">' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + '</span></div>' +
+      '<div id="sanpoPet" class="sanpo-scene-pet"></div>' +
+      '<div class="sanpo-card">' +
+      '<div id="sanpoTimer" class="walk-timer" style="color:var(--ink)">' + fmtMMSS(remain) + '</div>' +
+      '<p class="muted" style="margin:0 0 12px">スマホを置いて、すきな いいことを。<br>もどってきたら ごほうび（さんぽ＋エサ）。</p>' +
+      '<button id="sanpoCancel" class="big-btn ghost" style="width:100%">やめる</button>' +
+      '</div></div>';
+    ov.style.display = 'block';
+    Art.mount(ov.querySelector('#sanpoPet'), Art.petSVG(Engine.breed(), Engine.stage(), 'happy', 'quad'));
+    ov.querySelector('#sanpoBack').addEventListener('click', hideSanpoOverlay); // タスクは継続（ホームへ戻るだけ）
+    ov.querySelector('#sanpoCancel').addEventListener('click', function () {
+      Engine.cancelTask(now());
+      if (window.Native) Native.taskEnded();
+      hideSanpoOverlay();
+      renderTaskRow();
+      lastArtKey = ''; render();
+      showToast('また こんど いこうね');
     });
   }
 
@@ -1156,8 +1209,11 @@
     if (!t) { el.innerHTML = ''; el.style.display = 'none'; return; }
     var remain = Math.max(0, t.endsAt - now());
     el.style.display = 'flex';
-    el.innerHTML = '<span>' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + 'で お散歩中… 残り ' + fmtMMSS(remain) + '</span>' +
+    var pl = placeOf(t.place);
+    el.innerHTML = '<span id="taskOpen">' + pl.emo + ' ' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + 'で おさんぽ中… 残り ' + fmtMMSS(remain) + '</span>' +
       '<button id="taskCancel">やめる</button>';
+    var op = el.querySelector('#taskOpen');
+    if (op) op.addEventListener('click', renderSanpoScene);
     var c = el.querySelector('#taskCancel');
     if (c) c.addEventListener('click', function () {
       Engine.cancelTask(now());
@@ -1169,16 +1225,20 @@
 
   function syncTask() {
     var t = Engine.task();
-    if (!t) { renderTaskRow(); return; }
+    var ov = $('sanpoOverlay');
+    var sceneOpen = ov.style.display === 'block' && !!ov.querySelector('#sanpoTimer');
+    if (!t) { if (sceneOpen) hideSanpoOverlay(); renderTaskRow(); return; }
     var r = Engine.checkTask(now());
     if (r && r.result === 'done') {
       if (window.Native) Native.taskEnded();
+      if (sceneOpen) hideSanpoOverlay();
       renderTaskRow();
       happyUntil = now() + 1500;
       lastArtKey = '';
       render();
       showToast('🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + '）');
     } else {
+      if (sceneOpen) { var tm = ov.querySelector('#sanpoTimer'); if (tm) tm.textContent = fmtMMSS(Math.max(0, t.endsAt - now())); }
       renderTaskRow();
     }
   }

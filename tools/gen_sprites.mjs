@@ -52,6 +52,25 @@ function prompt(b) {
     + `Original character — do NOT copy any existing brand or the "Bonless" characters.`;
 }
 
+// おすわり画面用の「おすわり／まて」専用ポーズ（ホームの正面ポートレートとは別カット）。
+function sitPrompt(b) {
+  const a = b.art;
+  return `A super-cute kawaii mascot illustration of a ${b.name} (${b.species === 'dog' ? 'dog' : 'cat'}), `
+    + `soft pastel picture-book / watercolor style. Sitting upright in an obedient calm "stay / good boy" pose, 3/4 side view, `
+    + `front paws neatly placed together on the ground, tail curled around the body, full body, centered. `
+    + `Eyes gently closed with a peaceful happy smile (patiently waiting, cozy and relaxed), rosy blushing cheeks, tiny visible paw pads. `
+    + `Chubby rounded fluffy body, big head, short stubby limbs. `
+    + `Thick SOFT outline in warm dark-brown (NOT black), flat soft shading. `
+    + `Main fur color ${a.color}, accent ${a.color2}, ${PAT[a.pattern] || a.pattern} markings, ${EAR[a.ear] || a.ear} ears`
+    + `${a.fluffy ? ', extra fluffy fur' : ''}${a.tail === 'curl' ? ', curled tail' : ''}. `
+    + `Adorable, clean, LINE-sticker friendliness, Pokemon-Sleep-like coziness. `
+    + `Place the character ALONE on a completely flat, uniform, solid pure chroma-green background `
+    + `(RGB 0,224,0) that fills the whole frame edge to edge — NO checkerboard, NO gradient, NO shadow, `
+    + `NO pattern, the green is the only color behind the character (it will be keyed out to transparent). `
+    + `1:1 square. No text, no watermark. `
+    + `Original character — do NOT copy any existing brand or the "Bonless" characters.`;
+}
+
 // さんぽ用の「四足歩行（横向き）」ポーズ。座り正面の prompt() と同じ画風・属性で姿勢だけ変える。
 function walkPrompt(b) {
   const a = b.art;
@@ -169,8 +188,10 @@ async function genOne(b, key, opts) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) { console.error('GEMINI_API_KEY が未設定です。例: GEMINI_API_KEY=xxx node tools/gen_sprites.mjs --only shiba'); process.exit(1); }
 
-  // --walk: さんぽ用の四足歩行ポーズ（<id>_walk.png）を生成。無指定は座り正面（<id>.png）。
-  const POSE = has('--walk') ? { suffix: '_walk', promptFn: walkPrompt } : { suffix: '', promptFn: prompt };
+  // --walk: さんぽ用の四足歩行ポーズ(<id>_walk.png) / --sit: おすわり専用ポーズ(<id>_sit.png) / 無指定は座り正面(<id>.png)。
+  const POSE = has('--walk') ? { suffix: '_walk', promptFn: walkPrompt }
+    : has('--sit') ? { suffix: '_sit', promptFn: sitPrompt }
+    : { suffix: '', promptFn: prompt };
 
   let ok = 0; const fails = [];
   for (const b of list) {

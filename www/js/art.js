@@ -729,6 +729,8 @@
       if (breed && breed.id && !breed.mix && SPRITES[breed.id + '_walk']) return spriteImg(breed.id + '_walk');
       return quadSVG(breed, mood || 'normal', stage);
     }
+    // おすわり画面は専用の座りポーズ(<id>_sit)があれば使う（無ければ下の正面スプライトにフォールバック）
+    if (pose === 'sit' && breed && breed.id && !breed.mix && SPRITES[breed.id + '_sit']) return spriteImg(breed.id + '_sit');
     // おすわり等の正面ポーズは座り姿スプライトを使う
     if (breed && breed.id && !breed.mix && SPRITES[breed.id]) return spriteImg(breed.id);
     // pixelate はベクターの絵をそのまま使う（ドット化は Art.mount のキャンバス側で行う）

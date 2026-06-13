@@ -600,14 +600,15 @@
     },
 
     /** さんぽ開始（kind: TASK_KINDS, minutes: TASK_OPTIONS）。他アプリの使用OK・失敗なし */
-    startTask: function (kind, minutes, now) {
+    startTask: function (kind, minutes, now, place) {
       var s = this._state;
       if (!s || !s.current || s.task || s.walk) return null;
       minutes = Math.round(minutes);
       // プリセット(15/30/60)＋カスタム（5〜180分）を許容
       if (!(minutes >= TASK_MIN && minutes <= TASK_MAX)) return null;
       kind = (kind && String(kind).slice(0, 12)) || 'おさんぽ';
-      var ns = { ...s, task: { startedAt: now, endsAt: now + minutes * 60000, minutes: minutes, kind: kind }, lastSavedAt: now };
+      place = place ? String(place).slice(0, 12) : null; // さんぽの場所（景色）。任意
+      var ns = { ...s, task: { startedAt: now, endsAt: now + minutes * 60000, minutes: minutes, kind: kind, place: place }, lastSavedAt: now };
       this._state = ns;
       persist(ns);
       return ns.task;
