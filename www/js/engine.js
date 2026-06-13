@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 10;
+  var VERSION = 11;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -67,6 +67,10 @@
   var WALK_LUCK = 0.03;              // 成功ごとのレア運上昇
   var WALK_MOOD = 20;                // 成功時の機嫌アップ
   var WALK_FAIL_MOOD = -12;          // 失敗時の機嫌ダウン
+
+  // きせかえ（おさんぽ報酬でランダム入手するペットのアクセサリ。無料コレクション要素）
+  var WEAR_IDS = ['ribbon', 'straw', 'cap', 'crown', 'flower', 'glasses', 'scarf', 'bowtie', 'tiara', 'star', 'bandana', 'mush'];
+  var WEAR_DROP_RATE = 0.5; // おさんぽ成功ごとの入手確率
 
   // 成長に必要な累積なかよし度（xp）。index=到達stage
   // 巣立ち(成体)まで体感60時間イメージ（放置xp≈12.6/h・hf0.7想定で 760≈60h）。赤ちゃんは早めに目覚める
@@ -129,6 +133,7 @@
       taskStats: { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} }, // さんぽ課題ダッシュボード
       allowApps: [],        // おすわり中に使ってよいアプリ（{name,url?}）。v1はオナー/ショートカット、v2でOS遮断対象
       reminders: { enabled: false, times: [] }, // 時間指定「さんぽしないの？」（"HH:MM" 配列）
+      wardrobe: { owned: {}, equipped: null }, // きせかえ（おさんぽ報酬で集める）
       album: [],            // おみあいで生まれたミックスの記録（30種図鑑とは別）
       room: defaultRoom()   // 部屋の模様替え（スロット→アイテムid。¥500で全アイテム解放）
     };
@@ -205,6 +210,10 @@
         allowApps: s.allowApps || [],
         reminders: s.reminders || { enabled: false, times: [] }
       };
+    }
+    if (s.version === 10) {
+      // きせかえ（おさんぽ報酬で集めるペットのアクセサリ）
+      s = { ...s, version: 11, wardrobe: s.wardrobe || { owned: {}, equipped: null } };
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -615,24 +624,47 @@
     },
 
     /** さんぽの判定。満了していれば完了（ゲージ回復）。途中なら残り時間 */
-    checkTask: function (now) {
+    checkTask: function (now, rnd) {
       var s = this._state;
       if (!s || !s.task) return null;
       var t = s.task;
       if (now < t.endsAt) return { result: 'ongoing', remainMs: t.endsAt - now, kind: t.kind, minutes: t.minutes };
+      rnd = rnd || Math.random;
       var p = s.current;
       var gain = taskSanpoGain(t.minutes);
       var foods = taskFoodGain(t.minutes);
       var np = { ...p, sanpo: clamp((p.sanpo == null ? 100 : p.sanpo) + gain, 0, 100), runawayH: 0 };
       var bumped = bumpTaskStats(s.taskStats, t.kind, t.minutes, now);
+      // きせかえドロップ: 確率で未所持のアクセサリを1つ入手（初回は自動で着せる）
+      var ward = { owned: Object.assign({}, (s.wardrobe && s.wardrobe.owned) || {}), equipped: (s.wardrobe && s.wardrobe.equipped) || null };
+      var wear = null;
+      if (rnd() < WEAR_DROP_RATE) {
+        var pool = WEAR_IDS.filter(function (id) { return !ward.owned[id]; });
+        if (pool.length) { wear = pool[Math.floor(rnd() * pool.length)]; ward.owned[wear] = 1; if (!ward.equipped) ward.equipped = wear; }
+      }
       var ns = {
         ...s, current: np, task: null,
         foodStock: Math.min(FOOD_STOCK_MAX, (s.foodStock == null ? 0 : s.foodStock) + foods),
-        taskStats: bumped.stats, lastSavedAt: now
+        taskStats: bumped.stats, wardrobe: ward, lastSavedAt: now
       };
       this._state = ns;
       persist(ns);
-      return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain, foods: foods, days: bumped.stats.days, newDay: bumped.newDay, isBestDay: bumped.isBestDay };
+      return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain, foods: foods, days: bumped.stats.days, newDay: bumped.newDay, isBestDay: bumped.isBestDay, wear: wear };
+    },
+
+    // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める） =====
+    WEAR_IDS: WEAR_IDS,
+    wardrobe: function () { return this._state ? (this._state.wardrobe || { owned: {}, equipped: null }) : { owned: {}, equipped: null }; },
+    /** きせかえを着る（id=null で脱ぐ）。未所持は無視 */
+    equipWear: function (id, now) {
+      var s = this._state; if (!s) return null;
+      var ward = { owned: Object.assign({}, (s.wardrobe && s.wardrobe.owned) || {}), equipped: (s.wardrobe && s.wardrobe.equipped) || null };
+      if (id && !ward.owned[id]) return ward;
+      ward.equipped = id || null;
+      var ns = { ...s, wardrobe: ward, lastSavedAt: now || s.lastSavedAt };
+      this._state = ns;
+      persist(ns);
+      return ward;
     },
 
     /** さんぽをやめる（失敗ではない。ゲージ回復なしなだけ） */

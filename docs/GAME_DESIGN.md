@@ -71,6 +71,8 @@
 種類: どくしょ / えいご / うんどう / ジョグ / ダイエット / しゅうちゅう（自分の課題）
 長さ: 15 / 30 / 60 分 → さんぽゲージ +35 / +50 / +80（上限100）
 餌:   成功で餌ボーナス（取り組んだ時間に比例）。←【新】さんぽでも餌がもらえる
+きせかえ: 成功ごとに確率(約50%)で『きせかえ』(ペットのアクセサリ全12種)をランダム入手。無料コレクション・初回は自動装備（👕クローゼットで着替え）。
+場所:  全画面で散歩先(こうえん/かわ/まち/やま/うみ/よみち)を選ぶ＝景色。歩く姿は <id>_walk スプライト。
 性質: 失敗なし。開始したら他アプリ（Kindle・英語アプリ等）を使ってOK。
       途中でやめても「またこんど」（ペナルティなし）
 ゲージ: -100/168h（1週間で空）。0が72時間つづくと家出 ＝ 計10日サボると旅に出る
@@ -123,7 +125,8 @@
 
 | 項目 | 実装 |
 |---|---|
-| セーブ | ✅ VERSION 10。`taskStats`(success/days/bestDays/lastDay/totalMin/byKind)・`reminders`(enabled/times)・`allowApps` を追加し `migrate()` v9→v10 を実装 |
+| セーブ | ✅ VERSION 11。`taskStats`・`reminders`・`allowApps`(v10)＋`wardrobe`(owned/equipped・v11)。`migrate()` v9→v10→v11。task に `place` を追加 |
+| きせかえ | ✅ おさんぽ成功で確率ドロップ（Engine.WEAR_IDS 全12種・checkTask が rnd で抽選・初回自動装備）。equipWear/wardrobe API。UIは👕クローゼット＋ホームでペットに重ね描画 |
 | エンジン | 自動給餌・受動獲得は advance() 内で決定論的に積分。✅ おすわりは既存 walk を流用（継続時間→餌・長いほど増量・180分追加）。✅ さんぽ checkTask に餌ボーナス（taskFoodGain）＋ダッシュボード統計（bumpTaskStats：継続日数/累計/種類別）。✅ taskScore/allowApps/reminders のAPI |
 | ネイティブ | appStateChange（離席検知・既存）／ローカル通知（既存）。★ 時間指定リマインドを daily repeat で予約（native.js に追加） |
 | 通知 | id1002=さんぽ完了／2001-2003=危険予告（バックグラウンド移行時に張り替え）。★ id3001-…=時間指定リマインド（daily） |

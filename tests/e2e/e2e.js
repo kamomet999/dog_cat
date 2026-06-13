@@ -106,7 +106,7 @@ t('初回フロー: intro→種選択→チュートリアル5歩→ホーム到
   }
   assert.ok(!(await page.$('#tutNext')), 'チュートリアルが閉じた');
   const st = await engineState(page);
-  assert.strictEqual(st.version, 10);
+  assert.strictEqual(st.version, 11);
   assert.ok(st.current, 'ペットがいる');
   assert.strictEqual((await text(page, '#petName')).trim(), 'ねんねちゅう…');
   const tut = await page.evaluate(k => localStorage.getItem(k), TUT);
@@ -434,7 +434,7 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   const after = await engineState(page);
   assert.strictEqual(Math.floor(after.foodStock), Math.floor(before.foodStock), 'ストックが保持');
   assert.strictEqual(after.current.breedId, before.current.breedId);
-  assert.strictEqual(after.version, 10);
+  assert.strictEqual(after.version, 11);
   await closePage(page);
 });
 
@@ -454,7 +454,7 @@ t('設定: 累計ログ表示・チュートリアル再表示・データリセ
   await closePage(page);
 });
 
-t('旧セーブ(v1)読み込み: 最新v10へ移行して起動できる', async () => {
+t('旧セーブ(v1)読み込み: 最新v11へ移行して起動できる', async () => {
   const v1 = {
     version: 1, coin: 42, luck: 0.1,
     current: { breedId: 'shiba', xp: 30, hunger: 50, mood: 50, clean: 50, energy: 50, careCount: 3 },
@@ -466,7 +466,7 @@ t('旧セーブ(v1)読み込み: 最新v10へ移行して起動できる', async
   const ok = await page.$('#okBtn');
   if (ok) { await ok.click(); await page.waitForTimeout(300); }
   const st = await engineState(page);
-  assert.strictEqual(st.version, 10);
+  assert.strictEqual(st.version, 11);
   assert.strictEqual(st.current.mood, undefined, 'moodは消える');
   assert.ok(st.current.sanpo != null && st.current.health != null);
   await closePage(page);

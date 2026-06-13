@@ -151,6 +151,17 @@ module.exports = {
       ]
     },
     {
+      name: 'wardrobe',
+      save: saveBase({ wardrobe: { owned: { ribbon: 1, crown: 1, glasses: 1, star: 1, mush: 1 }, equipped: 'crown' } }),
+      steps: [{ click: '#wearBtn' }, { wait: 300 }]
+    },
+    {
+      // ホームでアクセサリを着けたペット（おうかん）
+      name: 'home-dressed',
+      save: saveBase({ current: petBase({ xp: 300 }), wardrobe: { owned: { crown: 1 }, equipped: 'crown' } }),
+      steps: [{ wait: 300 }]
+    },
+    {
       name: 'dex',
       save: saveBase({
         dex: {

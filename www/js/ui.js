@@ -70,6 +70,7 @@
     $('walkBtn').addEventListener('click', openWalkPicker);
     $('taskBtn').addEventListener('click', openSanpo);
     $('roomBtn').addEventListener('click', openRoomModal);
+    $('wearBtn').addEventListener('click', openWardrobe);
     $('settingsBtn').addEventListener('click', openSettings);
   }
 
@@ -83,6 +84,7 @@
     renderFoot();
     renderPetIfChanged();
     renderRoom();
+    renderWear();
   }
 
   function renderCoin() { $('coin').textContent = Math.floor(Engine.getState().coin); }
@@ -623,6 +625,57 @@
       var it = room[slot] && roomById[room[slot]];
       el.textContent = it ? (it.e || '') : '';
     });
+  }
+
+  // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める。Engine.WEAR_IDS と対応） =====
+  var WEAR = {
+    ribbon:  { label: 'リボン',       e: '🎀', pos: 'head' },
+    straw:   { label: 'むぎわら',     e: '👒', pos: 'head' },
+    cap:     { label: 'キャップ',     e: '🧢', pos: 'head' },
+    crown:   { label: 'おうかん',     e: '👑', pos: 'head' },
+    flower:  { label: 'おはな',       e: '🌸', pos: 'head' },
+    glasses: { label: 'サングラス',   e: '🕶️', pos: 'face' },
+    scarf:   { label: 'マフラー',     e: '🧣', pos: 'neck' },
+    bowtie:  { label: 'シルクハット', e: '🎩', pos: 'head' },
+    tiara:   { label: 'ティアラ',     e: '💎', pos: 'head' },
+    star:    { label: 'ほし',         e: '⭐', pos: 'head' },
+    bandana: { label: 'すず',         e: '🔔', pos: 'neck' },
+    mush:    { label: 'きのこ',       e: '🍄', pos: 'head' }
+  };
+  // 装備中のアクセサリをペットの上に重ねる（home stage）
+  function renderWear() {
+    var el = $('petWear'); if (!el) return;
+    var eq = Engine.wardrobe().equipped;
+    var it = eq && WEAR[eq];
+    if (!it || Engine.stage() === 0) { el.style.display = 'none'; el.textContent = ''; return; }
+    el.textContent = it.e;
+    el.style.top = (it.pos === 'face' ? 32 : it.pos === 'neck' ? 54 : 6) + '%';
+    el.style.display = 'block';
+  }
+  function openWardrobe() {
+    var ids = Engine.WEAR_IDS;
+    var ward = Engine.wardrobe(), owned = ward.owned || {};
+    var have = ids.filter(function (id) { return owned[id]; }).length;
+    var cells = ids.map(function (id) {
+      var it = WEAR[id], got = !!owned[id], on = ward.equipped === id;
+      return '<button class="wear-cell' + (on ? ' on' : '') + (got ? '' : ' locked') + '" data-wear="' + id + '"' + (got ? '' : ' disabled') + '>' +
+        '<span class="wear-emo">' + (got ? it.e : '❔') + '</span><span class="wear-lbl">' + (got ? it.label : '？？？') + '</span></button>';
+    }).join('');
+    var html = '<h2>👕 きせかえ</h2>' +
+      '<p class="sub">おさんぽの ごほうびで あつまるよ（<b>' + have + '</b>/' + ids.length + '）。<br>タップで きせかえ・もういちどで ぬぐ。</p>' +
+      '<div class="wear-grid">' + cells + '</div>' +
+      (ward.equipped ? '<button id="wearOff" class="big-btn ghost mt12" style="width:100%">ぜんぶ ぬぐ</button>' : '');
+    var m = openModal(html);
+    m.root.querySelectorAll('[data-wear]').forEach(function (b) {
+      if (b.disabled) return;
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-wear');
+        Engine.equipWear(Engine.wardrobe().equipped === id ? null : id, now());
+        lastArtKey = ''; render(); m.close(); openWardrobe();
+      });
+    });
+    var off = m.root.querySelector('#wearOff');
+    if (off) off.addEventListener('click', function () { Engine.equipWear(null, now()); lastArtKey = ''; render(); m.close(); openWardrobe(); });
   }
 
   function openRoomModal() {
@@ -1236,7 +1289,9 @@
       happyUntil = now() + 1500;
       lastArtKey = '';
       render();
-      showToast('🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + '）');
+      var msg = '🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + '）';
+      if (r.wear && WEAR[r.wear]) msg += '　✨きせかえ「' + WEAR[r.wear].label + '」を ひろった！';
+      showToast(msg);
     } else {
       if (sceneOpen) { var tm = ov.querySelector('#sanpoTimer'); if (tm) tm.textContent = fmtMMSS(Math.max(0, t.endsAt - now())); }
       renderTaskRow();
