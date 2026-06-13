@@ -19,7 +19,9 @@ import sharp from 'sharp';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SPR = path.join(ROOT, 'www/assets/sprites');
-const MODEL = 'gemini-2.5-flash-image'; // 別名: nano banana。preview期は gemini-2.5-flash-image-preview
+// 生成モデル。既定は nano banana（gemini-2.5-flash-image, 高品質・約$0.039/枚）。
+// コスト優先なら GEMINI_IMAGE_MODEL=gemini-2.0-flash-preview-image-generation などに切替可。
+const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
 const SIZE = 512, INNER = 472, PAD = (SIZE - INNER) / 2; // 出力解像度（<img>でcontain表示。1024は重すぎ）
 const args = process.argv.slice(2);
 const has = (f) => args.includes(f);
