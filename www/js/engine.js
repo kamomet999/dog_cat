@@ -846,20 +846,27 @@
         graduates += 1;
       }
 
-      // 遺伝: 同品種どうしで突然変異なしなら「純血」、それ以外は「ミックス」
-      var genes = mixGenes(rnd, mine, partner);
-      var samePure = mine.breedIdx != null && partner.breedIdx === mine.breedIdx && !genes.mutated;
+      // 種類(品種)を確率で継承: 両親とも純血種なら 40%親A / 40%親B / 20%ミックス。
+      // 先頭の1回の rnd() が分岐を決める（テストで決定論的に再現できるように）
       var parents = [mine.name, partner.name];
+      var bothPure = mine.breedIdx != null && partner.breedIdx != null;
+      var roll = bothPure ? rnd() : 1; // 片方でもミックス親なら必ずミックス
+      var childBreedIdx = null;
+      if (roll < 0.40) childBreedIdx = mine.breedIdx;
+      else if (roll < 0.80) childBreedIdx = partner.breedIdx;
+      var childIsMix = childBreedIdx == null;
 
-      var child, childIsMix;
-      if (samePure) {
-        // 純血の子（既存品種としておくるみへ）。レア運ボーナス大
-        child = Breeds.ALL[mine.breedIdx];
-        childIsMix = false;
-      } else {
+      var child, genes = null;
+      if (childIsMix) {
+        // ミックス: 色・目の色・模様・耳・ふわふわ・しっぽを 親から各50%で継承（突然変異あり）
+        genes = mixGenes(rnd, mine, partner);
         child = mixBreed({ species: mine.species, nature: genes.nature, art: genes.art, parents: parents });
-        childIsMix = true;
+      } else {
+        // 種類を継承した純血の子（どちらかの親の品種）
+        child = Breeds.ALL[childBreedIdx];
       }
+      var inheritedBreed = childIsMix ? null : child.name;
+      var mutated = genes ? genes.mutated : false;
 
       var newPet = freshPet(childIsMix ? 'mix' : child.id);
       if (childIsMix) {
@@ -877,13 +884,13 @@
         dex: dex,
         graduates: graduates,
         coin: s.coin + reward,
-        luck: clamp(s.luck + (samePure ? 0.08 : 0.04), 0, 2),
+        luck: clamp(s.luck + (childIsMix ? 0.04 : 0.06), 0, 2),
         album: album,
         lastSavedAt: now
       };
       this._state = ns;
       persist(ns);
-      return { child: child, isMix: childIsMix, isNew: isNew, reward: reward, parents: parents, mutated: genes.mutated };
+      return { child: child, isMix: childIsMix, isNew: isNew, reward: reward, parents: parents, mutated: mutated, inheritedBreed: inheritedBreed };
     },
 
     /** ミックスのアルバム（新しい順） */

@@ -69,7 +69,6 @@
     $('actBtn').addEventListener('click', onAct);
     $('walkBtn').addEventListener('click', openWalkPicker);
     $('taskBtn').addEventListener('click', openTaskPicker);
-    $('mateBtn').addEventListener('click', openMateMenu);
     $('roomBtn').addEventListener('click', openRoomModal);
     $('settingsBtn').addEventListener('click', openSettings);
   }
@@ -160,7 +159,7 @@
     act.disabled = false;
     if (Engine.canGraduate()) {
       act.className = 'big-btn primary';
-      act.innerHTML = '🎓 巣立ち';
+      act.innerHTML = '🌱 おとなに なった！';
     } else if (stage === 0) {
       act.className = 'big-btn ghost';
       var afford = st.coin >= Engine.REROLL_COST;
@@ -171,8 +170,6 @@
       act.innerHTML = '🍼 そだてちゅう';
       act.disabled = true;
     }
-    // 成体は「おみあい」できる（ともだちの子と特徴を継いだミックスを迎える）
-    $('mateBtn').style.display = (stage >= 3) ? 'flex' : 'none';
     var prog = Engine.dexProgress();
     $('dexBtn').innerHTML = '📖 図鑑 ' + prog.found + '/' + prog.total +
       (prog.newCount > 0 ? ' <span class="badge-new">NEW</span>' : '');
@@ -223,8 +220,7 @@
 
   function onAct() {
     if (Engine.canGraduate()) {
-      var res = Engine.graduate(now());
-      if (res) showGraduate(res);
+      openGrownChoice(); // おとな → 「子供を産ませる」か「新しい子をもらう」を選ぶ
       return;
     }
     if (Engine.stage() === 0) {
@@ -236,6 +232,27 @@
       render();
       showToast('🧺 あたらしい子を おむかえ！');
     }
+  }
+
+  // おとなになった子: たまごっち風に「産ませる/もらう」を選ぶ
+  function openGrownChoice() {
+    var b = Engine.breed();
+    var html = '<div class="center">' +
+      '<div style="font-size:44px">🌱</div>' +
+      '<h2>' + b.name + ' は<br>おとなに なった！</h2>' +
+      '<p class="sub">どうする？</p>' +
+      '<button id="gcMate" class="big-btn primary mt12" style="width:100%">💞 子供を産ませる（おみあい）</button>' +
+      '<p class="muted" style="font-size:11px;margin:6px 0 12px">友達とコード交換。色・目・模様・種類を 親から受け継いだ子が生まれる。</p>' +
+      '<button id="gcGrad" class="big-btn ghost" style="width:100%">🎓 新しい子をもらう（巣立ち）</button>' +
+      '<p class="muted" style="font-size:11px;margin-top:6px">この子は図鑑に登録。あたらしい子を おむかえ。</p>' +
+      '</div>';
+    var m = openModal(html);
+    m.root.querySelector('#gcMate').addEventListener('click', function () { m.close(); openMateMenu(); });
+    m.root.querySelector('#gcGrad').addEventListener('click', function () {
+      m.close();
+      var res = Engine.graduate(now());
+      if (res) showGraduate(res);
+    });
   }
 
   var BUMP_CLASSES = ['bounce', 'wiggle', 'hop', 'spin', 'shake', 'pop'];
@@ -742,7 +759,8 @@
       '<div id="mrArt" class="hatch-art"></div>' +
       '<h2>' + title + '</h2>' +
       '<p class="sub">' + r.parents[0] + ' と ' + r.parents[1] + ' の子。<br>' +
-      (r.isMix ? 'せかいに ひとつだけの ミックス。' : 'おなじ品種どうしなので 純血の子だよ。') +
+      (r.isMix ? '色・目・模様を 親から 受け継いだ、せかいに ひとつだけの ミックス。'
+               : '<b>' + r.inheritedBreed + '</b> の種類を 受け継いだよ！') +
       (r.mutated ? '<br>✨ めずらしい とくちょうが あらわれた！' : '') + '</p>' +
       (r.reward > 0 ? '<div style="font-weight:800;color:var(--coin-text)">巣立ちボーナス ＋' + r.reward + ' コイン' + (r.isNew ? '（図鑑はつ登録）' : '') + '</div>' : '') +
       '<button id="mrOk" class="big-btn primary mt12" style="width:100%">おむかえする →</button>' +

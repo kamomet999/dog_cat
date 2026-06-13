@@ -275,14 +275,17 @@ t('図鑑と課金: 3種未満ではCTAも¥500も見えない', async () => {
   await closePage(page);
 });
 
-t('おみあい: コード発行→入力→純血の子・親は図鑑へ', async () => {
+t('おとな→チョイス→おみあい: 種類を継いだ子・親は図鑑へ', async () => {
   const page = await newPage(saveBase({ current: petBase({ xp: 800 }) })); // 成体
-  // 同品種は基本「純血」だが8%等で突然変異しうる。テストは変異を止めて決定論化
-  await page.evaluate(() => { window.Math.random = () => 0.99; });
-  assert.ok(await page.isVisible('#mateBtn'), '成体でおみあいボタンが見える');
+  // 種類継承は確率。roll<0.40 で親A(柴)の種類を継ぐよう固定
+  await page.evaluate(() => { window.Math.random = () => 0.1; });
   const code = await page.evaluate(() => window.Engine.mateCode());
   assert.match(code, /^INU-/);
-  await page.click('#mateBtn');
+  // おとな → チョイス画面 → 「子供を産ませる」
+  await page.click('#actBtn');
+  await page.waitForTimeout(300);
+  assert.ok(await page.$('#gcMate'), 'おとなチョイスが出る');
+  await page.click('#gcMate');
   await page.waitForTimeout(300);
   await page.click('#mateInput');
   await page.waitForTimeout(300);
@@ -296,13 +299,14 @@ t('おみあい: コード発行→入力→純血の子・親は図鑑へ', asy
   await page.waitForTimeout(300);
   const st = await engineState(page);
   assert.strictEqual(st.dex.shiba.count, 2, '親が巣立って図鑑+1');
-  assert.strictEqual(st.album.length, 0, '純血はアルバム外');
+  assert.strictEqual(st.album.length, 0, '種類継承（純血）はアルバム外');
   assert.ok(!st.current.mix, '子は純血');
   await closePage(page);
 });
 
 t('おみあい: 異品種コードでミックス誕生→アルバム記録', async () => {
   const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }));
+  await page.evaluate(() => { window.Math.random = () => 0.9; }); // roll≥0.80 → ミックス固定
   // コーギーの成体コードを同一ページ内の別計算で生成（決定論）
   const code = await page.evaluate(() => {
     const real = window.Engine.getState();
@@ -311,7 +315,9 @@ t('おみあい: 異品種コードでミックス誕生→アルバム記録', 
     window.Engine._state = real;
     return c;
   });
-  await page.click('#mateBtn');
+  await page.click('#actBtn');
+  await page.waitForTimeout(300);
+  await page.click('#gcMate');
   await page.waitForTimeout(300);
   await page.click('#mateInput');
   await page.waitForTimeout(300);
@@ -340,7 +346,9 @@ t('おみあい: 猫コードは犬と不成立（プレビューで弾く）', 
     window.Engine._state = real;
     return c;
   });
-  await page.click('#mateBtn');
+  await page.click('#actBtn');
+  await page.waitForTimeout(300);
+  await page.click('#gcMate');
   await page.waitForTimeout(300);
   await page.click('#mateInput');
   await page.waitForTimeout(300);
@@ -351,10 +359,13 @@ t('おみあい: 猫コードは犬と不成立（プレビューで弾く）', 
   await closePage(page);
 });
 
-t('巣立ち: 成体→巣立ちモーダル→図鑑登録・次の子が来る', async () => {
+t('巣立ち: おとな→チョイス→新しい子をもらう→図鑑登録・次の子が来る', async () => {
   const page = await newPage(saveBase({ current: petBase({ xp: 800 }), dex: {} }));
-  assert.match(await text(page, '#actBtn'), /巣立ち/);
+  assert.match(await text(page, '#actBtn'), /おとなに なった/);
   await page.click('#actBtn');
+  await page.waitForTimeout(300);
+  assert.ok(await page.$('#gcGrad'), 'おとなチョイスに巣立ち選択');
+  await page.click('#gcGrad'); // 新しい子をもらう（巣立ち）
   await page.waitForTimeout(500);
   assert.match(await text(page, '.modal'), /巣立ったよ/);
   await page.click('#nextEgg');

@@ -628,44 +628,54 @@ test('別の種とはおみあいできない（いぬ×ねこ不可）', () => 
   assert.strictEqual(r.error, 'species');
 });
 
-test('同品種どうし（変異なし）は純血の子・図鑑に巣立ち登録される', () => {
-  const a = adultWorld('shiba');
-  const partner = a.Engine.decodeMate(a.Engine.mateCode()); // 柴×柴
-  const r = a.Engine.breedWith(partner, T0, rndHi);
-  assert.ok(!r.error);
-  assert.strictEqual(r.isMix, false);
-  assert.strictEqual(r.child.id, 'shiba');
-  const s = a.Engine.getState();
-  assert.strictEqual(s.dex['shiba'].count, 1); // 親が巣立って登録
-  assert.strictEqual(s.current.mix, undefined); // 子は純血（ミックスでない）
-  eqJSON(s.album, []); // 純血はアルバムに残さない
-});
-
-test('異品種どうしはミックスの子・アルバムに記録される', () => {
+test('種類を確率継承: 異品種どうしでも 親Aの品種を継いだ純血の子（roll<0.40）', () => {
   const a = adultWorld('shiba');
   const corgi = adultWorld('corgi');
   const partner = a.Engine.decodeMate(corgi.Engine.mateCode());
-  const r = a.Engine.breedWith(partner, T0, rndHi);
+  const r = a.Engine.breedWith(partner, T0, () => 0.0); // 先頭rnd<0.40 → 親A（柴）の種類
+  assert.ok(!r.error);
+  assert.strictEqual(r.isMix, false);
+  assert.strictEqual(r.child.id, 'shiba');
+  assert.strictEqual(r.inheritedBreed, '柴犬');
+  const s = a.Engine.getState();
+  assert.strictEqual(s.dex['shiba'].count, 1); // 親が巣立って登録
+  assert.strictEqual(s.current.mix, undefined);
+  eqJSON(s.album, []);
+});
+
+test('種類を確率継承: 親Bの品種を継ぐ（0.40≤roll<0.80）', () => {
+  const a = adultWorld('shiba');
+  const corgi = adultWorld('corgi');
+  const partner = a.Engine.decodeMate(corgi.Engine.mateCode());
+  const r = a.Engine.breedWith(partner, T0, () => 0.5); // 親B（コーギー）の種類
+  assert.strictEqual(r.isMix, false);
+  assert.strictEqual(r.child.id, 'corgi');
+  assert.strictEqual(r.inheritedBreed, 'コーギー');
+});
+
+test('ミックスの子（roll≥0.80）: 色・模様を継承しアルバムに記録', () => {
+  const a = adultWorld('shiba');
+  const corgi = adultWorld('corgi');
+  const partner = a.Engine.decodeMate(corgi.Engine.mateCode());
+  const r = a.Engine.breedWith(partner, T0, () => 0.9); // ミックス
   assert.ok(!r.error);
   assert.strictEqual(r.isMix, true);
   assert.strictEqual(r.child.species, 'dog');
   eqJSON(r.parents, ['柴犬', 'コーギー']);
   const s = a.Engine.getState();
   assert.ok(s.current.mix, '子はミックスのおくるみ');
-  assert.strictEqual(s.current.mix.species, 'dog');
   assert.strictEqual(s.album.length, 1);
   eqJSON(s.album[0].parents, ['柴犬', 'コーギー']);
-  // 合成品種オブジェクトが描画用 art を持つ
   const b = a.Engine.breed();
-  assert.ok(b.mix && b.art && b.art.color);
+  assert.ok(b.mix && b.art && b.art.color); // 継承した見た目を持つ
 });
 
 test('ミックスは成長+20%（雑種強勢）', () => {
   const mixW = adultWorld('shiba');
   const corgi = adultWorld('corgi');
-  mixW.Engine.breedWith(mixW.Engine.decodeMate(corgi.Engine.mateCode()), T0, rndHi);
+  mixW.Engine.breedWith(mixW.Engine.decodeMate(corgi.Engine.mateCode()), T0, () => 0.9); // ミックス
   const pureW = adultWorld('shiba');
-  pureW.Engine.breedWith(pureW.Engine.decodeMate(pureW.Engine.mateCode()), T0, rndHi);
+  pureW.Engine.breedWith(pureW.Engine.decodeMate(pureW.Engine.mateCode()), T0, () => 0.0); // 純血（柴）
   // 同じおくるみ(xp0)から同時間進めて、ミックスの方が育つ
   mixW.Engine.applyOffline(T0 + 6 * H);
   pureW.Engine.applyOffline(T0 + 6 * H);

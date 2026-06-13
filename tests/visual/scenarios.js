@@ -180,14 +180,19 @@ module.exports = {
       ]
     },
     {
+      name: 'grown-choice',
+      save: adultSave(),
+      steps: [{ click: '#actBtn' }, { wait: 350 }]
+    },
+    {
       name: 'mate-menu',
       save: adultSave(),
-      steps: [{ click: '#mateBtn' }, { wait: 350 }]
+      steps: [{ click: '#actBtn' }, { wait: 300 }, { click: '#gcMate' }, { wait: 350 }]
     },
     {
       name: 'mate-share',
       save: adultSave(),
-      steps: [{ click: '#mateBtn' }, { wait: 300 }, { click: '#mateShow' }, { wait: 350 }]
+      steps: [{ click: '#actBtn' }, { wait: 250 }, { click: '#gcMate' }, { wait: 300 }, { click: '#mateShow' }, { wait: 350 }]
     },
     {
       name: 'dex-album',
