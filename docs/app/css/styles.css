@@ -113,7 +113,7 @@ body {
   60% { transform: translateY(0) scale(.97); }
 }
 /* 「生きてる感」: なにもしていなくても、ゆっくり呼吸する */
-.pet-stage svg, .pet-stage canvas { animation: breathe 3.4s ease-in-out infinite; transform-origin: 50% 92%; }
+.pet-stage svg, .pet-stage canvas, .pet-stage .pet-img { animation: breathe 3.4s ease-in-out infinite; transform-origin: 50% 92%; }
 @keyframes breathe {
   0%, 100% { transform: scaleY(1); }
   50% { transform: scaleY(1.022) scaleX(1.006); }

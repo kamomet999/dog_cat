@@ -711,8 +711,21 @@
   }
 
   /** stage: 0=おくるみ(ねんね),1=赤ちゃん,2=子,3=成体 / mood: happy|normal|sad */
+  // 生成画像（nanobanana）スプライト登録簿。manifest.js が Art.registerSprites({id:1,...}) で埋める。
+  // 画像があればSVGの代わりに使う（無ければ手続きSVGにフォールバック＝差し替えは無痛）。
+  var SPRITES = {};
+  function registerSprites(map) { if (map) Object.keys(map).forEach(function (k) { SPRITES[k] = map[k]; }); }
+  function hasSprite(id) { return !!SPRITES[id]; }
+  function spriteImg(id) {
+    return '<img class="pet-img" src="assets/sprites/' + id + '.png" alt="" ' +
+      'style="width:100%;height:100%;object-fit:contain;display:block">';
+  }
+
   function petSVG(breed, stage, mood, pose) {
     if (stage <= 0) return STYLE.renderer === 'pixel' ? pixelBundleSVG(breed) : bundleSVG(breed);
+    // めざめ後は生成画像があればそれを使う（おくるみ stage0 は正体を隠すのでスプライト不使用）。
+    // おさんぽの4足ポーズ(quad)は手続きSVGのまま（歩き姿）。
+    if (pose !== 'quad' && breed && breed.id && !breed.mix && SPRITES[breed.id]) return spriteImg(breed.id);
     // pixelate はベクターの絵をそのまま使う（ドット化は Art.mount のキャンバス側で行う）
     mood = mood || 'normal';
     if (pose === 'quad') return quadSVG(breed, mood, stage);
@@ -750,7 +763,8 @@
    * image-rendering:pixelated で拡大する＝「ちゃんと描けた絵 × 必要最低限のドット感」。
    */
   function mount(el, svg, grid) {
-    if (STYLE.renderer !== 'pixelate' || typeof document === 'undefined') { el.innerHTML = svg; return; }
+    // 生成画像（nanobanana）モード: svg が <img ...> ならそのまま挿入（ラスタライズしない）
+    if (/^\s*<img/.test(svg) || STYLE.renderer !== 'pixelate' || typeof document === 'undefined') { el.innerHTML = svg; return; }
     var g = grid || STYLE.pixelGrid;
     var cv = document.createElement('canvas');
     cv.width = g; cv.height = g;
@@ -772,7 +786,9 @@
   function hydrate(root) {
     var slots = root.querySelectorAll('.art-slot');
     Array.prototype.forEach.call(slots, function (el) {
-      var b = global.Breeds && Breeds.get(el.getAttribute('data-pa'));
+      var id = el.getAttribute('data-pa');
+      if (SPRITES[id]) { el.innerHTML = spriteImg(id); return; } // 図鑑サムネも生成画像優先
+      var b = global.Breeds && Breeds.get(id);
       if (b) mount(el, petSVG(b, 3, 'happy'));
     });
   }
@@ -781,5 +797,7 @@
     return '<span class="art-slot" data-pa="' + breedId + '" style="display:block;width:100%;height:100%"></span>';
   }
 
-  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle, mount: mount, hydrate: hydrate, slot: slot };
+  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle, mount: mount, hydrate: hydrate, slot: slot, registerSprites: registerSprites, hasSprite: hasSprite };
+  // 起動時に空マニフェストを許容（manifest.js が無くてもSVGで動く）
+  if (global.INUNEKO_SPRITES) registerSprites(global.INUNEKO_SPRITES);
 })(typeof window !== 'undefined' ? window : this);

@@ -11,7 +11,38 @@
 
 - **現行のプロシージャル絵は「仮置き」**。本番絵は画像生成（nanobanana等）で本書の設計値どおりに作り、後から差し替える
 - 本書は**生成プロンプトの仕様書を兼ねる**（§2の設計値＝そのままプロンプトの制約条件になる）
-- 差し替え手順: `assets/sprites/{breedId}_{pose}_{mood}.png`（透過・正方形）を用意 → `Art.mount` を画像参照に切替（canvas描画の口は実装済みのため軽微）。品種30種×基本ポーズから段階差し替え可
+- 差し替え手順: `www/assets/sprites/{breedId}.png`（透過・正方形）を用意 → `assets/sprites/manifest.js` の `INUNEKO_SPRITES` に id を足す。**実装済みで、画像があればSVGの代わりに自動表示**（無ければSVGにフォールバック＝無痛差し替え）。`tools/gen_sprites.mjs` で一括生成（要 `GEMINI_API_KEY`）
+
+## 0.5 本番アートの目標スタイル（2026-06-13 発案者が参照画像で確定）
+
+> 発案者が「これ良いね」と示したパステル絵本調が目標。**ボンレス系のむちむち感を芯に、丸パクリはしない**オリジナル。
+
+- **画風**: やわらかいパステル絵本／水彩風カワイイ。Pokémon Sleep・ちいかわ的な親しみ
+- **体**: ふわふわ・ぷにっと丸い。頭大きめ・手足みじかめ。座りポーズ・正面・全身・中央
+- **顔**: **大きなうるうるの目（ハイライト入り）**＋**ほっぺのピンクの赤み**＋にっこり小さな口（少し舌が見えてもよい）
+- **線**: 太めのやさしい輪郭（黒でなく**こげ茶**）。フラット〜やわ影
+- **ディテール**: 肉球がちらっと見える等の“きゅん”ポイント
+- **背景**: **透過PNG**（部屋シーンに乗せるため）。テキスト・ウォーターマーク無し
+- **一貫性**: 全60種で同一スタイル（体型・目・線・塗りの密度をそろえる）
+- **タブー**: 既存ブランド/「ボンレス」キャラの模倣禁止・怖い/リアル過ぎ・黒の硬い輪郭・情報過多
+
+### 生成プロンプト・テンプレート（nanobanana / Gemini 2.5 Flash Image）
+
+```
+A super-cute kawaii mascot illustration of a {NAME} ({SPECIES}), soft pastel
+picture-book / watercolor style. Chubby rounded fluffy body, big head, short
+stubby limbs, sitting front-facing, full body, centered. Big round sparkly eyes
+with white highlights, rosy blushing cheeks, gentle happy smile, tiny visible
+paw pads. Thick SOFT outline in warm dark-brown (NOT black), flat soft shading.
+Main fur color {COLOR}, accent {COLOR2}, {PATTERN} markings, {EAR} ears{FLUFFY}.
+Adorable, clean, LINE-sticker friendliness, Pokemon-Sleep-like coziness.
+Plain TRANSPARENT background (PNG alpha). 1:1 square. No text, no watermark.
+Original character — do NOT copy any existing brand or the "Bonless" characters.
+```
+
+- `{...}` は `breeds.js` の各品種から自動展開（`tools/gen_sprites.mjs`）。色はHEX→近い色名にせずHEXのまま記述してOK
+- まず**柴犬・日本スピッツ・三毛**など数種で試写→スタイル確定→全60種一括、の順
+
 
 ## 1. 設計思想（1行）
 
