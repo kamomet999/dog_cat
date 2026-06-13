@@ -438,6 +438,30 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   await closePage(page);
 });
 
+t('おみあい: いぬ×ねこは「おみあいできません」／ いぬ×いぬはOK', async () => {
+  // ねこ(キジトラ)成体の おみあいコードを用意
+  const catPage = await newPage(saveBase({ current: petBase({ breedId: 'kijitora', xp: 800 }) }));
+  const catCode = await catPage.evaluate(() => window.Engine.mateCode());
+  await closePage(catPage);
+  assert.match(catCode, /^NEK-/, 'ねこコードは NEK-');
+  // いぬ(柴)成体で おみあい入力画面へ
+  const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }));
+  const dogCode = await page.evaluate(() => window.Engine.mateCode());
+  assert.match(dogCode, /^INU-/, 'いぬコードは INU-');
+  await page.click('#actBtn'); await page.waitForTimeout(200);
+  await page.click('#gcMate'); await page.waitForTimeout(200);
+  await page.click('#mateInput'); await page.waitForTimeout(200);
+  // 猫コード → 「おみあいできません」＋ボタン無効
+  await page.fill('#codeIn', catCode); await page.waitForTimeout(150);
+  assert.match(await text(page, '#codePrev'), /おみあいできません/);
+  assert.ok(await page.getAttribute('#doMate', 'disabled') !== null, 'いぬ×ねこは ボタン無効');
+  // 犬コード → OK＋ボタン有効
+  await page.fill('#codeIn', dogCode); await page.waitForTimeout(150);
+  assert.match(await text(page, '#codePrev'), /おみあいできるよ/);
+  assert.ok(await page.getAttribute('#doMate', 'disabled') === null, 'いぬ×いぬは ボタン有効');
+  await closePage(page);
+});
+
 t('設定: 累計ログ表示・チュートリアル再表示・データリセットは2タップ確認', async () => {
   const page = await newPage(saveBase());
   await page.click('#settingsBtn');

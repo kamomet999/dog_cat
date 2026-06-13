@@ -787,7 +787,7 @@
       }
       if (mine && g.species !== mine.species) {
         parsed = null; btn.disabled = true;
-        prev.innerHTML = '<span class="mate-bad">' + (g.species === 'dog' ? 'いぬ' : 'ねこ') + 'の子だね。同じ動物どうしだけ おみあいできるよ。</span>';
+        prev.innerHTML = '<span class="mate-bad">いぬ と ねこ は おみあいできません。<br>同じ動物どうし（いぬ×いぬ・ねこ×ねこ）で おみあいしてね。</span>';
         return;
       }
       parsed = g; btn.disabled = false;
@@ -797,7 +797,7 @@
     btn.addEventListener('click', function () {
       if (!parsed) return;
       var r = Engine.breedWith(parsed, now(), Math.random);
-      if (r.error) return showToast(r.error === 'species' ? '同じ動物どうしだけだよ' : 'おみあいできなかった…');
+      if (r.error) return showToast(r.error === 'species' ? 'いぬ と ねこ は おみあいできません' : 'おみあいできなかった…');
       m.close();
       lastArtKey = '';
       render();
