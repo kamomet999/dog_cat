@@ -127,6 +127,14 @@ module.exports = {
       steps: [{ click: '#walkBtn' }, { wait: 350 }]
     },
     {
+      name: 'lockscreen',
+      save: saveBase({ current: petBase({ xp: 300 }), allowApps: [{ name: 'Kindle' }, { name: 'Duolingo' }, { name: 'でんわ' }] }),
+      steps: [
+        { click: '#walkBtn' }, { wait: 300 },
+        { click: '[data-min="60"]' }, { wait: 350 }
+      ]
+    },
+    {
       name: 'dex',
       save: saveBase({
         dex: {
@@ -212,9 +220,19 @@ module.exports = {
     },
     {
       name: 'settings',
-      save: saveBase({ graduates: 7, walkStats: { success: 18, fail: 3, streak: 4, best: 9, totalMin: 1240 } }),
+      save: saveBase({ graduates: 7, walkStats: { success: 18, fail: 3, streak: 4, best: 9, totalMin: 1240 }, taskStats: { success: 9, days: 4, bestDays: 6, lastDay: 0, totalMin: 320, byKind: { 'ほんよみ': 180, 'ダイエット': 90, 'うんどう': 50 } } }),
       fullPage: true,
       steps: [{ click: '#settingsBtn' }, { wait: 400 }]
+    },
+    {
+      name: 'allowapps',
+      save: saveBase({ allowApps: [{ name: 'Kindle' }, { name: 'でんわ' }] }),
+      steps: [{ click: '#settingsBtn' }, { wait: 250 }, { click: '#allowSet' }, { wait: 350 }]
+    },
+    {
+      name: 'reminders',
+      save: saveBase({ reminders: { enabled: true, times: ['08:00', '21:00'] } }),
+      steps: [{ click: '#settingsBtn' }, { wait: 250 }, { click: '#remindSet' }, { wait: 350 }]
     },
     {
       name: 'success',

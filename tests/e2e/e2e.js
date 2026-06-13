@@ -144,7 +144,7 @@ t('ごはん探し成功: 30分満了→自慢の1枚モーダル→エサ+2', a
   assert.ok(await page.$('#walkCancel'), 'お留守番オーバーレイが出る');
   await warp(page, 31 * MIN);
   assert.ok(await page.$('#walkOk'), '成功モーダル');
-  assert.match(await text(page, '.modal h2'), /スマホを離れた/);
+  assert.match(await text(page, '.modal h2'), /スマホを置けた/);
   await page.click('#walkOk');
   await page.waitForTimeout(300);
   const st = await engineState(page);
@@ -441,7 +441,8 @@ t('設定: 累計ログ表示・チュートリアル再表示・データリセ
   await page.click('#settingsBtn');
   await page.waitForTimeout(400);
   const body = await text(page, '.modal');
-  assert.match(body, /お(さんぽ|散歩)成功/);
+  assert.match(body, /集中ロック/);
+  assert.match(body, /ダッシュボード/);
   assert.ok(await page.$('#tutAgain'), 'あそびかた再表示ボタン');
   // リセットは1タップ目で確認文言に変わるだけ（誤操作防止）
   await page.click('#resetBtn');

@@ -301,8 +301,8 @@
       '<h2 class="intro-title">スマホを離れるほど、<br>いぬねこが育つ。</h2>' +
       '<p class="intro-lead">スマホを置いた時間が、この子の <b>ごはん</b> になる。</p>' +
       '<div class="intro-steps">' +
-      '<div class="intro-step"><span class="ist-ico">🍖</span><span><b>ごはん探し</b><br>スマホを伏せると エサが貯まる</span></div>' +
-      '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>お散歩</b><br>読書・英語・運動の間、となりに</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">🔒</span><span><b>しゅうちゅうロック</b><br>スマホを置くと エサが貯まる</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>お散歩</b><br>読書・英語・運動・ダイエットの間、となりに</span></div>' +
       '<div class="intro-step"><span class="ist-ico">📖</span><span><b>図鑑を集める</b><br>犬・猫それぞれ30種〜（広告ゼロ・登録なし）</span></div>' +
       '</div>' +
       '<button id="introGo" class="big-btn primary" style="width:100%">はじめる</button>' +
@@ -345,8 +345,8 @@
 
   var TUT_STEPS = [
     { sel: '#petArt', title: 'いまは ねんね中', text: 'タップすると <b>いろんなしぐさ</b> で よろこぶよ（成長はしない）。<br>ごはんや時間で、もうすぐ目を覚ます。', place: 'below' },
-    { sel: '#walkBtn', title: '① ごはん探し＝スマホを伏せる', text: '“スマホを伏せる” と、その時間が この子の <b>エサ</b> になるよ。これが一番大事！', place: 'above' },
-    { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動の間、となりにいてくれる。ごはん探しとは別の “いい時間”。', place: 'above' },
+    { sel: '#walkBtn', title: '① しゅうちゅうロック＝スマホを置く', text: '“スマホを置く” と、その時間が この子の <b>エサ</b> になるよ。長いほど たくさん。これが一番大事！', place: 'above' },
+    { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動・ダイエットの間、となりにいてくれる。<b>取り組むと エサも少しもらえる</b>“いい時間”。', place: 'above' },
     { sel: '#stats', title: 'お腹・機嫌・いのち', text: 'ごはんは ストックから <span class="calm">自動で</span> 食べるよ。毎日ひらかなくても、<span class="calm">忘れても責めないよ</span>。', place: 'below' },
     { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。犬・猫それぞれ30種〜、友達と「おみあい」もできるよ！', place: 'above' }
   ];
@@ -806,11 +806,21 @@
   function openSettings() {
     var st = Engine.getState();
     var ws = st.walkStats || { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 };
+    var ts = st.taskStats || { success: 0, days: 0, bestDays: 0, totalMin: 0, byKind: {} };
+    var byKind = ts.byKind || {};
+    var byKindStr = Object.keys(byKind).length
+      ? '<br><span style="font-size:11px">' + Object.keys(byKind).map(function (k) { return (TASK_EMO[k] || '🐾') + k + ' ' + Math.floor(byKind[k] / 60) + 'h' + (byKind[k] % 60) + 'm'; }).join('　') + '</span>'
+      : '';
     var html = '<h2>⚙ せってい</h2>' +
-      '<p class="sub">「いぬねこ図鑑」 β8（2026-06-12）— スマホを離れて、育てる いぬねこ</p>' +
-      '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「おさんぽ」で計画的にスマホからはなれると、もっと早く育って ごほうびがもらえます。</p>' +
+      '<p class="sub">「いぬねこ図鑑」 β10（2026-06-13）— スマホを離れて、育てる いぬねこ</p>' +
+      '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「しゅうちゅうロック」で計画的にスマホから離れると、もっと早く育って ごほうびがもらえます。</p>' +
       '<hr class="soft">' +
-      '<p class="muted">おさんぽ成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ デトックス合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
+      '<div class="dex-section-title">🔒 集中ロック</div>' +
+      '<p class="muted">成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ ロック合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
+      '<div class="dex-section-title">🐾 おさんぽ ダッシュボード</div>' +
+      '<p class="muted">継続 <b>' + ts.days + '</b> 日（最高 <b>' + ts.bestDays + '</b>）／ 合計 <b>' + Math.floor(ts.totalMin / 60) + '</b> 時間 ' + (ts.totalMin % 60) + ' 分 ／ スコア <b>' + Engine.taskScore() + '</b>' + byKindStr + '</p>' +
+      '<button id="allowSet" class="big-btn ghost mt12" style="width:100%">📱 ロック中に使ってOKなアプリ</button>' +
+      '<button id="remindSet" class="big-btn ghost mt12" style="width:100%">⏰ さんぽリマインド時刻</button>' +
       '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種' +
       ((st.deaths || 0) > 0 ? ' ／ おほしさまになった子：<b>' + st.deaths + '</b>' : '') +
       ((st.runaways || 0) > 0 ? ' ／ たびに でた子：<b>' + st.runaways + '</b>' : '') + '</p>' +
@@ -821,6 +831,10 @@
       '<button id="tutAgain" class="big-btn ghost mt12" style="width:100%">📖 あそびかたを もういちど みる</button>' +
       '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--badge-new)">🗑 データをリセット</button>';
     var m = openModal(html);
+    var as = m.root.querySelector('#allowSet');
+    if (as) as.addEventListener('click', function () { m.close(); openAllowApps(); });
+    var rs2 = m.root.querySelector('#remindSet');
+    if (rs2) rs2.addEventListener('click', function () { m.close(); openReminders(); });
     var ta = m.root.querySelector('#tutAgain');
     if (ta) ta.addEventListener('click', function () { m.close(); setTimeout(function () { startTutorial(true); }, 250); });
     var ps = m.root.querySelector('#premSet');
@@ -835,6 +849,75 @@
         openSpeciesPicker();
         showToast('データをリセットしました');
       };
+    });
+  }
+
+  // ロック中に使ってOKなアプリの編集（v1=目安リスト・ロック画面に表示）
+  var ALLOW_SUGGEST = ['Kindle', '読書', 'Duolingo', 'えいご', 'うんどう', 'でんわ', 'メモ', 'おんがく'];
+  function openAllowApps() {
+    var cur = Engine.allowApps().map(function (a) { return a.name; });
+    function chipRow() {
+      var chosen = cur.length
+        ? cur.map(function (n) { return '<button class="allow-chip on" data-rm="' + escapeHtml(n) + '">' + escapeHtml(n) + ' ✕</button>'; }).join('')
+        : '<span class="muted">まだ ありません</span>';
+      var sugg = ALLOW_SUGGEST.filter(function (n) { return cur.indexOf(n) < 0; })
+        .map(function (n) { return '<button class="allow-chip" data-add="' + escapeHtml(n) + '">＋' + escapeHtml(n) + '</button>'; }).join('');
+      return '<div class="allow-row">' + chosen + '</div>' +
+        '<div class="dex-section-title">候補から追加</div><div class="allow-row">' + sugg + '</div>';
+    }
+    var html = '<h2>📱 使ってOKなアプリ</h2>' +
+      '<p class="sub">集中ロック中に 使ってもいいアプリ。<br>ロック画面に表示されます（読書・勉強など）。</p>' +
+      '<div id="allowBox">' + chipRow() + '</div>' +
+      '<input id="allowInput" class="task-custom" maxlength="24" placeholder="じぶんで追加（例：図書館アプリ）">' +
+      '<button id="allowAddBtn" class="big-btn ghost mt12" style="width:100%">＋ 追加</button>' +
+      '<p class="muted mt12" style="font-size:11px">v1は「目安リスト」。アプリの自動ブロックは今後（OS制約）。</p>';
+    var m = openModal(html);
+    function save() { Engine.setAllowApps(cur, now()); }
+    function bind() {
+      m.root.querySelectorAll('[data-add]').forEach(function (b) { b.onclick = function () { cur.push(b.getAttribute('data-add')); rerender(); }; });
+      m.root.querySelectorAll('[data-rm]').forEach(function (b) { b.onclick = function () { var n = b.getAttribute('data-rm'); cur = cur.filter(function (x) { return x !== n; }); rerender(); }; });
+    }
+    function rerender() { m.root.querySelector('#allowBox').innerHTML = chipRow(); bind(); save(); }
+    bind();
+    m.root.querySelector('#allowAddBtn').addEventListener('click', function () {
+      var inp = m.root.querySelector('#allowInput');
+      var v = inp.value.trim();
+      if (v && cur.indexOf(v) < 0) { cur.push(v); inp.value = ''; rerender(); }
+    });
+  }
+
+  // 時間指定リマインド（毎日「さんぽしないの？」）の編集
+  function openReminders() {
+    var rem = Engine.reminders();
+    var times = rem.times.slice();
+    function timesRow() {
+      return times.length
+        ? times.map(function (t) { return '<button class="allow-chip on" data-rmt="' + t + '">' + t + ' ✕</button>'; }).join('')
+        : '<span class="muted">時刻 未設定</span>';
+    }
+    var html = '<h2>⏰ さんぽリマインド</h2>' +
+      '<p class="sub">毎日その時刻に「さんぽしないの？🐾」とお知らせします。</p>' +
+      '<label class="rem-toggle"><input type="checkbox" id="remOn"' + (rem.enabled ? ' checked' : '') + '> オンにする</label>' +
+      '<div class="dex-section-title">時刻</div>' +
+      '<div id="remTimes" class="allow-row">' + timesRow() + '</div>' +
+      '<input id="remTime" class="task-custom" type="time" value="21:00">' +
+      '<button id="remAdd" class="big-btn ghost mt12" style="width:100%">＋ 時刻を追加</button>' +
+      '<button id="remSave" class="big-btn primary mt12" style="width:100%">保存</button>';
+    var m = openModal(html);
+    function bind() {
+      m.root.querySelectorAll('[data-rmt]').forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-rmt'); times = times.filter(function (x) { return x !== t; }); rerender(); }; });
+    }
+    function rerender() { m.root.querySelector('#remTimes').innerHTML = timesRow(); bind(); }
+    bind();
+    m.root.querySelector('#remAdd').addEventListener('click', function () {
+      var v = m.root.querySelector('#remTime').value;
+      if (/^\d{1,2}:\d{2}$/.test(v) && times.indexOf(v) < 0) { times.push(v); times.sort(); rerender(); }
+    });
+    m.root.querySelector('#remSave').addEventListener('click', function () {
+      var saved = Engine.setReminders({ enabled: m.root.querySelector('#remOn').checked, times: times }, now());
+      if (window.Native) Native.scheduleReminders(saved);
+      m.close();
+      showToast('⏰ リマインドを 保存したよ');
     });
   }
 
@@ -871,19 +954,30 @@
   }
   function fmtMin(min) { return min >= 60 ? (min / 60) + 'じかん' : min + 'ぷん'; }
 
-  var FOOD_BY_MIN = { 30: 2, 60: 4, 120: 8 };
+  var FOOD_BY_MIN = { 30: 2, 60: 4, 120: 8, 180: 12 };
+  function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // 集中ロック中に表示する「使ってOKなアプリ」チップ（URLがあればタップで起動）
+  function allowChipsHtml() {
+    var apps = Engine.allowApps();
+    if (!apps.length) return '';
+    var chips = apps.map(function (a) {
+      var tag = a.url ? 'button' : 'span';
+      return '<' + tag + ' class="allow-chip"' + (a.url ? ' data-url="' + escapeHtml(a.url) + '"' : '') + '>' + escapeHtml(a.name) + '</' + tag + '>';
+    }).join('');
+    return '<div class="allow-row" style="margin-top:10px">つかってOK：' + chips + '</div>';
+  }
   function openWalkPicker() {
     if (Engine.walk()) return;
     var btns = Engine.WALK_OPTIONS.map(function (min) {
       return '<button class="care-btn" data-min="' + min + '" style="padding:14px 4px">' +
-        '<span class="emo">' + (min <= 30 ? '🐾' : min <= 60 ? '🌳' : '⛰') + '</span>' +
+        '<span class="emo">' + (min <= 30 ? '🐾' : min <= 60 ? '🌳' : min <= 120 ? '⛰' : '🌙') + '</span>' +
         '<span class="lbl">' + fmtMin(min) + '</span>' +
         '<span class="cost" style="color:var(--accent-d)">🍖 ×' + (FOOD_BY_MIN[min] || 2) + '</span></button>';
     }).join('');
-    var html = '<h2>🍖 ごはん探し</h2>' +
-      '<p class="sub">スマホを伏せて お留守番。<br>その時間が、この子の <b>エサ</b> に変わるよ。</p>' +
-      '<div class="care-grid" style="grid-template-columns:repeat(3,1fr);gap:12px">' + btns + '</div>' +
-      '<p class="muted mt12" style="font-size:11px">途中でアプリを開くと失敗（最初の60秒はセーフ）。連続成功でご褒美アップ。</p>';
+    var html = '<h2>🔒 しゅうちゅうロック</h2>' +
+      '<p class="sub">スマホを置いて、この子に ロックを あずけよう。<br>その時間が、まるごと <b>エサ</b> に変わるよ（長いほど たくさん）。</p>' +
+      '<div class="care-grid" style="grid-template-columns:repeat(2,1fr);gap:12px">' + btns + '</div>' +
+      '<p class="muted mt12" style="font-size:11px">満了前にアプリへ戻ると中断（最初の60秒はセーフ）。連続成功でご褒美アップ。</p>';
     var m = openModal(html);
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-min]'), function (btn) {
       btn.addEventListener('click', function () {
@@ -899,15 +993,21 @@
   function renderWalkOverlay(r) {
     var ov = $('walkOverlay');
     if (!ov.firstChild) {
+      var foods = FOOD_BY_MIN[r.minutes] || 2;
       ov.innerHTML = '<div class="walk-screen">' +
         '<div id="walkPet" class="walk-pet"></div>' +
-        '<div class="walk-title">ごはんさがしちゅう…</div>' +
+        '<div class="walk-title">しゅうちゅうロックちゅう…</div>' +
         '<div id="walkTimer" class="walk-timer"></div>' +
+        '<p class="walk-msg" style="margin:2px 0">成功で 🍖 ×' + foods + '</p>' +
         '<p id="walkMsg" class="walk-msg"></p>' +
+        allowChipsHtml() +
         '<button id="walkCancel" class="big-btn ghost" style="margin-top:18px">あきらめる</button>' +
         '</div>';
-      // おさんぽ中は「動物としてふるまう場面」＝4足歩行ポーズで歩く
+      // ロック中は「動物としてふるまう場面」＝4足歩行ポーズ
       Art.mount(ov.querySelector('#walkPet'), Art.petSVG(Engine.breed(), Engine.stage(), 'happy', 'quad'));
+      Array.prototype.forEach.call(ov.querySelectorAll('.allow-chip[data-url]'), function (c) {
+        c.addEventListener('click', function () { if (window.Native) Native.openApp(c.getAttribute('data-url')); });
+      });
       ov.querySelector('#walkCancel').addEventListener('click', function () {
         var res = Engine.cancelWalk(now());
         if (window.Native) Native.walkEnded();
@@ -919,8 +1019,8 @@
     }
     ov.querySelector('#walkTimer').textContent = fmtMMSS(r.remainMs);
     ov.querySelector('#walkMsg').innerHTML = r.inGrace ?
-      'いまのうちにスマホをとじてね（あと' + Math.ceil(r.graceRemainMs / 1000) + '秒はセーフ）' :
-      'スマホをふせて、まっててね';
+      'いまのうちにスマホを置いてね（あと' + Math.ceil(r.graceRemainMs / 1000) + '秒はセーフ）' :
+      'スマホを置いて、まっててね';
     ov.style.display = 'block';
   }
 
@@ -953,10 +1053,10 @@
     var html = '<div class="center pop">' +
       '<div id="wsArt" class="hatch-art"></div>' +
       '<div class="hatch-name">' + b.name + '</div>' +
-      '<h2 style="margin-top:6px">' + fmtMin(r.minutes) + ' スマホを離れた</h2>' +
+      '<h2 style="margin-top:6px">' + fmtMin(r.minutes) + ' スマホを置けた</h2>' +
       '<p class="sub" style="margin-bottom:8px">連続成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（自己新記録！）' : '') + '</p>' +
       '<div style="font-weight:800;color:var(--coin-text)">🍖 エサ ×' + r.foods + '　🪙 ＋' + r.coinGain + '　なかよし ＋' + r.xpGain + '</div>' +
-      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ お散歩の間に大きくなった！</p>' : '') +
+      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ ロックの間に大きくなった！</p>' : '') +
       '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button>' +
       '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
     var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
@@ -968,10 +1068,10 @@
   function showWalkFail(r) {
     var gentle = r.reason === 'cancel';
     var html = '<div class="center">' +
-      '<h2>' + (gentle ? 'ごはん探しを やめたよ' : 'あっ…！') + '</h2>' +
+      '<h2>' + (gentle ? 'ロックを やめたよ' : 'あっ…！') + '</h2>' +
       '<p class="sub">' + (gentle ?
-        'また今度、いっしょに出かけようね。' :
-        '途中でスマホを開いちゃった…。<br>ごはんは見つからなかった。ちょっとしょんぼりしてる…') + '</p>' +
+        'また今度、いっしょに がんばろうね。' :
+        '途中でスマホを開いちゃった…。<br>エサは持ち帰れなかった。ちょっとしょんぼりしてる…') + '</p>' +
       '<div style="font-size:56px;margin:4px">' + (gentle ? '🐾' : '💧') + '</div>' +
       '<p class="muted">連続成功はリセット。次はきっと大丈夫！</p>' +
       '<button id="walkNg" class="big-btn primary mt12" style="width:100%">うん…</button></div>';
@@ -985,13 +1085,14 @@
   var TASK_PRESETS = [
     { kind: 'ほんよみ', emo: '📖' },
     { kind: 'えいご',   emo: '🔤' },
-    { kind: 'うんどう', emo: '🏃' }
+    { kind: 'うんどう', emo: '🏃' },
+    { kind: 'ダイエット', emo: '🥗' }
   ];
-  var TASK_EMO = { 'ほんよみ': '📖', 'えいご': '🔤', 'うんどう': '🏃', 'じぶんで': '✏️' };
+  var TASK_EMO = { 'ほんよみ': '📖', 'えいご': '🔤', 'うんどう': '🏃', 'ダイエット': '🥗', 'じぶんで': '✏️' };
 
   function openTaskPicker() {
     if (Engine.task()) return;
-    if (Engine.walk()) return showToast('いまは ごはん探し中だよ');
+    if (Engine.walk()) return showToast('いまは ロック中だよ');
     var kinds = TASK_PRESETS.map(function (k) {
       return '<button class="care-btn task-kind" data-kind="' + k.kind + '" style="padding:10px 2px">' +
         '<span class="emo">' + k.emo + '</span><span class="lbl">' + k.kind + '</span></button>';
@@ -1075,7 +1176,7 @@
       happyUntil = now() + 1500;
       lastArtKey = '';
       render();
-      showToast('🐾 おさんぽから かえってきた！えらい！（さんぽ +' + r.gain + '）');
+      showToast('🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + '）');
     } else {
       renderTaskRow();
     }
@@ -1089,10 +1190,10 @@
     var html = '<h2>🍚 ごはん</h2>' +
       '<p class="sub">エサは <b>スマホを離れた時間</b> で貯まるよ。<br>ストックがある間は 自動で食べてくれる。</p>' +
       '<div class="center" style="font-size:34px;margin:4px">🍖 ×' + info.stock + '</div>' +
-      '<p class="center muted">' + (info.stock > 0 ? days : 'エサがないよ。ごはん探しに行こう') + '</p>' +
+      '<p class="center muted">' + (info.stock > 0 ? days : 'エサがないよ。しゅうちゅうロックしよう') + '</p>' +
       '<button id="handFeed" class="big-btn primary mt12" style="width:100%"' + (info.stock < 1 ? ' disabled' : '') + '>🤲 手であげる（なかよしアップ）</button>' +
       '<button id="buyFood" class="big-btn ghost mt12" style="width:100%"' + (st.coin < Engine.FOOD_COST ? ' disabled' : '') + '>🪙 エサを買う（' + Engine.FOOD_COST + 'コイン）</button>' +
-      '<p class="muted mt12">たくさん欲しいときは「🍖 ごはん探し」（スマホを伏せる）が一番。</p>';
+      '<p class="muted mt12">たくさん欲しいときは「🔒 しゅうちゅうロック」（スマホを置く）が一番。</p>';
     var m = openModal(html);
     var hf = m.root.querySelector('#handFeed');
     if (hf) hf.addEventListener('click', function () {
@@ -1216,6 +1317,7 @@
       else onPause();
     });
     if (window.Native) Native.init(onResume, onPause); // ネイティブアプリの復帰/退避検知
+    if (window.Native) Native.scheduleReminders(Engine.reminders()); // 起動時に時間指定リマインドを張り直す
     setInterval(loop, 1000);
   }
 

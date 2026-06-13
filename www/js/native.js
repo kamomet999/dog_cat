@@ -92,6 +92,34 @@
     buzz: function (style) {
       if (!P || !P.Haptics) return;
       P.Haptics.impact({ style: style || 'MEDIUM' }).catch(function () {});
+    },
+
+    /** 時間指定リマインド: 毎日 HH:MM に「さんぽしないの？」（id 3001-3006・daily repeat） */
+    scheduleReminders: function (rem) {
+      if (!P || !P.LocalNotifications) return;
+      var ids = [3001, 3002, 3003, 3004, 3005, 3006].map(function (id) { return { id: id }; });
+      P.LocalNotifications.cancel({ notifications: ids }).catch(function () {});
+      if (!rem || !rem.enabled || !rem.times || !rem.times.length) return;
+      P.LocalNotifications.requestPermissions().then(function (r) {
+        if (!r || r.display !== 'granted') return;
+        var notifs = rem.times.slice(0, 6).map(function (t, i) {
+          var hm = String(t).split(':');
+          return {
+            id: 3001 + i,
+            title: 'さんぽ しないの？🐾',
+            body: 'きょうの いいじかん、いっしょに すごそう',
+            schedule: { on: { hour: parseInt(hm[0], 10), minute: parseInt(hm[1], 10) }, allowWhileIdle: true, repeats: true }
+          };
+        });
+        return P.LocalNotifications.schedule({ notifications: notifs });
+      }).catch(function () { /* 通知が使えなくてもゲームは続行 */ });
+    },
+
+    /** 許可アプリの起動（URLスキームがあるとき。なければ何もしない） */
+    openApp: function (url) {
+      if (!url) return;
+      if (P && P.AppLauncher) { P.AppLauncher.openUrl({ url: url }).catch(function () {}); return; }
+      try { global.open(url, '_system'); } catch (e) { /* noop */ }
     }
   };
 

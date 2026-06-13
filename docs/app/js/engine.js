@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 9;
+  var VERSION = 10;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -27,18 +27,34 @@
   // ----- えさ（食料の源泉はスマホを置いた時間。GAME_DESIGN.md §2.5）-----
   var FOOD_COST = 20;                  // コインでの購入（コイン=放置時間の蓄積→これも間接デトックス由来）
   var HAND_FEED_BONUS = { xp: 6 };     // 自動給餌でなく「てであげる」と仲が深まる（なかよし＝xp）
-  function walkFoodGain(minutes) { return minutes >= 120 ? 8 : minutes >= 60 ? 4 : 2; } // ごはんさがし（伏せセッション）の持ち帰り
+  function walkFoodGain(minutes) { return minutes >= 180 ? 12 : minutes >= 120 ? 8 : minutes >= 60 ? 4 : 2; } // 集中ロック（長いほど増量）
+  function taskFoodGain(minutes) { return Math.max(1, Math.round(minutes / 30)); } // さんぽ課題でも餌（取り組んだぶん・控えめ）
   var STARTER_STOCK = 6;
   // さんぽ（課題セッション）: 読書・英語・運動＋自由入力。失敗なし・時間ぶんゲージ回復
-  var TASK_KINDS = ['ほんよみ', 'えいご', 'うんどう']; // ＋UIで「じぶんで」自由入力
+  var TASK_KINDS = ['ほんよみ', 'えいご', 'うんどう', 'ダイエット']; // ＋UIで「じぶんで」自由入力
   var TASK_OPTIONS = [15, 30, 60];     // 分（＋UIでカスタム分）
   var TASK_MIN = 5, TASK_MAX = 180;    // カスタム分の許容範囲
   function taskSanpoGain(minutes) { return 20 + minutes; } // 15分=+35 / 30分=+50 / 60分=+80
+  // さんぽ課題の完了でダッシュボード統計を更新（継続日数＝連続して取り組んだ日数）
+  function bumpTaskStats(prev, kind, minutes, now) {
+    var st = prev || { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} };
+    var day = dayIndex(now), days = st.days || 0, newDay = false;
+    if (st.lastDay == null || day > st.lastDay + 1) { days = 1; newDay = true; }   // 初回 or 間があいた→リセット
+    else if (day === st.lastDay + 1) { days = (st.days || 0) + 1; newDay = true; } // 連続した日
+    // day === st.lastDay は同じ日の2回目以降（日数は据え置き）
+    var byKind = { ...(st.byKind || {}) };
+    byKind[kind] = (byKind[kind] || 0) + minutes;
+    var bestDays = Math.max(st.bestDays || 0, days);
+    return {
+      stats: { success: (st.success || 0) + 1, days: days, bestDays: bestDays, lastDay: day, totalMin: (st.totalMin || 0) + minutes, byKind: byKind },
+      newDay: newDay, isBestDay: newDay && days >= bestDays
+    };
+  }
 
-  // ----- おさんぽ（Forest型セッション）-----
-  // 開始後はアプリを閉じて過ごす。満了前にアプリへ戻ると失敗（開始直後の猶予あり）。
-  var WALK_GRACE = 60000;            // 開始から60秒は戻っても失敗にしない（誤タップ救済）
-  var WALK_OPTIONS = [30, 60, 120];  // 選べる長さ（分）
+  // ----- 集中ロック（UI「ごはんさがし」/ Forest型オナーセッション）= ごはんの主獲得 -----
+  // 開始後はスマホを置いて過ごす。満了前にアプリへ戻ると中断（開始直後60秒の猶予あり）。長いほど餌増。
+  var WALK_GRACE = 60000;            // 開始から60秒は戻っても失敗にしない（誤タップ・着信の救済）
+  var WALK_OPTIONS = [30, 60, 120, 180]; // 集中ロックの長さ（分）。長いほど餌が増える
   var WALK_XP_PER_H = 36;            // 成功ボーナスxp/時（通常放置18/hの2倍を上乗せ）
   var WALK_COIN_PER_H = 60;          // 成功ボーナスコイン/時
   var WALK_LUCK = 0.03;              // 成功ごとのレア運上昇
@@ -63,6 +79,7 @@
   var REROLL_COST = 30;
 
   function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+  function dayIndex(now) { return Math.floor(now / 86400000); } // さんぽ継続日数の日付バケツ（UTC日。tz微調整はv2）
 
   function stageOf(xp) {
     var st = 0;
@@ -101,7 +118,10 @@
       foodStock: STARTER_STOCK, // えさストック（小数あり。表示は切り捨て）
       task: null,           // { startedAt, endsAt, minutes, kind } さんぽ（課題）中のみ
       walk: null,           // { startedAt, endsAt, minutes } おさんぽ中のみ
-      walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 },
+      walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }, // 集中ロックの記録
+      taskStats: { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} }, // さんぽ課題ダッシュボード
+      allowApps: [],        // ロック中に使ってよいアプリ（{name,url?}）。v1はオナー/ショートカット、v2でOS遮断対象
+      reminders: { enabled: false, times: [] }, // 時間指定「さんぽしないの？」（"HH:MM" 配列）
       album: [],            // おみあいで生まれたミックスの記録（30種図鑑とは別）
       room: defaultRoom()   // 部屋の模様替え（スロット→アイテムid。¥500で全アイテム解放）
     };
@@ -169,6 +189,15 @@
     }
     if (s.version === 8) {
       s = { ...s, version: 9, room: defaultRoom() }; // 部屋の模様替え導入
+    }
+    if (s.version === 9) {
+      // 集中ロック×さんぽ課題ダッシュボード（GAME_DESIGN v6）
+      s = {
+        ...s, version: 10,
+        taskStats: s.taskStats || { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} },
+        allowApps: s.allowApps || [],
+        reminders: s.reminders || { enabled: false, times: [] }
+      };
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -532,6 +561,34 @@
 
     // ===== さんぽ（学習・運動などの「いい時間」。失敗なしの課題セッション） =====
     task: function () { return this._state ? this._state.task : null; },
+    taskStats: function () { return this._state ? this._state.taskStats : null; },
+    /** さんぽダッシュボードのスコア（継続日数を重く＋累計時間ぶん） */
+    taskScore: function () {
+      var st = this._state && this._state.taskStats;
+      if (!st) return 0;
+      return (st.days || 0) * 100 + Math.floor(st.totalMin || 0);
+    },
+    /** ロック中に使ってよいアプリ（{name,url?} の配列） */
+    allowApps: function () { return this._state ? (this._state.allowApps || []) : []; },
+    setAllowApps: function (list, now) {
+      var s = this._state; if (!s) return null;
+      var arr = (Array.isArray(list) ? list : []).slice(0, 20).map(function (a) {
+        if (typeof a === 'string') return { name: a.slice(0, 24) };
+        return { name: String(a.name || '').slice(0, 24), url: a.url ? String(a.url).slice(0, 200) : undefined };
+      }).filter(function (a) { return a.name; });
+      var ns = { ...s, allowApps: arr, lastSavedAt: now || s.lastSavedAt };
+      this._state = ns; persist(ns); return arr;
+    },
+    /** 時間指定リマインド設定（{enabled, times:["HH:MM"]}） */
+    reminders: function () { return this._state ? (this._state.reminders || { enabled: false, times: [] }) : { enabled: false, times: [] }; },
+    setReminders: function (cfg, now) {
+      var s = this._state; if (!s) return null;
+      cfg = cfg || {};
+      var times = (Array.isArray(cfg.times) ? cfg.times : []).filter(function (t) { return /^([01]?\d|2[0-3]):[0-5]\d$/.test(t); }).slice(0, 6);
+      var rem = { enabled: !!cfg.enabled, times: times };
+      var ns = { ...s, reminders: rem, lastSavedAt: now || s.lastSavedAt };
+      this._state = ns; persist(ns); return rem;
+    },
 
     /** さんぽ開始（kind: TASK_KINDS, minutes: TASK_OPTIONS）。他アプリの使用OK・失敗なし */
     startTask: function (kind, minutes, now) {
@@ -555,11 +612,17 @@
       if (now < t.endsAt) return { result: 'ongoing', remainMs: t.endsAt - now, kind: t.kind, minutes: t.minutes };
       var p = s.current;
       var gain = taskSanpoGain(t.minutes);
+      var foods = taskFoodGain(t.minutes);
       var np = { ...p, sanpo: clamp((p.sanpo == null ? 100 : p.sanpo) + gain, 0, 100), runawayH: 0 };
-      var ns = { ...s, current: np, task: null, lastSavedAt: now };
+      var bumped = bumpTaskStats(s.taskStats, t.kind, t.minutes, now);
+      var ns = {
+        ...s, current: np, task: null,
+        foodStock: Math.min(FOOD_STOCK_MAX, (s.foodStock == null ? 0 : s.foodStock) + foods),
+        taskStats: bumped.stats, lastSavedAt: now
+      };
       this._state = ns;
       persist(ns);
-      return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain };
+      return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain, foods: foods, days: bumped.stats.days, newDay: bumped.newDay, isBestDay: bumped.isBestDay };
     },
 
     /** さんぽをやめる（失敗ではない。ゲージ回復なしなだけ） */

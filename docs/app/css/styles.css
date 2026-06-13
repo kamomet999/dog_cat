@@ -387,3 +387,10 @@ button:focus-visible {
 
 /* シェアされる瞬間（§10.5）: 控えめなウォーターマーク */
 .watermark { font-size: 10px; font-weight: 700; color: var(--ink-soft); margin-top: 10px; text-align: center; }
+
+/* ロック中の許可アプリチップ / リマインド設定（GAME_DESIGN v6） */
+.allow-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 6px 0; }
+.allow-chip { font-family: inherit; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 999px;
+  border: 1px solid #e3d6c4; background: var(--card); color: var(--ink); cursor: pointer; }
+.allow-chip.on { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+.rem-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--ink); margin: 8px 0; }
