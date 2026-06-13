@@ -122,6 +122,28 @@ body {
 @keyframes wiggle {
   0%,100%{transform:rotate(0)} 25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)}
 }
+/* タップで出る いろんなしぐさ（成長はしない・演出だけ） */
+.pet-stage.hop { animation: hop .5s ease; }
+@keyframes hop { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-22px)} 70%{transform:translateY(0) scaleY(.94)} }
+.pet-stage.spin { animation: spin .6s ease; }
+@keyframes spin { 0%{transform:rotate(0) scale(1)} 50%{transform:rotate(8deg) scale(1.05)} 100%{transform:rotate(-360deg) scale(1)} }
+.pet-stage.shake { animation: shake .5s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+.pet-stage.pop { animation: petpop .5s ease; }
+@keyframes petpop { 0%,100%{transform:scale(1)} 45%{transform:scale(1.14)} }
+/* タップ時のリアクション絵文字（ふわっと上へ消える） */
+.react-pop {
+  position: absolute; left: 50%; top: 30%; transform: translateX(-50%);
+  font-size: 30px; pointer-events: none; z-index: 4; animation: reactPop .9s ease forwards;
+}
+@keyframes reactPop {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(.6); }
+  25% { opacity: 1; transform: translate(-50%, -10px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -54px) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .react-pop { animation-duration: .01ms; }
+}
 
 .pet-name { font-size: 20px; font-weight: 800; margin-top: 8px; }
 .pet-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }

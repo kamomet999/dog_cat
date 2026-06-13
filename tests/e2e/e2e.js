@@ -114,12 +114,14 @@ t('初回フロー: intro→種選択→チュートリアル5歩→ホーム到
   await closePage(page);
 });
 
-t('なでなで＋手でごはん: なかよし増・ストック減・トースト表示', async () => {
+t('タップ: 成長せずしぐさで反応（演出のみ）＋手でごはんはストック減', async () => {
   const page = await newPage(saveBase());
   const xp0 = (await engineState(page)).current.xp;
   await page.click('#petArt');
-  await page.waitForTimeout(300);
-  assert.ok((await engineState(page)).current.xp > xp0, 'なでなで で なかよしが増える');
+  await page.waitForTimeout(150);
+  assert.strictEqual((await engineState(page)).current.xp, xp0, 'タップでは成長しない');
+  const cls = await page.getAttribute('#petArt', 'class');
+  assert.match(cls, /bounce|wiggle|hop|spin|shake|pop/, 'しぐさアニメが付く');
   await page.click('[data-act="feed"]');
   await page.waitForTimeout(350);
   const stock0 = (await engineState(page)).foodStock;
@@ -364,14 +366,15 @@ t('巣立ち: 成体→巣立ちモーダル→図鑑登録・次の子が来る
   await closePage(page);
 });
 
-t('成長: 赤ちゃんは保護され、お世話で目を覚ます(stage0→1)', async () => {
+t('成長: 赤ちゃんは保護され、時間がたつと目を覚ます(stage0→1)', async () => {
   const page = await newPage(saveBase({ current: petBase({ xp: 0 }) }));
   assert.match(await text(page, '#petName'), /ねんねちゅう/);
   assert.match(await text(page, '#growStage'), /めざめまで/);
-  // なでなで(xp+3)×5 ＝ 15 ≥ GROW[1]
-  for (let i = 0; i < 5; i++) { await page.click('#petArt'); await page.waitForTimeout(150); }
-  await page.waitForTimeout(400);
-  assert.match(await text(page, '#petName'), /柴犬/, '目を覚まして品種名が出る');
+  // タップでは育たない → 時間経過（放置xp）で目を覚ます
+  await page.click('#petArt'); await page.waitForTimeout(150);
+  assert.match(await text(page, '#petName'), /ねんねちゅう/, 'タップしても寝たまま');
+  await warp(page, 3 * H);
+  assert.match(await text(page, '#petName'), /柴犬/, '時間で目を覚まして品種名が出る');
   await closePage(page);
 });
 

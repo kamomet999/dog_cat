@@ -590,16 +590,11 @@
       return { stageBefore: stageOf(p.xp), stageAfter: stageOf(np.xp) };
     },
 
-    /** キャラなでなで（軽い回復＋なかよし） */
-    pet: function (now) {
-      var s = this._state;
-      if (!s || !s.current) return null;
-      var p = s.current;
-      var np = { ...p, xp: p.xp + 3 }; // なでなで＝なかよし（xp）少し
-      var ns = { ...s, current: np, lastSavedAt: now };
-      this._state = ns;
-      persist(ns);
-      return { stageBefore: stageOf(p.xp), stageAfter: stageOf(np.xp) };
+    /** キャラなでなで＝演出のみ（成長させない・発案者FB）。種を返してUIがしぐさを選ぶ */
+    pet: function () {
+      var b = this.breed();
+      if (!b) return null;
+      return { species: b.species, asleep: this.stage() === 0 };
     },
 
     canGraduate: function () { return this.stage() >= 3; },

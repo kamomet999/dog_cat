@@ -189,13 +189,36 @@
     if (r.stageAfter > r.stageBefore) celebrateGrowth(r.stageAfter);
   }
 
+  // タップは成長させず、犬・猫らしいしぐさ＋ほほ笑みの演出だけ（発案者FB）
+  var REACT_DOG = [
+    { anim: 'hop', emo: '🐾' }, { anim: 'wiggle', emo: '🎵' },
+    { anim: 'spin', emo: '❤️' }, { anim: 'bounce', emo: '✨' }, { anim: 'shake', emo: '🐶' }
+  ];
+  var REACT_CAT = [
+    { anim: 'wiggle', emo: '🐾' }, { anim: 'hop', emo: '🎵' },
+    { anim: 'pop', emo: '❤️' }, { anim: 'spin', emo: '✨' }, { anim: 'shake', emo: '🐱' }
+  ];
+  var reactIdx = 0;
   function onPet() {
-    var r = Engine.pet(now());
+    var r = Engine.pet();
     if (!r) return;
-    happyUntil = now() + 1000;
-    bump('wiggle');
+    if (r.asleep) { happyUntil = now() + 700; bump('wiggle'); floatReact('💤'); render(); return; }
+    var list = r.species === 'cat' ? REACT_CAT : REACT_DOG;
+    var pick = list[reactIdx % list.length]; reactIdx++; // タップごとに ちがうしぐさ
+    happyUntil = now() + 1100; // ほほ笑み（happy顔）
+    bump(pick.anim);
+    floatReact(pick.emo);
     render();
-    if (r.stageAfter > r.stageBefore) celebrateGrowth(r.stageAfter);
+  }
+  // ペットの上に ふわっと出る リアクション絵文字
+  function floatReact(emo) {
+    var scene = $('scene');
+    if (!scene) return;
+    var s = document.createElement('span');
+    s.className = 'react-pop';
+    s.textContent = emo;
+    scene.appendChild(s);
+    setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 900);
   }
 
   function onAct() {
@@ -215,9 +238,10 @@
     }
   }
 
+  var BUMP_CLASSES = ['bounce', 'wiggle', 'hop', 'spin', 'shake', 'pop'];
   function bump(cls) {
     var a = $('petArt');
-    a.classList.remove('bounce', 'wiggle');
+    a.classList.remove.apply(a.classList, BUMP_CLASSES);
     void a.offsetWidth; // reflow でアニメ再生
     a.classList.add(cls);
   }
@@ -303,7 +327,7 @@
   function markTutorialDone() { try { localStorage.setItem(TUT_KEY, '1'); } catch (e) {} }
 
   var TUT_STEPS = [
-    { sel: '#petArt', title: 'いまは ねんね中', text: '撫でたり ごはんをあげると、<b>もうすぐ目を覚まして</b> どんな子か分かるよ。タップで撫でてみて。', place: 'below' },
+    { sel: '#petArt', title: 'いまは ねんね中', text: 'タップすると <b>いろんなしぐさ</b> で よろこぶよ（成長はしない）。<br>ごはんや時間で、もうすぐ目を覚ます。', place: 'below' },
     { sel: '#walkBtn', title: '① ごはん探し＝スマホを伏せる', text: '“スマホを伏せる” と、その時間が この子の <b>エサ</b> になるよ。これが一番大事！', place: 'above' },
     { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動の間、となりにいてくれる。ごはん探しとは別の “いい時間”。', place: 'above' },
     { sel: '#stats', title: 'お腹・機嫌・いのち', text: 'ごはんは ストックから <span class="calm">自動で</span> 食べるよ。毎日ひらかなくても、<span class="calm">忘れても責めないよ</span>。', place: 'below' },
