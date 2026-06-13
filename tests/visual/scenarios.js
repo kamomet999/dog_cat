@@ -18,7 +18,7 @@ function petBase(over) {
 }
 function saveBase(over) {
   return Object.assign({
-    version: 8, premium: false, coin: 180, luck: 0.05,
+    version: 9, premium: false, coin: 180, luck: 0.05,
     current: petBase(),
     dex: { shiba: { count: 3, firstAt: T0 - DAY * 3, unseen: false } },
     lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0,
@@ -95,6 +95,18 @@ module.exports = {
         { click: '#tutNext' }, { wait: 150 }, { click: '#tutNext' }, { wait: 150 },
         { click: '#tutNext' }, { wait: 150 }, { click: '#tutNext' }, { wait: 300 }
       ]
+    },
+    {
+      name: 'room-decorated',
+      // 飾りをはめ込んだ部屋（背景そら＋壁の絵＋観葉＋くま＋ベッド）
+      save: saveBase({ room: { bg: 'bg_sky', wall: 'w_pic', left: 'l_plant', right: 'r_bear', floor: 'f_bed' } }),
+      steps: [{ wait: 300 }]
+    },
+    {
+      name: 'room-modal',
+      save: saveBase({ room: { bg: 'bg_sky', wall: 'w_pic', left: 'l_plant', right: null, floor: null } }),
+      fullPage: true,
+      steps: [{ click: '#roomBtn' }, { wait: 400 }]
     },
     {
       name: 'food',

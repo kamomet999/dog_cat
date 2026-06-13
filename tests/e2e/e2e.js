@@ -42,7 +42,7 @@ function petBase(over) {
 }
 function saveBase(over) {
   return Object.assign({
-    version: 8, premium: false, coin: 180, luck: 0.05,
+    version: 9, premium: false, coin: 180, luck: 0.05,
     current: petBase(),
     dex: { shiba: { count: 1, firstAt: T0 - 86400000, unseen: false } },
     lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0,
@@ -106,7 +106,7 @@ t('初回フロー: intro→種選択→チュートリアル5歩→ホーム到
   }
   assert.ok(!(await page.$('#tutNext')), 'チュートリアルが閉じた');
   const st = await engineState(page);
-  assert.strictEqual(st.version, 8);
+  assert.strictEqual(st.version, 9);
   assert.ok(st.current, 'ペットがいる');
   assert.strictEqual((await text(page, '#petName')).trim(), 'ねんねちゅう…');
   const tut = await page.evaluate(k => localStorage.getItem(k), TUT);
@@ -275,6 +275,8 @@ t('図鑑と課金: 3種未満ではCTAも¥500も見えない', async () => {
 
 t('おみあい: コード発行→入力→純血の子・親は図鑑へ', async () => {
   const page = await newPage(saveBase({ current: petBase({ xp: 800 }) })); // 成体
+  // 同品種は基本「純血」だが8%等で突然変異しうる。テストは変異を止めて決定論化
+  await page.evaluate(() => { window.Math.random = () => 0.99; });
   assert.ok(await page.isVisible('#mateBtn'), '成体でおみあいボタンが見える');
   const code = await page.evaluate(() => window.Engine.mateCode());
   assert.match(code, /^INU-/);
@@ -373,6 +375,36 @@ t('成長: 赤ちゃんは保護され、お世話で目を覚ます(stage0→1)
   await closePage(page);
 });
 
+t('部屋の模様替え: 無料の飾りをはめ込む→シーンに反映。プレミアム飾りは課金導線', async () => {
+  const page = await newPage(saveBase());
+  await page.click('#roomBtn');
+  await page.waitForTimeout(400);
+  await page.click('.room-cell[data-item="w_pic"]'); // 無料の壁飾り
+  await page.waitForTimeout(250);
+  assert.strictEqual((await engineState(page)).room.wall, 'w_pic', '壁にはめ込まれた');
+  await page.click('.room-cell[data-item="bg_sky"]'); // 無料の背景
+  await page.waitForTimeout(250);
+  assert.strictEqual((await engineState(page)).room.bg, 'bg_sky');
+  await page.click('.room-cell[data-item="w_clock"]'); // プレミアム品（ロック）
+  await page.waitForTimeout(350);
+  assert.ok(await page.$('#buyPrem'), 'ロック品タップで課金モーダルへ');
+  assert.notStrictEqual((await engineState(page)).room.wall, 'w_clock', '未解放品は装備されない');
+  await page.click('.modal-close');
+  await page.waitForTimeout(250);
+  assert.match(await text(page, '#rsWall'), /🖼️/, 'シーンに反映');
+  await closePage(page);
+});
+
+t('部屋(課金後): プレミアム飾りもはめ込める', async () => {
+  const page = await newPage(saveBase({ premium: true }));
+  await page.click('#roomBtn');
+  await page.waitForTimeout(400);
+  await page.click('.room-cell[data-item="w_clock"]');
+  await page.waitForTimeout(250);
+  assert.strictEqual((await engineState(page)).room.wall, 'w_clock', '課金済みなら装備できる');
+  await closePage(page);
+});
+
 t('永続化: 操作→リロードしても状態が残る', async () => {
   const page = await newPage(saveBase());
   await page.click('[data-act="feed"]');
@@ -386,7 +418,7 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   const after = await engineState(page);
   assert.strictEqual(Math.floor(after.foodStock), Math.floor(before.foodStock), 'ストックが保持');
   assert.strictEqual(after.current.breedId, before.current.breedId);
-  assert.strictEqual(after.version, 8);
+  assert.strictEqual(after.version, 9);
   await closePage(page);
 });
 
@@ -405,7 +437,7 @@ t('設定: 累計ログ表示・チュートリアル再表示・データリセ
   await closePage(page);
 });
 
-t('旧セーブ(v1)読み込み: 最新v8へ移行して起動できる', async () => {
+t('旧セーブ(v1)読み込み: 最新v9へ移行して起動できる', async () => {
   const v1 = {
     version: 1, coin: 42, luck: 0.1,
     current: { breedId: 'shiba', xp: 30, hunger: 50, mood: 50, clean: 50, energy: 50, careCount: 3 },
@@ -417,8 +449,8 @@ t('旧セーブ(v1)読み込み: 最新v8へ移行して起動できる', async 
   const ok = await page.$('#okBtn');
   if (ok) { await ok.click(); await page.waitForTimeout(300); }
   const st = await engineState(page);
-  assert.strictEqual(st.version, 8);
-  assert.strictEqual(st.current.mood, undefined, 'v8でmoodは消える');
+  assert.strictEqual(st.version, 9);
+  assert.strictEqual(st.current.mood, undefined, 'v9でmoodは消える');
   assert.ok(st.current.sanpo != null && st.current.health != null);
   await closePage(page);
 });

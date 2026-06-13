@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 8;
+  var VERSION = 9;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -99,8 +99,13 @@
       task: null,           // { startedAt, endsAt, minutes, kind } さんぽ（課題）中のみ
       walk: null,           // { startedAt, endsAt, minutes } おさんぽ中のみ
       walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 },
-      album: []             // おみあいで生まれたミックスの記録（30種図鑑とは別）
+      album: [],            // おみあいで生まれたミックスの記録（30種図鑑とは別）
+      room: defaultRoom()   // 部屋の模様替え（スロット→アイテムid。¥500で全アイテム解放）
     };
+  }
+  // 部屋の初期スロット（はめ込み式。背景＝bg、その他は飾り。null=なし）
+  function defaultRoom() {
+    return { bg: 'cream', wall: null, left: null, right: null, floor: null };
   }
 
   // ----- 永続化 -----
@@ -158,6 +163,9 @@
       var c7 = s.current ? { ...s.current } : null;
       if (c7) { delete c7.mood; delete c7.energy; }
       s = { ...s, version: 8, current: c7 };
+    }
+    if (s.version === 8) {
+      s = { ...s, version: 9, room: defaultRoom() }; // 部屋の模様替え導入
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -411,6 +419,20 @@
       this._state = ns;
       persist(ns);
       return { unlocked: true };
+    },
+
+    // ===== 部屋の模様替え（はめ込み式。slot→itemId） =====
+    getRoom: function () { return (this._state && this._state.room) || defaultRoom(); },
+    /** スロットにアイテムをはめる（itemId=null で外す）。アイテムの解放可否はUI側で判定 */
+    equipRoom: function (slot, itemId, now) {
+      var s = this._state;
+      if (!s) return null;
+      var room = Object.assign(defaultRoom(), s.room || {});
+      room[slot] = itemId;
+      var ns = { ...s, room: room, lastSavedAt: now || s.lastSavedAt };
+      this._state = ns;
+      persist(ns);
+      return room;
     },
 
     // 現在のペット（pure品種なら Breeds、ミックスなら合成した品種オブジェクト）

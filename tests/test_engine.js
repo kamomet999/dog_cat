@@ -92,10 +92,10 @@ test('無料抽選は無料ティアのみ／課金抽選は全品種', () => {
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v8 の初期状態ができる', () => {
+test('newGame で v9 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 8);
+  assert.strictEqual(s.version, 9);
   assert.strictEqual(s.premium, false);
   eqJSON(s.album, []);
   assert.strictEqual(s.foodStock, 6);
@@ -126,6 +126,20 @@ test('unlockPremium で全品種が解放される', () => {
   assert.ok(w.Engine.unlockPremium(T0).already);
 });
 
+test('部屋: 既定cream→はめ込み→外す（課金と独立に保存）', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  assert.strictEqual(w.Engine.getRoom().bg, 'cream');
+  assert.strictEqual(w.Engine.getRoom().wall, null);
+  w.Engine.equipRoom('wall', 'w_pic', T0);
+  assert.strictEqual(w.Engine.getRoom().wall, 'w_pic');
+  w.Engine.equipRoom('bg', 'bg_sky', T0);
+  assert.strictEqual(w.Engine.getRoom().bg, 'bg_sky');
+  w.Engine.equipRoom('wall', null, T0); // 外す
+  assert.strictEqual(w.Engine.getRoom().wall, null);
+  assert.strictEqual(w.Engine.isPremium(), false); // 部屋の操作は課金フラグに影響しない
+});
+
 test('セーブ→ロードで状態が一致する', () => {
   const storage = makeStorage();
   const w1 = freshWorld(storage);
@@ -146,7 +160,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 8);
+  assert.strictEqual(s.version, 9);
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
@@ -156,6 +170,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   assert.strictEqual(s.current.sanpo, 100);
   assert.strictEqual(s.current.detox, undefined);
   assert.strictEqual(s.deaths, 0);
+  assert.strictEqual(s.room.bg, 'cream'); // v9で部屋が既定値で付与される
 });
 
 console.log('# オフライン進行');

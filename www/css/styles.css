@@ -78,9 +78,30 @@ body {
   padding: 8px 0 0;
   position: relative;
 }
+/* 部屋の模様替え（はめ込み式） */
+.stage-card .scene { transition: background .3s ease; }
+.room-slot { position: absolute; font-size: 34px; line-height: 1; pointer-events: none; z-index: 1;
+  filter: drop-shadow(0 2px 2px rgba(80,60,40,.15)); }
+.rs-wall  { top: 8px; left: 50%; transform: translateX(-50%); }
+.rs-left  { bottom: 6px; left: 10px; }
+.rs-right { bottom: 6px; right: 10px; }
+.rs-floor { bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 40px; z-index: 0; opacity: .92; }
+.room-btn { position: absolute; top: 8px; right: 8px; z-index: 3; border: none; cursor: pointer;
+  width: 34px; height: 34px; border-radius: 50%; font-size: 17px; background: rgba(255,255,255,.78); box-shadow: var(--shadow); }
+.room-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 4px; }
+.room-cell { position: relative; border: 2px solid transparent; background: #faf4ea; border-radius: 12px;
+  padding: 8px 2px 5px; font-family: inherit; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.room-cell.on { border-color: var(--accent-d); background: #fff3e6; }
+.room-cell.locked { opacity: .7; }
+.room-emo { font-size: 26px; line-height: 1; }
+.room-swatch { width: 30px; height: 26px; border-radius: 7px; display: block; border: 1px solid rgba(120,90,60,.2); }
+.room-name { font-size: 10px; font-weight: 700; }
+.room-lock { position: absolute; top: 3px; right: 4px; font-size: 12px; }
+
 .pet-stage {
   width: 192px; height: 192px; margin: 0 auto;
   display: block;
+  position: relative; z-index: 2;
   filter: drop-shadow(0 8px 8px rgba(80,60,40,.18));
   transition: transform .18s ease;
   cursor: pointer;

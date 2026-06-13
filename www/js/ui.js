@@ -70,6 +70,7 @@
     $('walkBtn').addEventListener('click', openWalkPicker);
     $('taskBtn').addEventListener('click', openTaskPicker);
     $('mateBtn').addEventListener('click', openMateMenu);
+    $('roomBtn').addEventListener('click', openRoomModal);
     $('settingsBtn').addEventListener('click', openSettings);
   }
 
@@ -82,6 +83,7 @@
     renderGrow();
     renderFoot();
     renderPetIfChanged();
+    renderRoom();
   }
 
   function renderCoin() { $('coin').textContent = Math.floor(Engine.getState().coin); }
@@ -494,9 +496,10 @@
     var html = '<div class="center">' +
       '<div style="font-size:46px">⭐</div>' +
       '<h2>プレミアム図鑑</h2>' +
-      '<p class="sub">メジャーな子はそのまま。<br><b>すべての公式品種</b>を あつめられるようになります。</p>' +
+      '<p class="sub">メジャーな子はそのまま。<br>買い切り1回で <b>2つ</b> 開放されます。</p>' +
       '<ul style="text-align:left;font-size:13px;line-height:1.9;margin:10px 2px">' +
-      '<li>犬・猫の 公式品種を ぞくぞく追加</li>' +
+      '<li>🐾 キャラが <b>60体 → 500体以上</b>（全公式品種）</li>' +
+      '<li>🛋️ 模様替えが <b>10種 → 50種</b></li>' +
       '<li>買い切り（' + P.price + '）・追加課金なし</li>' +
       '<li>広告ゼロ・延命や復活の課金は なし</li>' +
       '</ul>' +
@@ -515,6 +518,111 @@
     if (bp) bp.addEventListener('click', function () { doUnlock('⭐ プレミアム図鑑を 解放した！'); });
     var rp = m.root.querySelector('#restorePrem');
     if (rp) rp.addEventListener('click', function () { doUnlock('購入を ふくげんしました'); });
+  }
+
+  // ---------- 部屋の模様替え（はめ込み式。無料10種→¥500で50種） ----------
+  var ROOM_BG = {
+    cream: 'linear-gradient(160deg,#fdf6ec,#f3e8d6)', sky: 'linear-gradient(160deg,#dcefff,#eaf6ff)',
+    pink: 'linear-gradient(160deg,#ffe3ec,#ffeef4)', mint: 'linear-gradient(160deg,#dcf3e8,#eafaf2)',
+    night: 'linear-gradient(160deg,#3a4668,#566188)', sunset: 'linear-gradient(160deg,#ffd9a8,#ffc1a8)',
+    lavender: 'linear-gradient(160deg,#e6ddf6,#f1ebfa)', forest: 'linear-gradient(160deg,#cfe6c9,#e3f1dd)',
+    sakura: 'linear-gradient(160deg,#ffe0e6,#fff0dd)', ocean: 'linear-gradient(160deg,#bfe6e0,#daf2ee)'
+  };
+  // スロット定義（決まった位置）。bgは背景・他は飾り（null=なし）
+  var ROOM_SLOTS = [
+    { slot: 'bg', label: '背景' }, { slot: 'wall', label: 'かべ' },
+    { slot: 'left', label: 'ひだり' }, { slot: 'right', label: 'みぎ' }, { slot: 'floor', label: 'ゆか' }
+  ];
+  // カタログ: 各スロット10種（先頭2つが無料、残り8つがプレミアム）＝無料10/全50
+  var ROOM_ITEMS = [
+    // bg
+    { id: 'bg_cream', slot: 'bg', label: 'クリーム' }, { id: 'bg_sky', slot: 'bg', label: 'そら' },
+    { id: 'bg_pink', slot: 'bg', label: 'ピンク', p: 1 }, { id: 'bg_mint', slot: 'bg', label: 'ミント', p: 1 },
+    { id: 'bg_night', slot: 'bg', label: 'よぞら', p: 1 }, { id: 'bg_sunset', slot: 'bg', label: 'ゆうやけ', p: 1 },
+    { id: 'bg_lavender', slot: 'bg', label: 'ラベンダー', p: 1 }, { id: 'bg_forest', slot: 'bg', label: 'もり', p: 1 },
+    { id: 'bg_sakura', slot: 'bg', label: 'さくら', p: 1 }, { id: 'bg_ocean', slot: 'bg', label: 'うみ', p: 1 },
+    // wall
+    { id: 'w_pic', slot: 'wall', label: 'え', e: '🖼️' }, { id: 'w_window', slot: 'wall', label: 'まど', e: '🪟' },
+    { id: 'w_clock', slot: 'wall', label: 'とけい', e: '🕰️', p: 1 }, { id: 'w_rainbow', slot: 'wall', label: 'にじ', e: '🌈', p: 1 },
+    { id: 'w_koi', slot: 'wall', label: 'こいのぼり', e: '🎏', p: 1 }, { id: 'w_furin', slot: 'wall', label: 'ふうりん', e: '🎐', p: 1 },
+    { id: 'w_mirror', slot: 'wall', label: 'かがみ', e: '🪞', p: 1 }, { id: 'w_cal', slot: 'wall', label: 'カレンダー', e: '🗓️', p: 1 },
+    { id: 'w_ribbon', slot: 'wall', label: 'リボン', e: '🎀', p: 1 }, { id: 'w_moon', slot: 'wall', label: 'おつきみ', e: '🎑', p: 1 },
+    // left
+    { id: 'l_plant', slot: 'left', label: 'かんよう', e: '🪴' }, { id: 'l_cactus', slot: 'left', label: 'サボテン', e: '🌵' },
+    { id: 'l_sun', slot: 'left', label: 'ひまわり', e: '🌻', p: 1 }, { id: 'l_tulip', slot: 'left', label: 'チューリップ', e: '🌷', p: 1 },
+    { id: 'l_bamboo', slot: 'left', label: 'たけ', e: '🎍', p: 1 }, { id: 'l_lotus', slot: 'left', label: 'はす', e: '🪷', p: 1 },
+    { id: 'l_maple', slot: 'left', label: 'もみじ', e: '🍁', p: 1 }, { id: 'l_palm', slot: 'left', label: 'やし', e: '🌴', p: 1 },
+    { id: 'l_mush', slot: 'left', label: 'きのこ', e: '🍄', p: 1 }, { id: 'l_rose', slot: 'left', label: 'ばら', e: '🌹', p: 1 },
+    // right
+    { id: 'r_bear', slot: 'right', label: 'くま', e: '🧸' }, { id: 'r_ball', slot: 'right', label: 'ボール', e: '⚽' },
+    { id: 'r_chair', slot: 'right', label: 'いす', e: '🪑', p: 1 }, { id: 'r_sofa', slot: 'right', label: 'ソファ', e: '🛋️', p: 1 },
+    { id: 'r_guitar', slot: 'right', label: 'ギター', e: '🎸', p: 1 }, { id: 'r_kendama', slot: 'right', label: 'けんだま', e: '🪀', p: 1 },
+    { id: 'r_yarn', slot: 'right', label: 'けいと', e: '🧶', p: 1 }, { id: 'r_doll', slot: 'right', label: 'にんぎょう', e: '🪆', p: 1 },
+    { id: 'r_game', slot: 'right', label: 'ゲーム', e: '🎮', p: 1 }, { id: 'r_puzzle', slot: 'right', label: 'パズル', e: '🧩', p: 1 },
+    // floor
+    { id: 'f_bed', slot: 'floor', label: 'ベッド', e: '🛏️' }, { id: 'f_basket', slot: 'floor', label: 'かご', e: '🧺' },
+    { id: 'f_rice', slot: 'floor', label: 'ごはん', e: '🍙', p: 1 }, { id: 'f_bone', slot: 'floor', label: 'ほね', e: '🦴', p: 1 },
+    { id: 'f_bath', slot: 'floor', label: 'おふろ', e: '🛁', p: 1 }, { id: 'f_rugR', slot: 'floor', label: 'あかいラグ', e: '🟥', p: 1 },
+    { id: 'f_rugG', slot: 'floor', label: 'みどりラグ', e: '🟩', p: 1 }, { id: 'f_rugB', slot: 'floor', label: 'あおいラグ', e: '🟦', p: 1 },
+    { id: 'f_zabu', slot: 'floor', label: 'ざぶとん', e: '🟫', p: 1 }, { id: 'f_grass', slot: 'floor', label: 'くさ', e: '🌿', p: 1 }
+  ];
+  var roomById = {};
+  ROOM_ITEMS.forEach(function (it) { roomById[it.id] = it; });
+  function roomFreeCount() { return ROOM_ITEMS.filter(function (i) { return !i.p; }).length; }
+
+  // 部屋をシーンに反映（home の render から呼ぶ）
+  function renderRoom() {
+    var room = Engine.getRoom();
+    var scene = $('scene');
+    if (scene) scene.style.background = ROOM_BG[room.bg] || ROOM_BG.cream;
+    ['wall', 'left', 'right', 'floor'].forEach(function (slot) {
+      var el = $('rs' + slot.charAt(0).toUpperCase() + slot.slice(1));
+      if (!el) return;
+      var it = room[slot] && roomById[room[slot]];
+      el.textContent = it ? (it.e || '') : '';
+    });
+  }
+
+  function openRoomModal() {
+    var premium = Engine.isPremium();
+    var room = Engine.getRoom();
+    function itemCell(it) {
+      var locked = it.p && !premium;
+      var equipped = room[it.slot] === it.id;
+      var inner = it.slot === 'bg'
+        ? '<span class="room-swatch" style="background:' + (ROOM_BG[it.id] || '') + '"></span>'
+        : '<span class="room-emo">' + (it.e || '') + '</span>';
+      return '<button class="room-cell' + (equipped ? ' on' : '') + (locked ? ' locked' : '') + '" ' +
+        'data-item="' + it.id + '" data-slot="' + it.slot + '"' + (locked ? ' data-locked="1"' : '') + '>' +
+        (locked ? '<span class="room-lock">🔒</span>' : '') + inner +
+        '<span class="room-name">' + it.label + '</span></button>';
+    }
+    var sections = ROOM_SLOTS.map(function (s) {
+      var items = ROOM_ITEMS.filter(function (i) { return i.slot === s.slot; });
+      var none = s.slot === 'bg' ? '' :
+        '<button class="room-cell' + (!room[s.slot] ? ' on' : '') + '" data-item="" data-slot="' + s.slot + '">' +
+        '<span class="room-emo">∅</span><span class="room-name">なし</span></button>';
+      return '<div class="dex-section-title">' + s.label + '</div>' +
+        '<div class="room-grid">' + none + items.map(itemCell).join('') + '</div>';
+    }).join('');
+    var html = '<h2>🛋️ もようがえ</h2>' +
+      '<p class="sub">決まった場所に 飾りを はめ込もう。' + (premium ? '' : '無料は ' + roomFreeCount() + '種、<b>¥500で50種</b>に増えるよ。') + '</p>' +
+      sections +
+      (premium ? '' : '<button id="roomPrem" class="big-btn primary mt12" style="width:100%">⭐ ¥500で 50種＋全キャラ解放</button>');
+    var m = openModal(html);
+    Array.prototype.forEach.call(m.root.querySelectorAll('.room-cell'), function (cell) {
+      cell.addEventListener('click', function () {
+        if (cell.getAttribute('data-locked')) { m.close(); return openPremiumModal(); }
+        Engine.equipRoom(cell.getAttribute('data-slot'), cell.getAttribute('data-item') || null, now());
+        renderRoom();
+        // 選択状態を更新（同スロットのonを付け替え）
+        var slot = cell.getAttribute('data-slot');
+        Array.prototype.forEach.call(m.root.querySelectorAll('.room-cell[data-slot="' + slot + '"]'), function (c) { c.classList.remove('on'); });
+        cell.classList.add('on');
+      });
+    });
+    var rp = m.root.querySelector('#roomPrem');
+    if (rp) rp.addEventListener('click', function () { m.close(); openPremiumModal(); });
   }
 
   // ---------- おみあい（ブリード。コードのコピペで遺伝） ----------
