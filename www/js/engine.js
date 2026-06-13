@@ -12,6 +12,13 @@
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
 
+  // ▼▼ テスト段階の成長加速（リリース前に IS_TEST=false に戻す）▼▼
+  // 赤ちゃん以降(stage≥1)を高速化して、約30分で成体（＝おみあい可）に到達させる。
+  // おくるみの目覚め(約1分・stage0)は据え置き。通常成長は 18/h。
+  var IS_TEST = true;
+  var TEST_XP_PER_H = 2400; // 成体xp760まで快適度しだいで約25〜35分
+  // ▲▲
+
   // ----- いのちと家出（生存システム。docs/GAME_DESIGN.md が正）-----
   // ごはん（えさ）を切らすと おほしさま（死・リミット短め／ストックが日数バッファ）。
   // さんぽ（学習・運動などのいい時間）を怠ると 家出（リミット長め）。
@@ -220,7 +227,9 @@
 
     var rHours = rewardMs / H;
     var mixBoost = p.mix ? 1.2 : 1; // 雑種強勢: ミックスは成長+20%（BREEDING_SPEC §3）
-    var xpGain = 18 * rHours * hf * mixBoost;
+    // TEST段階: stage≥1 は高速成長（約30分で成体）。おくるみ(stage0)の目覚めは通常レート据え置き。
+    var xpRate = (!stage0 && IS_TEST) ? TEST_XP_PER_H : 18;
+    var xpGain = xpRate * rHours * hf * mixBoost;
     var coinGain = (50 * rHours) * (0.4 + 0.6 * hf);
 
     var hunger = p.hunger, clean = p.clean;
