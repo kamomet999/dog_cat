@@ -100,7 +100,7 @@ async function removeBg(srcBuf) {
     .trim({ threshold: 12 })
     .resize(INNER, INNER, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .extend({ top: PAD, bottom: PAD, left: PAD, right: PAD, background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .png({ compressionLevel: 9 })
+    .png({ palette: true, quality: 90, effort: 8, compressionLevel: 9 }) // パレット量子化で~1/4に（パステルの階調は保たれる）
     .toBuffer();
 }
 
