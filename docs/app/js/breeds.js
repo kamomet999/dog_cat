@@ -2085,9 +2085,10 @@
       return premiumUnlocked ? BREEDS : BREEDS.filter(isFree);
     },
     /** レアリティ重みに従って1匹抽選。luck>0 でレア寄りに補正。premiumUnlocked で対象拡張。 */
-    roll: function (rnd, luck, premiumUnlocked) {
+    roll: function (rnd, luck, premiumUnlocked, species) {
       luck = luck || 0;
       var src = this.pool(premiumUnlocked);
+      if (species) src = src.filter(function (b) { return b.species === species; }); // 犬/猫の指定（おみあいは指定しない）
       var pool = src.map(function (b) {
         var w = RARITY[b.rarity].weight;
         // luck はレア度の高い品種の重みを引き上げる（stars が大きいほど効く）

@@ -192,6 +192,39 @@
     if (r.stageAfter > r.stageBefore) celebrateGrowth(r.stageAfter);
   }
 
+  // 新しい子をおむかえするとき、犬か猫を選ぶ（おみあいは親から継ぐので選べない）
+  function chooseSpecies(onPick) {
+    var html = '<h2>どっちの子を おむかえ？🐾</h2>' +
+      '<p class="sub">いぬ か ねこ を えらんでね。<br>（おみあいの子は 親から うけつぎます）</p>' +
+      '<div class="care-grid" style="grid-template-columns:1fr 1fr;gap:14px">' +
+      '<button class="care-btn" data-sp="dog" style="padding:20px 4px"><span class="emo" style="font-size:34px">🐶</span><span class="lbl">いぬ</span></button>' +
+      '<button class="care-btn" data-sp="cat" style="padding:20px 4px"><span class="emo" style="font-size:34px">🐱</span><span class="lbl">ねこ</span></button>' +
+      '</div>';
+    var m = openModal(html, { closable: false });
+    Array.prototype.forEach.call(m.root.querySelectorAll('[data-sp]'), function (btn) {
+      btn.addEventListener('click', function () { var sp = btn.getAttribute('data-sp'); m.close(); onPick(sp); });
+    });
+  }
+
+  // 性格（nature）ごとの タップ反応（しぐさ＋絵文字）。breeds.js の NATURES と対応。
+  var NATURE_REACT = {
+    'いちず':         { anim: 'bounce', emo: '❤️' },
+    'ひとなつっこい': { anim: 'hop',    emo: '🤝' },
+    'がんばりや':     { anim: 'shake',  emo: '🔥' },
+    'おりこう':       { anim: 'spin',   emo: '✨' },
+    'こうきしん':     { anim: 'wiggle', emo: '❓' },
+    'げんきいっぱい': { anim: 'hop',    emo: '⚡' },
+    'のんびりや':     { anim: 'wiggle', emo: '🍃' },
+    'ぼうけんずき':   { anim: 'spin',   emo: '🧭' },
+    'クール':         { anim: 'shake',  emo: '😎' },
+    'きまぐれ':       { anim: 'pop',    emo: '🎲' },
+    'きれいずき':     { anim: 'wiggle', emo: '🌸' },
+    'あまえんぼう':   { anim: 'bounce', emo: '🥰' },
+    'おしゃべり':     { anim: 'wiggle', emo: '💬' },
+    'おっとり':       { anim: 'bounce', emo: '🌼' },
+    'やさしい':       { anim: 'bounce', emo: '💗' }
+  };
+
   // タップは成長させず、犬・猫らしいしぐさ＋ほほ笑みの演出だけ（発案者FB）
   var REACT_DOG = [
     { anim: 'hop', emo: '🐾' }, { anim: 'wiggle', emo: '🎵' },
@@ -206,8 +239,9 @@
     var r = Engine.pet();
     if (!r) return;
     if (r.asleep) { happyUntil = now() + 700; bump('wiggle'); floatReact('💤'); render(); return; }
-    var list = r.species === 'cat' ? REACT_CAT : REACT_DOG;
-    var pick = list[reactIdx % list.length]; reactIdx++; // タップごとに ちがうしぐさ
+    // 性格でリアクションが変わる。性格が無い/未定義なら従来の犬猫しぐさにフォールバック
+    var b = Engine.breed();
+    var pick = (b && NATURE_REACT[b.nature]) || (function () { var l = r.species === 'cat' ? REACT_CAT : REACT_DOG; return l[reactIdx++ % l.length]; })();
     happyUntil = now() + 1100; // ほほ笑み（happy顔）
     bump(pick.anim);
     floatReact(pick.emo);
@@ -230,13 +264,14 @@
       return;
     }
     if (Engine.stage() === 0) {
-      var rr = Engine.reroll(now());
-      if (!rr) return;
-      if (rr.error === 'no_coin') return showToast('コインがたりないよ');
-      if (rr.error) return;
-      lastArtKey = '';
-      render();
-      showToast('🧺 あたらしい子を おむかえ！');
+      if ((Engine.getState().coin || 0) < Engine.REROLL_COST) return showToast('コインがたりないよ');
+      chooseSpecies(function (sp) {
+        var rr = Engine.reroll(now(), Math.random, sp);
+        if (!rr || rr.error) return showToast(rr && rr.error === 'no_coin' ? 'コインがたりないよ' : '');
+        lastArtKey = '';
+        render();
+        showToast('🧺 あたらしい子を おむかえ！');
+      });
     }
   }
 
@@ -256,8 +291,10 @@
     m.root.querySelector('#gcMate').addEventListener('click', function () { m.close(); openMateMenu(); });
     m.root.querySelector('#gcGrad').addEventListener('click', function () {
       m.close();
-      var res = Engine.graduate(now());
-      if (res) showGraduate(res);
+      chooseSpecies(function (sp) {
+        var res = Engine.graduate(now(), Math.random, sp);
+        if (res) showGraduate(res);
+      });
     });
   }
 
@@ -1403,12 +1440,14 @@
         '</div>';
     var m = openModal(html, { closable: false });
     m.root.querySelector('#fwBtn').addEventListener('click', function () {
-      Engine.farewell(now());
-      farewellOpen = false;
-      lastArtKey = '';
       m.close();
-      render();
-      showToast('🧺 ねんね中の赤ちゃんが やってきた');
+      chooseSpecies(function (sp) {
+        Engine.farewell(now(), Math.random, sp);
+        farewellOpen = false;
+        lastArtKey = '';
+        render();
+        showToast('🧺 ねんね中の赤ちゃんが やってきた');
+      });
     });
   }
 

@@ -227,9 +227,13 @@ t('おわかれ(おほしさま): 餓死→看取り→新しい子・deaths+1',
   await page.waitForTimeout(800);
   assert.match(await text(page, '.modal h2'), /おほしさまに/);
   await page.click('#fwBtn');
+  await page.waitForTimeout(250);
+  await page.click('[data-sp="cat"]'); // 犬猫を選べる（新しい子）
   await page.waitForTimeout(400);
   const st = await engineState(page);
   assert.strictEqual(st.deaths, 1);
+  const sp = await page.evaluate(() => window.Breeds.get(window.Engine.getState().current.breedId).species);
+  assert.strictEqual(sp, 'cat', '選んだ種(ねこ)で 新しい子が来る');
   assert.strictEqual(st.current.health, 100, '新しい子は健康');
   assert.match(await text(page, '#toast'), /赤ちゃんが やってきた/);
   await closePage(page);
@@ -240,6 +244,8 @@ t('家出(旅立ち): 散歩の怠り→旅に出ました・runaways+1', async 
   await page.waitForTimeout(800);
   assert.match(await text(page, '.modal h2'), /旅に出ました/);
   await page.click('#fwBtn');
+  await page.waitForTimeout(250);
+  await page.click('[data-sp="dog"]');
   await page.waitForTimeout(400);
   assert.strictEqual((await engineState(page)).runaways, 1);
   await closePage(page);
@@ -368,6 +374,8 @@ t('巣立ち: おとな→チョイス→新しい子をもらう→図鑑登録
   await page.waitForTimeout(300);
   assert.ok(await page.$('#gcGrad'), 'おとなチョイスに巣立ち選択');
   await page.click('#gcGrad'); // 新しい子をもらう（巣立ち）
+  await page.waitForTimeout(250);
+  await page.click('[data-sp="dog"]'); // 犬猫を選ぶ
   await page.waitForTimeout(500);
   assert.match(await text(page, '.modal'), /巣立ったよ/);
   await page.click('#nextEgg');

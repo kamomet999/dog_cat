@@ -236,6 +236,11 @@ module.exports = {
       steps: [{ click: '#actBtn' }, { wait: 250 }, { click: '#gcMate' }, { wait: 300 }, { click: '#mateShow' }, { wait: 350 }]
     },
     {
+      name: 'choose-species',
+      save: adultSave(),
+      steps: [{ click: '#actBtn' }, { wait: 250 }, { click: '#gcGrad' }, { wait: 300 }]
+    },
+    {
       name: 'mate-input',
       save: adultSave(),
       steps: [{ click: '#actBtn' }, { wait: 250 }, { click: '#gcMate' }, { wait: 300 }, { click: '#mateInput' }, { wait: 350 }]

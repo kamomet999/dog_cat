@@ -750,14 +750,14 @@
     isGone: function () { return this.isDead() || this.isAway(); },
 
     /** おわかれ/見送り → あたらしい子（おくるみ）をおむかえ。図鑑には登録されない */
-    farewell: function (now, rnd) {
+    farewell: function (now, rnd, species) {
       rnd = rnd || Math.random;
       var s = this._state;
       if (!s || !s.current) return null;
       var cause = s.current.health <= 0 ? 'star' : (s.current.away ? 'away' : null);
       if (!cause) return null;
       var breed = Breeds.get(s.current.breedId);
-      var next = Breeds.roll(rnd, s.luck);
+      var next = Breeds.roll(rnd, s.luck, !!s.premium, species);
       var ns = {
         ...s,
         deaths: (s.deaths || 0) + (cause === 'star' ? 1 : 0),
@@ -893,7 +893,7 @@
     },
 
     /** 成体を巣立たせ図鑑に登録 → 次の子（おくるみ）を抽選 */
-    graduate: function (now, rnd) {
+    graduate: function (now, rnd, species) {
       rnd = rnd || Math.random;
       var s = this._state;
       if (!s || !s.current || stageOf(s.current.xp) < 3) return null;
@@ -912,7 +912,7 @@
       }
 
       var luck = clamp(s.luck + 0.04, 0, 2);
-      var next = Breeds.roll(rnd, luck, !!s.premium);
+      var next = Breeds.roll(rnd, luck, !!s.premium, species);
 
       var ns = {
         ...s,
@@ -1037,13 +1037,13 @@
     album: function () { return (this._state && this._state.album) || []; },
 
     /** ねんね中(stage0)のうちは別の子と会い直せる（コイン消費） */
-    reroll: function (now, rnd) {
+    reroll: function (now, rnd, species) {
       rnd = rnd || Math.random;
       var s = this._state;
       if (!s || !s.current) return null;
       if (stageOf(s.current.xp) !== 0) return { error: 'already_hatched' };
       if (s.coin < REROLL_COST) return { error: 'no_coin' };
-      var next = Breeds.roll(rnd, s.luck, !!s.premium);
+      var next = Breeds.roll(rnd, s.luck, !!s.premium, species);
       var ns = { ...s, coin: s.coin - REROLL_COST, current: freshPet(next.id, rnd), lastSavedAt: now };
       this._state = ns;
       persist(ns);
