@@ -15,10 +15,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SPR = path.join(ROOT, 'www/assets/sprites');
 const MODEL = 'gemini-2.5-flash-image'; // 別名: nano banana。preview期は gemini-2.5-flash-image-preview
+const SIZE = 512, INNER = 472, PAD = (SIZE - INNER) / 2; // 出力解像度（<img>でcontain表示。1024は重すぎ）
 const args = process.argv.slice(2);
 const has = (f) => args.includes(f);
 const val = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
@@ -41,7 +43,10 @@ function prompt(b) {
     + `Main fur color ${a.color}, accent ${a.color2}, ${PAT[a.pattern] || a.pattern} markings, ${EAR[a.ear] || a.ear} ears`
     + `${a.fluffy ? ', extra fluffy fur' : ''}${a.tail === 'curl' ? ', curled tail' : ''}. `
     + `Adorable, clean, LINE-sticker friendliness, Pokemon-Sleep-like coziness. `
-    + `Plain TRANSPARENT background (PNG alpha). 1:1 square. No text, no watermark. `
+    + `Place the character ALONE on a completely flat, uniform, solid pure chroma-green background `
+    + `(RGB 0,224,0) that fills the whole frame edge to edge — NO checkerboard, NO gradient, NO shadow, `
+    + `NO pattern, the green is the only color behind the character (it will be keyed out to transparent). `
+    + `1:1 square. No text, no watermark. `
     + `Original character — do NOT copy any existing brand or the "Bonless" characters.`;
 }
 
@@ -56,6 +61,47 @@ function existingIds() {
   return fs.readdirSync(SPR).filter(f => f.endsWith('.png')).map(f => f.replace(/\.png$/, ''));
 }
 
+// 背景除去: 四辺から色のフラッドフィルで「外側の地色」だけを透過にする。
+// キャラはこげ茶の太い輪郭で囲まれているので塗りが内部に漏れない（背景色が何色でも効く）。
+// 1024pxで2値カットし、後段の縮小でエッジを自然にアンチエイリアス。
+async function removeBg(srcBuf) {
+  const { data, info } = await sharp(srcBuf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const W = info.width, H = info.height;
+  const idx = (x, y) => (y * W + x) * 4;
+  // 背景の基準色＝外周バンド（端から1〜10%）の「不透明」画素のチャンネル別メディアン。
+  // メディアンなので、はみ出した耳/尾など少数のキャラ画素や透過パディングに強い。
+  const rs = [], gs = [], bs = [];
+  const o1 = Math.round(Math.min(W, H) * 0.01), o2 = Math.round(Math.min(W, H) * 0.10);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const inBand = (x >= o1 && x < o2) || (x >= W - o2 && x < W - o1) || (y >= o1 && y < o2) || (y >= H - o2 && y < H - o1);
+    const inFrame = x >= o1 && x < W - o1 && y >= o1 && y < H - o1;
+    if (!(inBand || !inFrame)) continue;
+    const i = idx(x, y); if (data[i + 3] > 200) { rs.push(data[i]); gs.push(data[i + 1]); bs.push(data[i + 2]); }
+  }
+  const med = (a) => { a.sort((p, q) => p - q); return a.length ? a[a.length >> 1] : -999; };
+  let br = med(rs), bg = med(gs), bb = med(bs);
+  const T2 = 72 * 72; // 色距離のしきい値（²）
+  // 背景＝すでに透過 or 基準色に近い不透明画素
+  const isBg = (i) => data[i + 3] < 8 || (() => { const dr = data[i] - br, dg = data[i + 1] - bg, db = data[i + 2] - bb; return dr * dr + dg * dg + db * db < T2; })();
+  const visited = new Uint8Array(W * H);
+  const stack = [];
+  const seed = (x, y) => { const p = y * W + x; if (!visited[p] && isBg(p * 4)) { visited[p] = 1; stack.push(p); } };
+  for (let x = 0; x < W; x++) { seed(x, 0); seed(x, H - 1); }
+  for (let y = 0; y < H; y++) { seed(0, y); seed(W - 1, y); }
+  while (stack.length) {
+    const p = stack.pop(), x = p % W, y = (p / W) | 0;
+    if (x > 0) seed(x - 1, y); if (x < W - 1) seed(x + 1, y);
+    if (y > 0) seed(x, y - 1); if (y < H - 1) seed(x, y + 1);
+  }
+  for (let p = 0; p < W * H; p++) if (visited[p]) data[p * 4 + 3] = 0;
+  return sharp(data, { raw: { width: W, height: H, channels: 4 } })
+    .trim({ threshold: 12 })
+    .resize(INNER, INNER, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .extend({ top: PAD, bottom: PAD, left: PAD, right: PAD, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+}
+
 async function genOne(b, key) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
   const res = await fetch(url, {
@@ -68,12 +114,27 @@ async function genOne(b, key) {
   const parts = data?.candidates?.[0]?.content?.parts || [];
   const img = parts.find(p => p.inlineData && /image/.test(p.inlineData.mimeType || ''));
   if (!img) throw new Error(`${b.id}: 画像パートが返らなかった`);
-  fs.writeFileSync(path.join(SPR, `${b.id}.png`), Buffer.from(img.inlineData.data, 'base64'));
+  const out = await removeBg(Buffer.from(img.inlineData.data, 'base64'));
+  fs.writeFileSync(path.join(SPR, `${b.id}.png`), out);
 }
 
 (async () => {
   fs.mkdirSync(SPR, { recursive: true });
   if (has('--manifest')) { writeManifest(existingIds()); return; }
+
+  // --rebg: 既存PNGの背景除去だけをやり直す（API不要。キーアルゴリズム調整用）。
+  if (has('--rebg')) {
+    let ids = existingIds();
+    const only = val('--only');
+    if (only) { const set = new Set(only.split(',')); ids = ids.filter(id => set.has(id)); }
+    for (const id of ids) {
+      const p = path.join(SPR, `${id}.png`);
+      try { fs.writeFileSync(p, await removeBg(fs.readFileSync(p))); console.log(`✓ rebg ${id}`); }
+      catch (e) { console.error(`✗ rebg ${id}: ${e.message}`); }
+    }
+    writeManifest(existingIds());
+    return;
+  }
 
   const Breeds = loadBreeds();
   let list = Breeds.ALL;

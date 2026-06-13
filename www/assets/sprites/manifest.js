@@ -1,6 +1,3 @@
-/* 生成画像(nanobanana)スプライトの登録簿。
- * tools/gen_sprites.mjs が生成した PNG の breedId をここに並べる。
- * 例: window.INUNEKO_SPRITES = { shiba:1, golden:1, ... };
- * 空のあいだは手続きSVGにフォールバック（差し替えは無痛）。 */
-window.INUNEKO_SPRITES = {};
+/* 自動生成: tools/gen_sprites.mjs。生成済みスプライトの登録簿。 */
+window.INUNEKO_SPRITES = {"corgi":1,"golden":1,"kijitora":1,"shiba":1,"spitz":1};
 if (window.Art && Art.registerSprites) Art.registerSprites(window.INUNEKO_SPRITES);
