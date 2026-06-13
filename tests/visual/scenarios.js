@@ -122,6 +122,12 @@ module.exports = {
       ]
     },
     {
+      // さんぽ課題中はホームのペットが四足歩行（<id>_walk スプライト）になる
+      name: 'sanpo-walking',
+      save: saveBase({ task: { startedAt: T0 - 5 * 60000, endsAt: T0 + 25 * 60000, minutes: 30, kind: 'ほんよみ' } }),
+      steps: [{ wait: 400 }]
+    },
+    {
       name: 'walkpicker',
       save: saveBase(),
       steps: [{ click: '#walkBtn' }, { wait: 350 }]

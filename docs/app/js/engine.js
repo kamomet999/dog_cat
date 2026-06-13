@@ -20,14 +20,14 @@
   var HEALTH_REGEN = 100 / 48;  // おなか>30のときの いのち回復 /h
   var RUNAWAY_H = 72;           // さんぽゲージ0がこの時間つづくと家出（7日+3日=計10日で出ていく）
   // えさ: スマホを触らない時間で貯まり、自動で与えられる
-  var FOOD_PER_HOUR = 0.1;      // アプリを閉じている時間の弱い補給（2.4えさ/日。主獲得は「ごはんさがし」セッション）
+  var FOOD_PER_HOUR = 0.1;      // アプリを閉じている時間の弱い補給（2.4えさ/日。主獲得は「おすわり」セッション）
   var FOOD_STOCK_MAX = 21;      // ストック上限（約1週間ぶん）
   var FOOD_HUNGER = 60;         // えさ1つぶん の満腹回復
   var AUTO_FEED_AT = 40;        // おなかがこれ未満になったら自動給餌
   // ----- えさ（食料の源泉はスマホを置いた時間。GAME_DESIGN.md §2.5）-----
   var FOOD_COST = 20;                  // コインでの購入（コイン=放置時間の蓄積→これも間接デトックス由来）
   var HAND_FEED_BONUS = { xp: 6 };     // 自動給餌でなく「てであげる」と仲が深まる（なかよし＝xp）
-  function walkFoodGain(minutes) { return minutes >= 180 ? 12 : minutes >= 120 ? 8 : minutes >= 60 ? 4 : 2; } // 集中ロック（長いほど増量）
+  function walkFoodGain(minutes) { return minutes >= 180 ? 12 : minutes >= 120 ? 8 : minutes >= 60 ? 4 : 2; } // おすわり（長いほど増量）
   function taskFoodGain(minutes) { return Math.max(1, Math.round(minutes / 30)); } // さんぽ課題でも餌（取り組んだぶん・控えめ）
   var STARTER_STOCK = 6;
   // さんぽ（課題セッション）: 読書・英語・運動＋自由入力。失敗なし・時間ぶんゲージ回復
@@ -51,10 +51,10 @@
     };
   }
 
-  // ----- 集中ロック（UI「ごはんさがし」/ Forest型オナーセッション）= ごはんの主獲得 -----
+  // ----- おすわり（UI「おすわり」/ Forest型オナーセッション）= ごはんの主獲得 -----
   // 開始後はスマホを置いて過ごす。満了前にアプリへ戻ると中断（開始直後60秒の猶予あり）。長いほど餌増。
   var WALK_GRACE = 60000;            // 開始から60秒は戻っても失敗にしない（誤タップ・着信の救済）
-  var WALK_OPTIONS = [30, 60, 120, 180]; // 集中ロックの長さ（分）。長いほど餌が増える
+  var WALK_OPTIONS = [30, 60, 120, 180]; // おすわりの長さ（分）。長いほど餌が増える
   var WALK_XP_PER_H = 36;            // 成功ボーナスxp/時（通常放置18/hの2倍を上乗せ）
   var WALK_COIN_PER_H = 60;          // 成功ボーナスコイン/時
   var WALK_LUCK = 0.03;              // 成功ごとのレア運上昇
@@ -118,9 +118,9 @@
       foodStock: STARTER_STOCK, // えさストック（小数あり。表示は切り捨て）
       task: null,           // { startedAt, endsAt, minutes, kind } さんぽ（課題）中のみ
       walk: null,           // { startedAt, endsAt, minutes } おさんぽ中のみ
-      walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }, // 集中ロックの記録
+      walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 }, // おすわりの記録
       taskStats: { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} }, // さんぽ課題ダッシュボード
-      allowApps: [],        // ロック中に使ってよいアプリ（{name,url?}）。v1はオナー/ショートカット、v2でOS遮断対象
+      allowApps: [],        // おすわり中に使ってよいアプリ（{name,url?}）。v1はオナー/ショートカット、v2でOS遮断対象
       reminders: { enabled: false, times: [] }, // 時間指定「さんぽしないの？」（"HH:MM" 配列）
       album: [],            // おみあいで生まれたミックスの記録（30種図鑑とは別）
       room: defaultRoom()   // 部屋の模様替え（スロット→アイテムid。¥500で全アイテム解放）
@@ -191,7 +191,7 @@
       s = { ...s, version: 9, room: defaultRoom() }; // 部屋の模様替え導入
     }
     if (s.version === 9) {
-      // 集中ロック×さんぽ課題ダッシュボード（GAME_DESIGN v6）
+      // おすわり×さんぽ課題ダッシュボード（GAME_DESIGN v6）
       s = {
         ...s, version: 10,
         taskStats: s.taskStats || { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} },
@@ -568,7 +568,7 @@
       if (!st) return 0;
       return (st.days || 0) * 100 + Math.floor(st.totalMin || 0);
     },
-    /** ロック中に使ってよいアプリ（{name,url?} の配列） */
+    /** おすわり中に使ってよいアプリ（{name,url?} の配列） */
     allowApps: function () { return this._state ? (this._state.allowApps || []) : []; },
     setAllowApps: function (list, now) {
       var s = this._state; if (!s) return null;

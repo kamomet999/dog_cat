@@ -441,7 +441,7 @@ t('設定: 累計ログ表示・チュートリアル再表示・データリセ
   await page.click('#settingsBtn');
   await page.waitForTimeout(400);
   const body = await text(page, '.modal');
-  assert.match(body, /集中ロック/);
+  assert.match(body, /おすわり/);
   assert.match(body, /ダッシュボード/);
   assert.ok(await page.$('#tutAgain'), 'あそびかた再表示ボタン');
   // リセットは1タップ目で確認文言に変わるだけ（誤操作防止）

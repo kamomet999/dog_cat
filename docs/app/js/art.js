@@ -724,11 +724,15 @@
   function petSVG(breed, stage, mood, pose) {
     if (stage <= 0) return STYLE.renderer === 'pixel' ? pixelBundleSVG(breed) : bundleSVG(breed);
     // めざめ後は生成画像があればそれを使う（おくるみ stage0 は正体を隠すのでスプライト不使用）。
-    // おさんぽの4足ポーズ(quad)は手続きSVGのまま（歩き姿）。
-    if (pose !== 'quad' && breed && breed.id && !breed.mix && SPRITES[breed.id]) return spriteImg(breed.id);
+    // おさんぽの4足ポーズ(quad)は専用の歩き姿スプライト(<id>_walk)があれば使い、無ければ手続きSVG。
+    if (pose === 'quad') {
+      if (breed && breed.id && !breed.mix && SPRITES[breed.id + '_walk']) return spriteImg(breed.id + '_walk');
+      return quadSVG(breed, mood || 'normal', stage);
+    }
+    // おすわり等の正面ポーズは座り姿スプライトを使う
+    if (breed && breed.id && !breed.mix && SPRITES[breed.id]) return spriteImg(breed.id);
     // pixelate はベクターの絵をそのまま使う（ドット化は Art.mount のキャンバス側で行う）
     mood = mood || 'normal';
-    if (pose === 'quad') return quadSVG(breed, mood, stage);
     if (STYLE.renderer === 'pixel') return pixelSVG(breed, stage, mood);
     var a = breed.art;
     var inner = a.base === 'cat' ? buildCat(a, mood) : buildDog(a, mood);

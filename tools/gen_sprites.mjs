@@ -52,6 +52,25 @@ function prompt(b) {
     + `Original character — do NOT copy any existing brand or the "Bonless" characters.`;
 }
 
+// さんぽ用の「四足歩行（横向き）」ポーズ。座り正面の prompt() と同じ画風・属性で姿勢だけ変える。
+function walkPrompt(b) {
+  const a = b.art;
+  return `A super-cute kawaii mascot illustration of a ${b.name} (${b.species === 'dog' ? 'dog' : 'cat'}), `
+    + `soft pastel picture-book / watercolor style. SIDE-VIEW PROFILE, walking on all FOUR legs (quadruped), `
+    + `mid-stride trotting/walking pose, full body seen from the side, facing left, centered. `
+    + `Chubby rounded fluffy body, big head, short stubby legs, fluffy tail held up happily. `
+    + `Big round sparkly eye with white highlight, rosy blushing cheek, gentle happy smile, tiny visible paw pads. `
+    + `Thick SOFT outline in warm dark-brown (NOT black), flat soft shading. `
+    + `Main fur color ${a.color}, accent ${a.color2}, ${PAT[a.pattern] || a.pattern} markings, ${EAR[a.ear] || a.ear} ears`
+    + `${a.fluffy ? ', extra fluffy fur' : ''}${a.tail === 'curl' ? ', curled tail' : ''}. `
+    + `Adorable, clean, LINE-sticker friendliness, Pokemon-Sleep-like coziness. `
+    + `Place the character ALONE on a completely flat, uniform, solid pure chroma-green background `
+    + `(RGB 0,224,0) that fills the whole frame edge to edge — NO checkerboard, NO gradient, NO shadow, `
+    + `NO pattern, the green is the only color behind the character (it will be keyed out to transparent). `
+    + `1:1 square. No text, no watermark. `
+    + `Original character — do NOT copy any existing brand or the "Bonless" characters.`;
+}
+
 function writeManifest(ids) {
   const body = '/* 自動生成: tools/gen_sprites.mjs。生成済みスプライトの登録簿。 */\n'
     + 'window.INUNEKO_SPRITES = ' + JSON.stringify(ids.reduce((o, id) => (o[id] = 1, o), {}), null, 0) + ';\n'
@@ -104,20 +123,23 @@ async function removeBg(srcBuf) {
     .toBuffer();
 }
 
-async function genOne(b, key) {
+async function genOne(b, key, opts) {
+  opts = opts || {};
+  const promptFn = opts.promptFn || prompt;
+  const suffix = opts.suffix || '';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt(b) }] }] })
+    body: JSON.stringify({ contents: [{ parts: [{ text: promptFn(b) }] }] })
   });
-  if (!res.ok) throw new Error(`${b.id}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) throw new Error(`${b.id}${suffix}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
   const parts = data?.candidates?.[0]?.content?.parts || [];
   const img = parts.find(p => p.inlineData && /image/.test(p.inlineData.mimeType || ''));
-  if (!img) throw new Error(`${b.id}: 画像パートが返らなかった`);
+  if (!img) throw new Error(`${b.id}${suffix}: 画像パートが返らなかった`);
   const out = await removeBg(Buffer.from(img.inlineData.data, 'base64'));
-  fs.writeFileSync(path.join(SPR, `${b.id}.png`), out);
+  fs.writeFileSync(path.join(SPR, `${b.id}${suffix}.png`), out);
 }
 
 (async () => {
@@ -147,12 +169,15 @@ async function genOne(b, key) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) { console.error('GEMINI_API_KEY が未設定です。例: GEMINI_API_KEY=xxx node tools/gen_sprites.mjs --only shiba'); process.exit(1); }
 
+  // --walk: さんぽ用の四足歩行ポーズ（<id>_walk.png）を生成。無指定は座り正面（<id>.png）。
+  const POSE = has('--walk') ? { suffix: '_walk', promptFn: walkPrompt } : { suffix: '', promptFn: prompt };
+
   let ok = 0; const fails = [];
   for (const b of list) {
-    const out = path.join(SPR, `${b.id}.png`);
+    const out = path.join(SPR, `${b.id}${POSE.suffix}.png`);
     if (fs.existsSync(out) && !has('--force')) { ok++; continue; }
-    try { await genOne(b, key); ok++; console.log(`✓ ${b.id} (${b.name})`); }
-    catch (e) { fails.push(b.id); console.error(`✗ ${e.message}`); }
+    try { await genOne(b, key, POSE); ok++; console.log(`✓ ${b.id}${POSE.suffix} (${b.name})`); }
+    catch (e) { fails.push(b.id + POSE.suffix); console.error(`✗ ${e.message}`); }
     await new Promise(r => setTimeout(r, 400)); // レート制御
   }
   writeManifest(existingIds());

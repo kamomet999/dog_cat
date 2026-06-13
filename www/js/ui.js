@@ -135,7 +135,8 @@
     var stage = Engine.stage();
     var mood = petMood();
     var isMix = !!breed.mix;
-    var key = breed.id + '_' + stage + '_' + mood + (isMix ? '_m' : '');
+    var walking = !!Engine.task() && stage >= 1; // さんぽ課題中は四足の歩き姿
+    var key = breed.id + '_' + stage + '_' + mood + (isMix ? '_m' : '') + (walking ? '_w' : '');
     $('petName').textContent = stage === 0 ? 'ねんねちゅう…' : breed.name;
     var R = Breeds.RARITY[breed.rarity]; // ミックスは undefined
     $('petSub').textContent = stage === 0 ? 'どんな子かは 目が開いてからの お楽しみ' : (breed.species === 'dog' ? 'いぬ' : 'ねこ') + '・' + STAGE_LABEL[stage];
@@ -145,7 +146,7 @@
     $('petRarity').innerHTML = stage === 0 ? '' :
       rareChip + (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '');
     if (key !== lastArtKey) {
-      Art.mount($('petArt'), Art.petSVG(breed, stage, mood));
+      Art.mount($('petArt'), Art.petSVG(breed, stage, mood, walking ? 'quad' : null));
       lastArtKey = key;
     }
   }
@@ -301,7 +302,7 @@
       '<h2 class="intro-title">スマホを離れるほど、<br>いぬねこが育つ。</h2>' +
       '<p class="intro-lead">スマホを置いた時間が、この子の <b>ごはん</b> になる。</p>' +
       '<div class="intro-steps">' +
-      '<div class="intro-step"><span class="ist-ico">🔒</span><span><b>しゅうちゅうロック</b><br>スマホを置くと エサが貯まる</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>おすわり</b><br>スマホを置くと エサが貯まる</span></div>' +
       '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>お散歩</b><br>読書・英語・運動・ダイエットの間、となりに</span></div>' +
       '<div class="intro-step"><span class="ist-ico">📖</span><span><b>図鑑を集める</b><br>犬・猫それぞれ30種〜（広告ゼロ・登録なし）</span></div>' +
       '</div>' +
@@ -345,7 +346,7 @@
 
   var TUT_STEPS = [
     { sel: '#petArt', title: 'いまは ねんね中', text: 'タップすると <b>いろんなしぐさ</b> で よろこぶよ（成長はしない）。<br>ごはんや時間で、もうすぐ目を覚ます。', place: 'below' },
-    { sel: '#walkBtn', title: '① しゅうちゅうロック＝スマホを置く', text: '“スマホを置く” と、その時間が この子の <b>エサ</b> になるよ。長いほど たくさん。これが一番大事！', place: 'above' },
+    { sel: '#walkBtn', title: '① おすわり＝スマホを置く', text: '“スマホを置く” と この子は おすわりして待つよ。その時間が <b>エサ</b> になる（長いほど たくさん）。これが一番大事！', place: 'above' },
     { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動・ダイエットの間、となりにいてくれる。<b>取り組むと エサも少しもらえる</b>“いい時間”。', place: 'above' },
     { sel: '#stats', title: 'お腹・機嫌・いのち', text: 'ごはんは ストックから <span class="calm">自動で</span> 食べるよ。毎日ひらかなくても、<span class="calm">忘れても責めないよ</span>。', place: 'below' },
     { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。犬・猫それぞれ30種〜、友達と「おみあい」もできるよ！', place: 'above' }
@@ -813,13 +814,13 @@
       : '';
     var html = '<h2>⚙ せってい</h2>' +
       '<p class="sub">「いぬねこ図鑑」 β10（2026-06-13）— スマホを離れて、育てる いぬねこ</p>' +
-      '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「しゅうちゅうロック」で計画的にスマホから離れると、もっと早く育って ごほうびがもらえます。</p>' +
+      '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「おすわり」で計画的にスマホから離れると、もっと早く育って ごほうびがもらえます。</p>' +
       '<hr class="soft">' +
-      '<div class="dex-section-title">🔒 集中ロック</div>' +
+      '<div class="dex-section-title">🐾 おすわり</div>' +
       '<p class="muted">成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ ロック合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
       '<div class="dex-section-title">🐾 おさんぽ ダッシュボード</div>' +
       '<p class="muted">継続 <b>' + ts.days + '</b> 日（最高 <b>' + ts.bestDays + '</b>）／ 合計 <b>' + Math.floor(ts.totalMin / 60) + '</b> 時間 ' + (ts.totalMin % 60) + ' 分 ／ スコア <b>' + Engine.taskScore() + '</b>' + byKindStr + '</p>' +
-      '<button id="allowSet" class="big-btn ghost mt12" style="width:100%">📱 ロック中に使ってOKなアプリ</button>' +
+      '<button id="allowSet" class="big-btn ghost mt12" style="width:100%">📱 おすわり中に使ってOKなアプリ</button>' +
       '<button id="remindSet" class="big-btn ghost mt12" style="width:100%">⏰ さんぽリマインド時刻</button>' +
       '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種' +
       ((st.deaths || 0) > 0 ? ' ／ おほしさまになった子：<b>' + st.deaths + '</b>' : '') +
@@ -866,7 +867,7 @@
         '<div class="dex-section-title">候補から追加</div><div class="allow-row">' + sugg + '</div>';
     }
     var html = '<h2>📱 使ってOKなアプリ</h2>' +
-      '<p class="sub">集中ロック中に 使ってもいいアプリ。<br>ロック画面に表示されます（読書・勉強など）。</p>' +
+      '<p class="sub">おすわり中に 使ってもいいアプリ。<br>おすわり画面に表示されます（読書・勉強など）。</p>' +
       '<div id="allowBox">' + chipRow() + '</div>' +
       '<input id="allowInput" class="task-custom" maxlength="24" placeholder="じぶんで追加（例：図書館アプリ）">' +
       '<button id="allowAddBtn" class="big-btn ghost mt12" style="width:100%">＋ 追加</button>' +
@@ -974,8 +975,8 @@
         '<span class="lbl">' + fmtMin(min) + '</span>' +
         '<span class="cost" style="color:var(--accent-d)">🍖 ×' + (FOOD_BY_MIN[min] || 2) + '</span></button>';
     }).join('');
-    var html = '<h2>🔒 しゅうちゅうロック</h2>' +
-      '<p class="sub">スマホを置いて、この子に ロックを あずけよう。<br>その時間が、まるごと <b>エサ</b> に変わるよ（長いほど たくさん）。</p>' +
+    var html = '<h2>🐾 おすわり</h2>' +
+      '<p class="sub">スマホを置いて、この子に おすわりして待っててもらおう。<br>その時間が、まるごと <b>エサ</b> に変わるよ（長いほど たくさん）。</p>' +
       '<div class="care-grid" style="grid-template-columns:repeat(2,1fr);gap:12px">' + btns + '</div>' +
       '<p class="muted mt12" style="font-size:11px">満了前にアプリへ戻ると中断（最初の60秒はセーフ）。連続成功でご褒美アップ。</p>';
     var m = openModal(html);
@@ -996,15 +997,15 @@
       var foods = FOOD_BY_MIN[r.minutes] || 2;
       ov.innerHTML = '<div class="walk-screen">' +
         '<div id="walkPet" class="walk-pet"></div>' +
-        '<div class="walk-title">しゅうちゅうロックちゅう…</div>' +
+        '<div class="walk-title">おすわりちゅう…</div>' +
         '<div id="walkTimer" class="walk-timer"></div>' +
         '<p class="walk-msg" style="margin:2px 0">成功で 🍖 ×' + foods + '</p>' +
         '<p id="walkMsg" class="walk-msg"></p>' +
         allowChipsHtml() +
         '<button id="walkCancel" class="big-btn ghost" style="margin-top:18px">あきらめる</button>' +
         '</div>';
-      // ロック中は「動物としてふるまう場面」＝4足歩行ポーズ
-      Art.mount(ov.querySelector('#walkPet'), Art.petSVG(Engine.breed(), Engine.stage(), 'happy', 'quad'));
+      // おすわり中は座り姿（正面の座りスプライト）
+      Art.mount(ov.querySelector('#walkPet'), Art.petSVG(Engine.breed(), Engine.stage(), 'happy'));
       Array.prototype.forEach.call(ov.querySelectorAll('.allow-chip[data-url]'), function (c) {
         c.addEventListener('click', function () { if (window.Native) Native.openApp(c.getAttribute('data-url')); });
       });
@@ -1056,7 +1057,7 @@
       '<h2 style="margin-top:6px">' + fmtMin(r.minutes) + ' スマホを置けた</h2>' +
       '<p class="sub" style="margin-bottom:8px">連続成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（自己新記録！）' : '') + '</p>' +
       '<div style="font-weight:800;color:var(--coin-text)">🍖 エサ ×' + r.foods + '　🪙 ＋' + r.coinGain + '　なかよし ＋' + r.xpGain + '</div>' +
-      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ ロックの間に大きくなった！</p>' : '') +
+      (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ おすわりの間に大きくなった！</p>' : '') +
       '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button>' +
       '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
     var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
@@ -1068,7 +1069,7 @@
   function showWalkFail(r) {
     var gentle = r.reason === 'cancel';
     var html = '<div class="center">' +
-      '<h2>' + (gentle ? 'ロックを やめたよ' : 'あっ…！') + '</h2>' +
+      '<h2>' + (gentle ? 'おすわりを やめたよ' : 'あっ…！') + '</h2>' +
       '<p class="sub">' + (gentle ?
         'また今度、いっしょに がんばろうね。' :
         '途中でスマホを開いちゃった…。<br>エサは持ち帰れなかった。ちょっとしょんぼりしてる…') + '</p>' +
@@ -1092,7 +1093,7 @@
 
   function openTaskPicker() {
     if (Engine.task()) return;
-    if (Engine.walk()) return showToast('いまは ロック中だよ');
+    if (Engine.walk()) return showToast('いまは おすわり中だよ');
     var kinds = TASK_PRESETS.map(function (k) {
       return '<button class="care-btn task-kind" data-kind="' + k.kind + '" style="padding:10px 2px">' +
         '<span class="emo">' + k.emo + '</span><span class="lbl">' + k.kind + '</span></button>';
@@ -1190,10 +1191,10 @@
     var html = '<h2>🍚 ごはん</h2>' +
       '<p class="sub">エサは <b>スマホを離れた時間</b> で貯まるよ。<br>ストックがある間は 自動で食べてくれる。</p>' +
       '<div class="center" style="font-size:34px;margin:4px">🍖 ×' + info.stock + '</div>' +
-      '<p class="center muted">' + (info.stock > 0 ? days : 'エサがないよ。しゅうちゅうロックしよう') + '</p>' +
+      '<p class="center muted">' + (info.stock > 0 ? days : 'エサがないよ。おすわりさせよう') + '</p>' +
       '<button id="handFeed" class="big-btn primary mt12" style="width:100%"' + (info.stock < 1 ? ' disabled' : '') + '>🤲 手であげる（なかよしアップ）</button>' +
       '<button id="buyFood" class="big-btn ghost mt12" style="width:100%"' + (st.coin < Engine.FOOD_COST ? ' disabled' : '') + '>🪙 エサを買う（' + Engine.FOOD_COST + 'コイン）</button>' +
-      '<p class="muted mt12">たくさん欲しいときは「🔒 しゅうちゅうロック」（スマホを置く）が一番。</p>';
+      '<p class="muted mt12">たくさん欲しいときは「🐾 おすわり」（スマホを置く）が一番。</p>';
     var m = openModal(html);
     var hf = m.root.querySelector('#handFeed');
     if (hf) hf.addEventListener('click', function () {
@@ -1302,7 +1303,7 @@
     function onPause() {
       if (!window.Native) return;
       var MSG = {
-        hunger: { id: 2001, title: 'えさが なくなりそう…🍚', body: 'スマホを おいて ごはんさがしに いこう' },
+        hunger: { id: 2001, title: 'えさが なくなりそう…🍚', body: 'スマホを おいて おすわりさせよう' },
         sanpo:  { id: 2002, title: 'いっしょの じかんが ほしいな🐾', body: 'どくしょや うんどうの あいだ、となりに いさせて。とおくへ いっちゃう まえに' },
         health: { id: 2003, title: 'ぐあいが わるいみたい…💧', body: 'えさを わすれないで。おねがい' }
       };

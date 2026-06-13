@@ -65,7 +65,7 @@
       P.LocalNotifications.cancel({ notifications: [{ id: TASK_NOTIF_ID }] }).catch(function () {});
     },
 
-    /** ごはんさがし開始：満了時刻に「おかえり」通知を予約 */
+    /** おすわり開始：満了時刻に「おかえり」通知を予約 */
     walkStarted: function (walk) {
       if (!P || !P.LocalNotifications || !walk) return;
       P.LocalNotifications.requestPermissions().then(function (r) {
@@ -73,7 +73,7 @@
         return P.LocalNotifications.schedule({
           notifications: [{
             id: WALK_NOTIF_ID,
-            title: 'ごはんさがし せいこう！🍖',
+            title: 'おすわり せいこう！🍖',
             body: 'えさを もってかえったよ。むかえにきてね',
             schedule: { at: new Date(walk.endsAt), allowWhileIdle: true }
           }]
