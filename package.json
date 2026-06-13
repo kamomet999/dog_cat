@@ -7,7 +7,7 @@
     "test": "node tests/test_engine.js",
     "snap": "NODE_PATH=$(npm root -g) node tests/visual/snapshot.js",
     "e2e": "NODE_PATH=$(npm root -g) node tests/e2e/e2e.js",
-    "build:web": "rm -rf docs/app && cp -r www docs/app && echo 'built docs/app (GitHub Pages: /dog_cat/app/)'",
+    "build:web": "rm -rf docs/app && cp -r www docs/app && node tools/cachebust.mjs && echo 'built docs/app (GitHub Pages: /dog_cat/app/)'",
     "sync": "cap sync"
   },
   "dependencies": {
