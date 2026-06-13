@@ -66,7 +66,7 @@ async function newPage(save, opts) {
     if (s && !localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
     if (skipTut) localStorage.setItem(tut, '1');
   }, [save || null, opts.t0 || T0, KEY, TUT, opts.skipTutorial !== false]);
-  await page.goto('http://localhost:8940/');
+  await page.goto('http://localhost:8940/' + (opts.query || ''));
   await page.waitForSelector('#app');
   await page.waitForTimeout(600);
   return page;
@@ -460,6 +460,17 @@ t('おみあい: いぬ×ねこは「おみあいできません」／ いぬ×�
   await page.fill('#codeIn', dogCode); await page.waitForTimeout(150);
   assert.match(await text(page, '#codePrev'), /おみあいできるよ/);
   assert.ok(await page.getAttribute('#doMate', 'disabled') === null, 'いぬ×いぬは ボタン有効');
+  await closePage(page);
+});
+
+t('おみあい: 招待リンク(?mate=)を開くと 自動で取り込み・貼り付け不要', async () => {
+  const aPage = await newPage(saveBase({ current: petBase({ breedId: 'corgi', xp: 800 }) }));
+  const codeA = await aPage.evaluate(() => window.Engine.mateCode());
+  await closePage(aPage);
+  const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }), { query: '?mate=' + encodeURIComponent(codeA) });
+  await page.waitForTimeout(900); // start() の setTimeout(500ms) ＋余裕
+  assert.match(await text(page, '#codePrev'), /おみあいできるよ/, 'リンクから相手を自動取り込み');
+  assert.ok(await page.getAttribute('#doMate', 'disabled') === null, 'ボタン有効（貼り付け不要）');
   await closePage(page);
 });
 

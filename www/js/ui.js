@@ -726,7 +726,7 @@
     var html = '<div class="center">' +
       '<div style="font-size:44px">💞</div>' +
       '<h2>おみあい</h2>' +
-      '<p class="sub">友達の子と「おみあい」すると、<br>二人の特徴を継いだ ミックスの子が やってくるよ。<br>（同じ動物どうし／コードを交換するだけ・通信なし）</p>' +
+      '<p class="sub">友達の子と「おみあい」すると、<br>二人の特徴を継いだ ミックスの子が やってくるよ。<br><b>🐶いぬ×いぬ・🐱ねこ×ねこ だけ</b>（いぬ×ねこは できません）。<br>コードを交換するだけ・通信なし。</p>' +
       '<button id="mateShow" class="big-btn primary mt12" style="width:100%">📤 自分のコードを見せる</button>' +
       '<button id="mateInput" class="big-btn ghost mt12" style="width:100%">📥 相手のコードを入れる</button>' +
       '<p class="muted mt12" style="font-size:11px">おみあいすると、今の子は巣立って図鑑に残ります。</p>' +
@@ -736,32 +736,59 @@
     m.root.querySelector('#mateInput').addEventListener('click', function () { m.close(); openMateInput(); });
   }
 
+  var PUBLIC_URL = 'https://kamomet999.github.io/dog_cat/app/';
+  function appUrl() {
+    return (location.protocol === 'http:' || location.protocol === 'https:')
+      ? (location.origin + location.pathname).replace(/index\.html$/, '')
+      : PUBLIC_URL;
+  }
+  function inviteText(code, b) {
+    return 'うちの「' + b.name + '」と おみあいしない？🐾\n' +
+      'リンクから あそべるよ → ' + appUrl() + '?mate=' + code + '\n' +
+      '（アプリに直接いれるとき: ' + code + '）\n#いぬねこ図鑑';
+  }
+  // 画像（ペット）＋文字＋リンクで共有。対応端末は画像付き、無理ならテキスト、最後はコピー。
+  function shareInvite(code, b) {
+    var text = inviteText(code, b);
+    function fallback() { copyText(text, function (ok) { showToast(ok ? '📋 さそい文（リンク付き）を コピーした！' : 'コピーできなかった…'); }); }
+    (async function () {
+      try {
+        if (navigator.canShare && b.id && Art.hasSprite && Art.hasSprite(b.id)) {
+          var resp = await fetch('assets/sprites/' + b.id + '.png');
+          if (resp.ok) {
+            var file = new File([await resp.blob()], b.id + '.png', { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: text }); return; }
+          }
+        }
+        if (navigator.share) { await navigator.share({ text: text }); return; }
+        fallback();
+      } catch (e) { if (!(e && e.name === 'AbortError')) fallback(); }
+    })();
+  }
+
   function openMateShare() {
     var code = Engine.mateCode();
     if (!code) return showToast('成体になってから おみあいできるよ');
     var b = Engine.breed();
     var html = '<div class="center">' +
-      '<h2>📤 おみあいコード</h2>' +
-      '<p class="sub">この <b>' + b.name + '</b> のコードを友達に送ってね。<br>相手が入れると ミックスの子が生まれるよ。</p>' +
+      '<h2>📤 おみあいに さそう</h2>' +
+      '<p class="sub">この <b>' + b.name + '</b> の おさそいを 友達に送ろう。<br><b>画像＋リンク</b>で送れて、相手は <b>リンクを開くだけ</b>。</p>' +
       '<div class="mate-code" id="mateCode">' + code + '</div>' +
-      '<button id="copyCode" class="big-btn primary mt12" style="width:100%">📋 コピーする</button>' +
-      '<button id="shareCode" class="big-btn ghost mt12" style="width:100%">📨 送る（シェア）</button>' +
+      '<button id="shareCode" class="big-btn primary mt12" style="width:100%">📨 画像＋リンクで 送る</button>' +
+      '<button id="copyCode" class="big-btn ghost mt12" style="width:100%">📋 さそい文を コピー</button>' +
       '</div>';
     var m = openModal(html, { onClose: openMateMenu });
+    m.root.querySelector('#shareCode').addEventListener('click', function () { shareInvite(code, b); });
     m.root.querySelector('#copyCode').addEventListener('click', function () {
-      copyText(code, function (ok) { showToast(ok ? '📋 コピーした！' : 'コピーできなかった…手で えらんでね'); });
-    });
-    m.root.querySelector('#shareCode').addEventListener('click', function () {
-      var msg = 'うちの「' + b.name + '」と おみあいしない？🐾\nおみあいコード: ' + code + '\n#いぬねこ図鑑';
-      if (navigator.share) navigator.share({ text: msg }).catch(function () {});
-      else copyText(msg, function (ok) { showToast(ok ? '📋 さそい文を コピーした！' : 'コピーできなかった…'); });
+      copyText(inviteText(code, b), function (ok) { showToast(ok ? '📋 さそい文（リンク付き）を コピー！' : 'コピーできなかった…手で えらんでね'); });
     });
   }
 
-  function openMateInput() {
+  function openMateInput(prefill) {
     var html = '<div class="center">' +
       '<h2>📥 相手のコード</h2>' +
       '<p class="sub">もらった メッセージを <b>そのまま貼り付け</b>てOK。<br>コードだけ 自動で よみとるよ。</p>' +
+      '<p class="muted" style="font-size:11px;margin:-4px 0 8px">※ <b>🐶いぬ×いぬ・🐱ねこ×ねこ だけ</b>。いぬ×ねこは おみあいできません。</p>' +
       '<button id="codePaste" class="big-btn primary" style="width:100%">📋 貼り付ける</button>' +
       '<input id="codeIn" class="mate-input" placeholder="ここに貼り付け（INU- / NEK- …）" autocomplete="off" autocapitalize="characters" />' +
       '<div id="codePrev" class="mate-prev"></div>' +
@@ -781,7 +808,6 @@
       } else if (manual) { input.focus(); showToast('入力欄を 長押しして 貼り付けてね'); }
     }
     m.root.querySelector('#codePaste').addEventListener('click', function () { readClip(true); });
-    readClip(false); // 開いた瞬間にコードがコピー済みなら自動で取り込む
     function check() {
       var g = Engine.decodeMate(input.value);
       var mine = Engine.breed();
@@ -799,6 +825,8 @@
       prev.innerHTML = '<span class="mate-ok">✓ ' + g.name + '（' + (g.species === 'dog' ? 'いぬ' : 'ねこ') + '）と おみあいできるよ</span>';
     }
     input.addEventListener('input', check);
+    if (prefill) { input.value = prefill; check(); } // リンク経由（?mate=）は自動で取り込み
+    else readClip(false);                            // 開いた瞬間にコピー済みなら自動取り込み
     btn.addEventListener('click', function () {
       if (!parsed) return;
       var r = Engine.breedWith(parsed, now(), Math.random);
@@ -1412,6 +1440,18 @@
         if (!wr) showReturn(rep);
       }
     }
+    // 招待リンク（?mate=CODE）で開かれたら、貼り付け不要で おみあい入力を自動で開く
+    try {
+      var mateLink = new URLSearchParams(location.search).get('mate');
+      if (mateLink) {
+        if (history.replaceState) history.replaceState(null, '', location.pathname); // 再読込での再オープン防止
+        var st0 = Engine.getState();
+        if (st0 && st0.current) setTimeout(function () {
+          if (Engine.canMate()) openMateInput(mateLink);
+          else showToast('おさそいを受け取ったよ！自分の子が 成体になったら おみあいできるよ');
+        }, 500);
+      }
+    } catch (e) { /* URL解析失敗は無視 */ }
     function onResume() {
       var rep = Engine.applyOffline(now());
       if ((rep && (rep.died || rep.ranAway)) || Engine.isGone()) { render(); showFarewell(); return; }
