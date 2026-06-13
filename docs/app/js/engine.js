@@ -920,9 +920,13 @@
     /** 相手のコードを解読。{species, nature, art, name} または {error} */
     decodeMate: function (code) {
       if (!code || typeof code !== 'string') return { error: 'format' };
-      var body = code.indexOf('-') >= 0 ? code.slice(code.indexOf('-') + 1) : code;
-      var clean = body.toUpperCase().replace(/[^0-9A-Z]/g, '');
-      var g = bytesToGenome(b32toBytes(clean));
+      var up = code.toUpperCase();
+      // メッセージ全文（LINE等）を貼ってもOK: プレフィックス INU-/NEK- を起点にコード塊だけ抜き出す。
+      // 見つからなければ従来どおり最初の '-' 以降を本体扱い。b32toBytes は '-' や非base32文字を読み飛ばす。
+      var m = up.match(/(?:INU|NEK)-[0-9A-HJKMNP-TV-Z\-]+/);
+      var body = m ? m[0].slice(m[0].indexOf('-') + 1)
+                   : (up.indexOf('-') >= 0 ? up.slice(up.indexOf('-') + 1) : up);
+      var g = bytesToGenome(b32toBytes(body));
       if (g.error) return g;
       if (g.breedIdx != null && Breeds.ALL[g.breedIdx]) g.name = Breeds.ALL[g.breedIdx].name;
       else g.name = 'ミックス';

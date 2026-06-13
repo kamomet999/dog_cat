@@ -230,6 +230,11 @@ module.exports = {
       steps: [{ click: '#actBtn' }, { wait: 250 }, { click: '#gcMate' }, { wait: 300 }, { click: '#mateShow' }, { wait: 350 }]
     },
     {
+      name: 'mate-input',
+      save: adultSave(),
+      steps: [{ click: '#actBtn' }, { wait: 250 }, { click: '#gcMate' }, { wait: 300 }, { click: '#mateInput' }, { wait: 350 }]
+    },
+    {
       name: 'dex-album',
       save: saveBase({
         album: [

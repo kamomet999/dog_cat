@@ -761,8 +761,9 @@
   function openMateInput() {
     var html = '<div class="center">' +
       '<h2>📥 相手のコード</h2>' +
-      '<p class="sub">友達から もらった おみあいコードを貼り付けてね。</p>' +
-      '<input id="codeIn" class="mate-input" placeholder="INU-XXXX-XXXX-..." autocomplete="off" autocapitalize="characters" />' +
+      '<p class="sub">もらった メッセージを <b>そのまま貼り付け</b>てOK。<br>コードだけ 自動で よみとるよ。</p>' +
+      '<button id="codePaste" class="big-btn primary" style="width:100%">📋 貼り付ける</button>' +
+      '<input id="codeIn" class="mate-input" placeholder="ここに貼り付け（INU- / NEK- …）" autocomplete="off" autocapitalize="characters" />' +
       '<div id="codePrev" class="mate-prev"></div>' +
       '<button id="doMate" class="big-btn primary mt12" style="width:100%" disabled>おみあいする</button>' +
       '</div>';
@@ -771,12 +772,16 @@
     var prev = m.root.querySelector('#codePrev');
     var btn = m.root.querySelector('#doMate');
     var parsed = null;
-    // クリップボードから自動読み取り（同意的に・失敗は無視）
-    if (navigator.clipboard && navigator.clipboard.readText) {
-      navigator.clipboard.readText().then(function (t) {
-        if (t && /^(INU|NEK)-/.test(t.trim()) && !input.value) { input.value = t.trim(); check(); }
-      }).catch(function () {});
+    function readClip(manual) {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(function (t) {
+          if (t && (manual || (/(INU|NEK)-/i.test(t) && !input.value))) { input.value = t.trim(); check(); }
+          if (manual && !t) showToast('クリップボードが からっぽみたい');
+        }).catch(function () { if (manual) { input.focus(); showToast('入力欄を 長押しして 貼り付けてね'); } });
+      } else if (manual) { input.focus(); showToast('入力欄を 長押しして 貼り付けてね'); }
     }
+    m.root.querySelector('#codePaste').addEventListener('click', function () { readClip(true); });
+    readClip(false); // 開いた瞬間にコードがコピー済みなら自動で取り込む
     function check() {
       var g = Engine.decodeMate(input.value);
       var mine = Engine.breed();

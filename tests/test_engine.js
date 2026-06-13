@@ -678,6 +678,15 @@ test('壊れたコードは checksum / format で弾く', () => {
   assert.ok(a.Engine.decodeMate('').error);
 });
 
+test('おみあいコードは メッセージ全文を貼っても抜き出せる', () => {
+  const a = adultWorld('kijitora'); // ねこ
+  const code = a.Engine.mateCode();
+  const msg = 'うちの「サバトラ」と おみあいしない？🐾\nおみあいコード: ' + code + '\n#いぬねこ図鑑';
+  const g = a.Engine.decodeMate(msg);
+  assert.ok(!g.error, '全文からデコードできる: ' + JSON.stringify(g));
+  assert.strictEqual(g.species, 'cat');
+});
+
 test('別の種とはおみあいできない（いぬ×ねこ不可）', () => {
   const dog = adultWorld('shiba');
   const cat = adultWorld('kijitora');
