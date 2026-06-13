@@ -85,6 +85,7 @@
     renderPetIfChanged();
     renderRoom();
     renderWear();
+    renderMark();
   }
 
   function renderCoin() { $('coin').textContent = Math.floor(Engine.getState().coin); }
@@ -145,8 +146,10 @@
     var rareChip = isMix
       ? '<span class="rarity-chip mix-chip">💞 ミックス</span>'
       : (R ? '<span class="rarity-chip" style="background:' + R.color + '">' + star(R.stars) + ' ' + R.label + '</span>' : '');
+    var mk = stage === 0 ? 'none' : ((Engine.getState().current || {}).mark || 'none');
+    var markChip = (mk !== 'none' && MARK_SYM[mk]) ? ' <span class="mark-chip">' + MARK_SYM[mk] + ' ' + (Engine.MARK_RARITY[mk] || '') + '</span>' : '';
     $('petRarity').innerHTML = stage === 0 ? '' :
-      rareChip + (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '');
+      rareChip + (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '') + markChip;
     if (key !== lastArtKey) {
       Art.mount($('petArt'), Art.petSVG(breed, stage, mood, walking ? 'quad' : null));
       lastArtKey = key;
@@ -652,6 +655,17 @@
     el.style.top = (it.pos === 'face' ? 32 : it.pos === 'neck' ? 54 : 6) + '%';
     el.style.display = 'block';
   }
+  // 体の記号模様（Engine.MARK_IDS と対応）。ホームでペットの体に重ねて表示。
+  var MARK_SYM = { circle: '●', triangle: '▲', heart: '♥', star: '★', dbl: '◎', diamond: '◆' };
+  function renderMark() {
+    var el = $('petMark'); if (!el) return;
+    var p = Engine.getState().current;
+    var mk = p && p.mark;
+    if (!mk || mk === 'none' || Engine.stage() === 0 || !MARK_SYM[mk]) { el.style.display = 'none'; el.textContent = ''; return; }
+    el.textContent = MARK_SYM[mk];
+    el.style.display = 'block';
+  }
+
   function openWardrobe() {
     var ids = Engine.WEAR_IDS;
     var ward = Engine.wardrobe(), owned = ward.owned || {};

@@ -162,6 +162,12 @@ module.exports = {
       steps: [{ wait: 300 }]
     },
     {
+      // 体に記号模様（★レア）がある個体
+      name: 'home-mark',
+      save: saveBase({ current: petBase({ xp: 300, mark: 'star' }) }),
+      steps: [{ wait: 300 }]
+    },
+    {
       name: 'dex',
       save: saveBase({
         dex: {

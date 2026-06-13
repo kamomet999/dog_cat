@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 11;
+  var VERSION = 12;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -103,14 +103,15 @@
     return (p.hunger + p.clean) / 2;
   }
 
-  function freshPet(breedId) {
+  function freshPet(breedId, rnd) {
     return {
       breedId: breedId,
       xp: 0,
       hunger: 72, clean: 78,
       health: 100, sanpo: 100,
       runawayH: 0, away: false,
-      careCount: 0
+      careCount: 0,
+      mark: rollMark(rnd)
     };
   }
 
@@ -215,6 +216,10 @@
       // きせかえ（おさんぽ報酬で集めるペットのアクセサリ）
       s = { ...s, version: 11, wardrobe: s.wardrobe || { owned: {}, equipped: null } };
     }
+    if (s.version === 11) {
+      // 体の記号模様（個体の特徴）。既存の子は none から
+      s = { ...s, version: 12, current: s.current ? { ...s.current, mark: s.current.mark || 'none' } : null };
+    }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
 
@@ -305,6 +310,16 @@
   var HYBRID_NATURE = 'じゆうじん'; // ミックス限定の新性格（5%）
   var B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'; // Crockford（I/L/O/U を除く）
 
+  // 体の記号模様（個体ごとの特徴。レア度つき・おみあいで遺伝。none＝模様なし）
+  var MARK_IDS = ['none', 'circle', 'triangle', 'heart', 'star', 'dbl', 'diamond'];
+  var MARK_RARITY = { none: '', circle: 'コモン', triangle: 'コモン', heart: 'アンコモン', star: 'レア', dbl: 'レア', diamond: 'スーパーレア' };
+  var MARK_WEIGHT = { none: 55, circle: 14, triangle: 14, heart: 9, star: 4, dbl: 3, diamond: 1 }; // 合計100
+  function rollMark(rnd) {
+    var r = (rnd || Math.random)() * 100, acc = 0, k;
+    for (k in MARK_WEIGHT) { if (!Object.prototype.hasOwnProperty.call(MARK_WEIGHT, k)) continue; acc += MARK_WEIGHT[k]; if (r < acc) return k; }
+    return 'none';
+  }
+
   function natureList() { return Object.keys(Breeds.NATURES); } // 15種（idx 0-14）
   function idxOf(arr, v) { var i = arr.indexOf(v); return i < 0 ? 0 : i; }
   function hex2rgb(h) {
@@ -338,10 +353,10 @@
   function genomeOf(state) {
     var p = state.current;
     if (p.mix) {
-      return { species: p.mix.species, breedIdx: null, nature: p.mix.nature, art: p.mix.art, name: 'ミックス' };
+      return { species: p.mix.species, breedIdx: null, nature: p.mix.nature, art: p.mix.art, name: 'ミックス', mark: p.mark || 'none' };
     }
     var b = Breeds.get(p.breedId);
-    return { species: b.species, breedIdx: Breeds.ALL.indexOf(b), nature: b.nature, art: b.art, name: b.name };
+    return { species: b.species, breedIdx: Breeds.ALL.indexOf(b), nature: b.nature, art: b.art, name: b.name, mark: p.mark || 'none' };
   }
   function genomeToBytes(g) {
     var nat = natureList();
@@ -355,6 +370,10 @@
     b[1] = (g.species === 'cat' ? 1 : 0) | (g.art.fluffy ? 2 : 0) | (ear << 2) | (tail << 5);
     b[2] = (pat & 7) | ((natIdx & 15) << 3);
     b[3] = g.breedIdx == null ? 255 : (g.breedIdx & 255);
+    // 記号模様(3bit)を空きビットに格納: b[1] bit6,7 と b[2] bit7（tailデコードは1bitに）
+    var mk = MARK_IDS.indexOf(g.mark || 'none'); if (mk < 0) mk = 0;
+    b[1] |= ((mk & 1) << 6) | (((mk >> 1) & 1) << 7);
+    b[2] |= ((mk >> 2) & 1) << 7;
     var c1 = hex2rgb(g.art.color), c2 = hex2rgb(g.art.color2), ce = hex2rgb(g.art.eye);
     b[4] = c1[0]; b[5] = c1[1]; b[6] = c1[2];
     b[7] = c2[0]; b[8] = c2[1]; b[9] = c2[2];
@@ -370,15 +389,17 @@
     if (sum !== b[13]) return { error: 'checksum' };
     var nat = natureList();
     var natIdx = (b[2] >> 3) & 15;
+    var mk = ((b[1] >> 6) & 1) | (((b[1] >> 7) & 1) << 1) | (((b[2] >> 7) & 1) << 2);
     return {
       species: (b[1] & 1) ? 'cat' : 'dog',
       breedIdx: b[3] === 255 ? null : b[3],
       nature: natIdx === 15 ? HYBRID_NATURE : (nat[natIdx] || nat[0]),
+      mark: MARK_IDS[mk] || 'none',
       art: {
         base: (b[1] & 1) ? 'cat' : 'dog',
         fluffy: !!(b[1] & 2),
         ear: EARS[(b[1] >> 2) & 7] || 'prick',
-        tail: TAILS[(b[1] >> 5) & 3] || 'normal',
+        tail: TAILS[(b[1] >> 5) & 1] || 'normal',
         pattern: PATTERNS[b[2] & 7] || 'solid',
         color: rgb2hex(b[4], b[5], b[6]),
         color2: rgb2hex(b[7], b[8], b[9]),
@@ -450,7 +471,7 @@
       var pick = pool[Math.floor(rnd() * pool.length)];
       // レアリティ重みで引き直す（初回は selected species 内で）
       var chosen = rollFrom(pool, rnd, 0) || pick;
-      s.current = freshPet(chosen.id);
+      s.current = freshPet(chosen.id, rnd);
       this._state = s;
       persist(s);
       return s;
@@ -652,6 +673,11 @@
       return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain, foods: foods, days: bumped.stats.days, newDay: bumped.newDay, isBestDay: bumped.isBestDay, wear: wear };
     },
 
+    // ===== 体の記号模様（個体の特徴・レア度つき） =====
+    MARK_IDS: MARK_IDS,
+    MARK_RARITY: MARK_RARITY,
+    markOf: function () { return (this._state && this._state.current && this._state.current.mark) || 'none'; },
+
     // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める） =====
     WEAR_IDS: WEAR_IDS,
     wardrobe: function () { return this._state ? (this._state.wardrobe || { owned: {}, equipped: null }) : { owned: {}, equipped: null }; },
@@ -736,7 +762,7 @@
         ...s,
         deaths: (s.deaths || 0) + (cause === 'star' ? 1 : 0),
         runaways: (s.runaways || 0) + (cause === 'away' ? 1 : 0),
-        current: freshPet(next.id),
+        current: freshPet(next.id, rnd),
         walk: null,
         lastSavedAt: now
       };
@@ -894,7 +920,7 @@
         coin: s.coin + reward,
         luck: luck,
         graduates: s.graduates + 1,
-        current: freshPet(next.id),
+        current: freshPet(next.id, rnd),
         lastSavedAt: now
       };
       this._state = ns;
@@ -980,7 +1006,9 @@
       var inheritedBreed = childIsMix ? null : child.name;
       var mutated = genes ? genes.mutated : false;
 
-      var newPet = freshPet(childIsMix ? 'mix' : child.id);
+      var newPet = freshPet(childIsMix ? 'mix' : child.id, rnd);
+      // 記号模様も遺伝: 親A/Bから50%、6%で突然変異
+      newPet.mark = inherit(rnd, mine.mark || 'none', partner.mark || 'none', rollMark, 0.06, null);
       if (childIsMix) {
         newPet.mix = { species: mine.species, nature: genes.nature, art: genes.art, parents: parents };
       }
@@ -1016,7 +1044,7 @@
       if (stageOf(s.current.xp) !== 0) return { error: 'already_hatched' };
       if (s.coin < REROLL_COST) return { error: 'no_coin' };
       var next = Breeds.roll(rnd, s.luck, !!s.premium);
-      var ns = { ...s, coin: s.coin - REROLL_COST, current: freshPet(next.id), lastSavedAt: now };
+      var ns = { ...s, coin: s.coin - REROLL_COST, current: freshPet(next.id, rnd), lastSavedAt: now };
       this._state = ns;
       persist(ns);
       return { next: next };
