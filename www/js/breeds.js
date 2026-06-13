@@ -389,6 +389,1648 @@
       id: 'scottishfold2', species: 'cat', name: 'ターキッシュアンゴラ', rarity: 'epic', nature: 'きれいずき', tier: 'premium',
       desc: 'シルクのような白い長毛。優雅でしなやか。',
       art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#efe2cf', pattern: 'solid', eye: '#7ab3e0', fluffy: true }
+    },
+
+    // ============ プレミアム拡張（自動生成 tools/gen_breeds.mjs。本番絵は画像で差し替え） ============
+    {
+      id: 'pd001', species: 'dog', name: '豆柴', rarity: 'common', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せる豆柴。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd002', species: 'dog', name: '黒柴', rarity: 'common', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せる黒柴。',
+      art: { base: 'dog', ear: 'flop', color: '#2c2622', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd003', species: 'dog', name: '白柴', rarity: 'uncommon', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せる白柴。',
+      art: { base: 'dog', ear: 'round', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd004', species: 'dog', name: '北海道犬', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せる北海道犬。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd005', species: 'dog', name: '紀州犬', rarity: 'uncommon', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せる紀州犬。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd006', species: 'dog', name: '甲斐犬', rarity: 'rare', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せる甲斐犬。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd007', species: 'dog', name: '狆(チン)', rarity: 'rare', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せる狆(チン)。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd008', species: 'dog', name: '土佐犬', rarity: 'epic', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せる土佐犬。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd009', species: 'dog', name: 'チャウチャウ', rarity: 'common', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるチャウチャウ。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd010', species: 'dog', name: 'シャーペイ', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるシャーペイ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd011', species: 'dog', name: 'チベタンマスティフ', rarity: 'rare', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるチベタンマスティフ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd012', species: 'dog', name: 'ラサアプソ', rarity: 'legendary', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるラサアプソ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd013', species: 'dog', name: 'キースホンド', rarity: 'common', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるキースホンド。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd014', species: 'dog', name: '台湾犬', rarity: 'common', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せる台湾犬。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd015', species: 'dog', name: 'カーディガンコーギー', rarity: 'uncommon', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるカーディガンコーギー。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd016', species: 'dog', name: 'ラフコリー', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるラフコリー。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd017', species: 'dog', name: 'オーストラリアンシェパード', rarity: 'uncommon', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるオーストラリアンシェパード。',
+      art: { base: 'dog', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd018', species: 'dog', name: 'ジャーマンシェパード', rarity: 'rare', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるジャーマンシェパード。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd019', species: 'dog', name: 'ホワイトスイスシェパード', rarity: 'rare', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるホワイトスイスシェパード。',
+      art: { base: 'dog', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd020', species: 'dog', name: 'ベルジアンマリノア', rarity: 'epic', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるベルジアンマリノア。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd021', species: 'dog', name: 'ベルジアングローネンダール', rarity: 'common', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるベルジアングローネンダール。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd022', species: 'dog', name: 'ベルジアンタービュレン', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるベルジアンタービュレン。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd023', species: 'dog', name: 'ボースロン', rarity: 'rare', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるボースロン。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd024', species: 'dog', name: 'ブリアード', rarity: 'legendary', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるブリアード。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd025', species: 'dog', name: 'オールドイングリッシュシープドッグ', rarity: 'common', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるオールドイングリッシュシープドッグ。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd026', species: 'dog', name: 'プーリー', rarity: 'common', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるプーリー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd027', species: 'dog', name: 'コモンドール', rarity: 'uncommon', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるコモンドール。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd028', species: 'dog', name: 'グレータースイスマウンテンドッグ', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるグレータースイスマウンテンドッグ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'spot', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd029', species: 'dog', name: 'グレートピレニーズ', rarity: 'uncommon', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるグレートピレニーズ。',
+      art: { base: 'dog', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd030', species: 'dog', name: 'マレンマシープドッグ', rarity: 'rare', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるマレンマシープドッグ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd031', species: 'dog', name: 'アナトリアンシェパード', rarity: 'rare', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるアナトリアンシェパード。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd032', species: 'dog', name: 'カンガール', rarity: 'epic', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるカンガール。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd033', species: 'dog', name: 'コーカシアンシェパード', rarity: 'common', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるコーカシアンシェパード。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd034', species: 'dog', name: '中央アジアンシェパード', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せる中央アジアンシェパード。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd035', species: 'dog', name: 'クバース', rarity: 'rare', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるクバース。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd036', species: 'dog', name: 'オーストラリアンキャトルドッグ', rarity: 'legendary', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるオーストラリアンキャトルドッグ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd037', species: 'dog', name: 'オーストラリアンケルピー', rarity: 'common', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるオーストラリアンケルピー。',
+      art: { base: 'dog', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd038', species: 'dog', name: 'ダッチシェパード', rarity: 'common', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるダッチシェパード。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd039', species: 'dog', name: 'アイスランドシープドッグ', rarity: 'uncommon', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるアイスランドシープドッグ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd040', species: 'dog', name: 'ウェルシュシープドッグ', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるウェルシュシープドッグ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd041', species: 'dog', name: 'パーソンラッセル', rarity: 'uncommon', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるパーソンラッセル。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd042', species: 'dog', name: 'シュナウザー(ミニチュア)', rarity: 'rare', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるシュナウザー(ミニチュア)。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd043', species: 'dog', name: 'ジャイアントシュナウザー', rarity: 'rare', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるジャイアントシュナウザー。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd044', species: 'dog', name: 'ウェストハイランドホワイトテリア', rarity: 'epic', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるウェストハイランドホワイトテリア。',
+      art: { base: 'dog', ear: 'bigprick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd045', species: 'dog', name: 'ケアーンテリア', rarity: 'common', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるケアーンテリア。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd046', species: 'dog', name: 'スコティッシュテリア', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるスコティッシュテリア。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd047', species: 'dog', name: 'ノーフォークテリア', rarity: 'rare', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるノーフォークテリア。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd048', species: 'dog', name: 'ノーリッチテリア', rarity: 'legendary', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるノーリッチテリア。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd049', species: 'dog', name: 'ボーダーテリア', rarity: 'common', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるボーダーテリア。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd050', species: 'dog', name: 'エアデールテリア', rarity: 'common', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるエアデールテリア。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd051', species: 'dog', name: 'アイリッシュテリア', rarity: 'uncommon', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるアイリッシュテリア。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd052', species: 'dog', name: 'ケリーブルーテリア', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるケリーブルーテリア。',
+      art: { base: 'dog', ear: 'bigprick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd053', species: 'dog', name: 'ソフトコーテッドウィートンテリア', rarity: 'uncommon', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるソフトコーテッドウィートンテリア。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd054', species: 'dog', name: 'ベドリントンテリア', rarity: 'rare', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるベドリントンテリア。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd055', species: 'dog', name: 'フォックステリア(スムース)', rarity: 'rare', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるフォックステリア(スムース)。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd056', species: 'dog', name: 'フォックステリア(ワイヤー)', rarity: 'epic', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるフォックステリア(ワイヤー)。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd057', species: 'dog', name: 'ブルテリア', rarity: 'common', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるブルテリア。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd058', species: 'dog', name: 'ミニチュアブルテリア', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるミニチュアブルテリア。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd059', species: 'dog', name: 'スタッフォードシャーブルテリア', rarity: 'rare', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるスタッフォードシャーブルテリア。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd060', species: 'dog', name: 'アメリカンスタッフォードシャーテリア', rarity: 'legendary', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるアメリカンスタッフォードシャーテリア。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd061', species: 'dog', name: 'ラットテリア', rarity: 'common', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるラットテリア。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd062', species: 'dog', name: 'シーリハムテリア', rarity: 'common', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるシーリハムテリア。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd063', species: 'dog', name: 'オーストラリアンテリア', rarity: 'uncommon', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるオーストラリアンテリア。',
+      art: { base: 'dog', ear: 'round', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd064', species: 'dog', name: 'オーストラリアンシルキーテリア', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるオーストラリアンシルキーテリア。',
+      art: { base: 'dog', ear: 'bigprick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd065', species: 'dog', name: 'ウェルシュテリア', rarity: 'uncommon', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるウェルシュテリア。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd066', species: 'dog', name: 'チワワ(スムース)', rarity: 'rare', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるチワワ(スムース)。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd067', species: 'dog', name: 'チワワ(ロング)', rarity: 'rare', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるチワワ(ロング)。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd068', species: 'dog', name: 'イタリアングレーハウンド', rarity: 'epic', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるイタリアングレーハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd069', species: 'dog', name: 'ハバニーズ', rarity: 'common', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるハバニーズ。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd070', species: 'dog', name: 'ボロニーズ', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるボロニーズ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd071', species: 'dog', name: 'ローシェン', rarity: 'rare', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるローシェン。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd072', species: 'dog', name: 'グリフォンブリュッセル', rarity: 'legendary', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるグリフォンブリュッセル。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd073', species: 'dog', name: 'キングチャールズスパニエル', rarity: 'common', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるキングチャールズスパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd074', species: 'dog', name: 'チャイニーズクレステッド', rarity: 'common', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるチャイニーズクレステッド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd075', species: 'dog', name: 'ジャパニーズスピッツ(トイ)', rarity: 'uncommon', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるジャパニーズスピッツ(トイ)。',
+      art: { base: 'dog', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd076', species: 'dog', name: 'スタンダードプードル', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるスタンダードプードル。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd077', species: 'dog', name: 'ミディアムプードル', rarity: 'uncommon', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるミディアムプードル。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd078', species: 'dog', name: 'ゴールデンドゥードル', rarity: 'rare', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるゴールデンドゥードル。',
+      art: { base: 'dog', ear: 'flop', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd079', species: 'dog', name: 'ラブラドゥードル', rarity: 'rare', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるラブラドゥードル。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd080', species: 'dog', name: 'コッカープー', rarity: 'epic', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるコッカープー。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd081', species: 'dog', name: 'マルプー', rarity: 'common', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるマルプー。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd082', species: 'dog', name: 'ポメプー', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるポメプー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd083', species: 'dog', name: 'チワプー', rarity: 'rare', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるチワプー。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd084', species: 'dog', name: 'ポンスキー', rarity: 'legendary', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるポンスキー。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd085', species: 'dog', name: '柴プー', rarity: 'common', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せる柴プー。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd086', species: 'dog', name: 'ペキニーズ', rarity: 'common', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるペキニーズ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd087', species: 'dog', name: 'プチブラバンソン', rarity: 'uncommon', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるプチブラバンソン。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd088', species: 'dog', name: 'コトンドテュレアール', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるコトンドテュレアール。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd089', species: 'dog', name: 'ラブラドール(イエロー)', rarity: 'uncommon', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるラブラドール(イエロー)。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd090', species: 'dog', name: '黒ラブ', rarity: 'rare', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せる黒ラブ。',
+      art: { base: 'dog', ear: 'flop', color: '#2c2622', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd091', species: 'dog', name: 'チョコラブ', rarity: 'rare', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるチョコラブ。',
+      art: { base: 'dog', ear: 'round', color: '#5a4a3a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd092', species: 'dog', name: 'フラットコーテッドレトリバー', rarity: 'epic', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるフラットコーテッドレトリバー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd093', species: 'dog', name: 'カーリーコーテッドレトリバー', rarity: 'common', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるカーリーコーテッドレトリバー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd094', species: 'dog', name: 'チェサピークベイレトリバー', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるチェサピークベイレトリバー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd095', species: 'dog', name: 'ノヴァスコシアダックトーリング', rarity: 'rare', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるノヴァスコシアダックトーリング。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd096', species: 'dog', name: 'イングリッシュコッカースパニエル', rarity: 'legendary', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるイングリッシュコッカースパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd097', species: 'dog', name: 'アメリカンコッカースパニエル', rarity: 'common', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるアメリカンコッカースパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd098', species: 'dog', name: 'イングリッシュスプリンガースパニエル', rarity: 'common', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるイングリッシュスプリンガースパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd099', species: 'dog', name: 'ウェルシュスプリンガースパニエル', rarity: 'uncommon', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるウェルシュスプリンガースパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd100', species: 'dog', name: 'クランバースパニエル', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるクランバースパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd101', species: 'dog', name: 'ブリタニースパニエル', rarity: 'uncommon', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるブリタニースパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd102', species: 'dog', name: 'ポインター', rarity: 'rare', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるポインター。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd103', species: 'dog', name: 'ジャーマンショートヘアードポインター', rarity: 'rare', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるジャーマンショートヘアードポインター。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd104', species: 'dog', name: 'ジャーマンワイヤーヘアードポインター', rarity: 'epic', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるジャーマンワイヤーヘアードポインター。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd105', species: 'dog', name: 'ワイマラナー', rarity: 'common', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるワイマラナー。',
+      art: { base: 'dog', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd106', species: 'dog', name: 'ビズラ', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるビズラ。',
+      art: { base: 'dog', ear: 'flop', color: '#b5642f', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd107', species: 'dog', name: 'スピノーネイタリアーノ', rarity: 'rare', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるスピノーネイタリアーノ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd108', species: 'dog', name: 'イングリッシュセッター', rarity: 'legendary', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるイングリッシュセッター。',
+      art: { base: 'dog', ear: 'flop', color: '#b5642f', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd109', species: 'dog', name: 'ゴードンセッター', rarity: 'common', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるゴードンセッター。',
+      art: { base: 'dog', ear: 'flop', color: '#b5642f', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd110', species: 'dog', name: 'アイリッシュセッター', rarity: 'common', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるアイリッシュセッター。',
+      art: { base: 'dog', ear: 'flop', color: '#b5642f', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd111', species: 'dog', name: 'ラゴットロマーニョロ', rarity: 'uncommon', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるラゴットロマーニョロ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd112', species: 'dog', name: 'ポーチュギーズウォータードッグ', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるポーチュギーズウォータードッグ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd113', species: 'dog', name: 'バルビー', rarity: 'uncommon', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるバルビー。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd114', species: 'dog', name: 'コーイケルホンディエ', rarity: 'rare', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるコーイケルホンディエ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd115', species: 'dog', name: 'スパニッシュウォータードッグ', rarity: 'rare', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるスパニッシュウォータードッグ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd116', species: 'dog', name: 'アイリッシュウォータースパニエル', rarity: 'epic', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるアイリッシュウォータースパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd117', species: 'dog', name: 'フィールドスパニエル', rarity: 'common', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるフィールドスパニエル。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd118', species: 'dog', name: '狼犬(ウルフドッグ)', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せる狼犬(ウルフドッグ)。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd119', species: 'dog', name: 'アラスカンマラミュート', rarity: 'rare', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるアラスカンマラミュート。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd120', species: 'dog', name: 'アラスカンクリーカイ', rarity: 'legendary', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるアラスカンクリーカイ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd121', species: 'dog', name: 'シベリアンハスキー(レッド)', rarity: 'common', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるシベリアンハスキー(レッド)。',
+      art: { base: 'dog', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd122', species: 'dog', name: 'ノルウェジアンエルクハウンド', rarity: 'common', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるノルウェジアンエルクハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd123', species: 'dog', name: 'フィニッシュスピッツ', rarity: 'uncommon', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるフィニッシュスピッツ。',
+      art: { base: 'dog', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd124', species: 'dog', name: 'グレーハウンド', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるグレーハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd125', species: 'dog', name: 'アフガンハウンド', rarity: 'uncommon', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるアフガンハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd126', species: 'dog', name: 'サルーキ', rarity: 'rare', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるサルーキ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd127', species: 'dog', name: 'ボルゾイ', rarity: 'rare', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるボルゾイ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd128', species: 'dog', name: 'アイリッシュウルフハウンド', rarity: 'epic', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるアイリッシュウルフハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd129', species: 'dog', name: 'スコティッシュディアハウンド', rarity: 'common', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるスコティッシュディアハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd130', species: 'dog', name: 'バセンジー', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるバセンジー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd131', species: 'dog', name: 'ファラオハウンド', rarity: 'rare', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるファラオハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd132', species: 'dog', name: 'イビザンハウンド', rarity: 'legendary', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるイビザンハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd133', species: 'dog', name: 'バセットハウンド', rarity: 'common', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるバセットハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd134', species: 'dog', name: 'ブラッドハウンド', rarity: 'common', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるブラッドハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd135', species: 'dog', name: 'ローデシアンリッジバック', rarity: 'uncommon', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるローデシアンリッジバック。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd136', species: 'dog', name: 'プチバセットグリフォンバンデーン', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるプチバセットグリフォンバンデーン。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd137', species: 'dog', name: 'オッターハウンド', rarity: 'uncommon', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるオッターハウンド。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd138', species: 'dog', name: 'ダックス(ロング)', rarity: 'rare', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるダックス(ロング)。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd139', species: 'dog', name: 'ダックス(ワイヤー)', rarity: 'rare', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるダックス(ワイヤー)。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd140', species: 'dog', name: 'アザワク', rarity: 'epic', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるアザワク。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd141', species: 'dog', name: 'スルーギ', rarity: 'common', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるスルーギ。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd142', species: 'dog', name: 'ボクサー', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるボクサー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd143', species: 'dog', name: 'ロットワイラー', rarity: 'rare', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるロットワイラー。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd144', species: 'dog', name: 'ニューファンドランド', rarity: 'legendary', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるニューファンドランド。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd145', species: 'dog', name: 'ランドシーア', rarity: 'common', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるランドシーア。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd146', species: 'dog', name: 'レオンベルガー', rarity: 'common', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるレオンベルガー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: true }
+    },
+    {
+      id: 'pd147', species: 'dog', name: 'マスティフ(イングリッシュ)', rarity: 'uncommon', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるマスティフ(イングリッシュ)。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd148', species: 'dog', name: 'ブルマスティフ', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるブルマスティフ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd149', species: 'dog', name: 'ナポリタンマスティフ', rarity: 'uncommon', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるナポリタンマスティフ。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'tan', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd150', species: 'dog', name: 'スパニッシュマスティフ', rarity: 'rare', nature: 'やさしい', tier: 'premium',
+      desc: 'いろんな表情を見せるスパニッシュマスティフ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd151', species: 'dog', name: 'ボルドーマスティフ', rarity: 'rare', nature: 'いちず', tier: 'premium',
+      desc: 'いろんな表情を見せるボルドーマスティフ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd152', species: 'dog', name: 'カネコルソ', rarity: 'epic', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'いろんな表情を見せるカネコルソ。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd153', species: 'dog', name: 'プレサカナリオ', rarity: 'common', nature: 'がんばりや', tier: 'premium',
+      desc: 'いろんな表情を見せるプレサカナリオ。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd154', species: 'dog', name: 'ドゴアルヘンティーノ', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'いろんな表情を見せるドゴアルヘンティーノ。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd155', species: 'dog', name: 'フィラブラジレイロ', rarity: 'rare', nature: 'こうきしん', tier: 'premium',
+      desc: 'いろんな表情を見せるフィラブラジレイロ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd156', species: 'dog', name: 'ボアボエル', rarity: 'legendary', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'いろんな表情を見せるボアボエル。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd157', species: 'dog', name: 'トサ', rarity: 'common', nature: 'のんびりや', tier: 'premium',
+      desc: 'いろんな表情を見せるトサ。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd158', species: 'dog', name: 'アメリカンブリー', rarity: 'common', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'いろんな表情を見せるアメリカンブリー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd159', species: 'dog', name: 'アメリカンブルドッグ', rarity: 'uncommon', nature: 'クール', tier: 'premium',
+      desc: 'いろんな表情を見せるアメリカンブルドッグ。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd160', species: 'dog', name: 'ジャーマンピンシャー', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'いろんな表情を見せるジャーマンピンシャー。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd161', species: 'dog', name: 'ミニチュアピンシャー', rarity: 'uncommon', nature: 'きれいずき', tier: 'premium',
+      desc: 'いろんな表情を見せるミニチュアピンシャー。',
+      art: { base: 'dog', ear: 'prick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd162', species: 'dog', name: 'アーフェンピンシャー', rarity: 'rare', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'いろんな表情を見せるアーフェンピンシャー。',
+      art: { base: 'dog', ear: 'flop', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd163', species: 'dog', name: 'ホヴァバルト', rarity: 'rare', nature: 'おしゃべり', tier: 'premium',
+      desc: 'いろんな表情を見せるホヴァバルト。',
+      art: { base: 'dog', ear: 'round', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pd164', species: 'dog', name: 'ブービエデフランダース', rarity: 'epic', nature: 'おっとり', tier: 'premium',
+      desc: 'いろんな表情を見せるブービエデフランダース。',
+      art: { base: 'dog', ear: 'bigprick', color: '#d8b88a', color2: '#fbf2e6', pattern: 'solid', eye: '#3b2a1a', fluffy: false }
+    },
+    {
+      id: 'pc001', species: 'cat', name: 'スコティッシュストレート', rarity: 'common', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいスコティッシュストレート。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc002', species: 'cat', name: 'マンチカン(長毛)', rarity: 'common', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいマンチカン(長毛)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc003', species: 'cat', name: 'ブリティッシュショートヘア', rarity: 'uncommon', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいブリティッシュショートヘア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc004', species: 'cat', name: 'エキゾチックショートヘア', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいエキゾチックショートヘア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc005', species: 'cat', name: 'ノルウェージャンフォレスト', rarity: 'uncommon', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいノルウェージャンフォレスト。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc006', species: 'cat', name: 'アメリカンショートヘア', rarity: 'rare', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいいアメリカンショートヘア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc007', species: 'cat', name: 'ブリティッシュロングヘア', rarity: 'rare', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいいブリティッシュロングヘア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc008', species: 'cat', name: 'バーマン(聖バーマン)', rarity: 'epic', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいバーマン(聖バーマン)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'point', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc009', species: 'cat', name: 'ヒマラヤン', rarity: 'common', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいヒマラヤン。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'point', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc010', species: 'cat', name: 'バリニーズ', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいバリニーズ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc011', species: 'cat', name: 'ジャワニーズ', rarity: 'rare', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいいジャワニーズ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc012', species: 'cat', name: 'オリエンタルショートヘア', rarity: 'legendary', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいいオリエンタルショートヘア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc013', species: 'cat', name: 'オリエンタルロングヘア', rarity: 'common', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいいオリエンタルロングヘア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc014', species: 'cat', name: 'シャルトリュー', rarity: 'common', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいいシャルトリュー。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc015', species: 'cat', name: 'ネベロング', rarity: 'uncommon', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいいネベロング。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc016', species: 'cat', name: 'コーニッシュレックス', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいコーニッシュレックス。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc017', species: 'cat', name: 'ジャーマンレックス', rarity: 'uncommon', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいジャーマンレックス。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc018', species: 'cat', name: 'ラパーマ', rarity: 'rare', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいラパーマ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc019', species: 'cat', name: 'アメリカンワイヤーヘア', rarity: 'rare', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいアメリカンワイヤーヘア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc020', species: 'cat', name: 'アメリカンカール', rarity: 'epic', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいアメリカンカール。',
+      art: { base: 'cat', ear: 'round', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc021', species: 'cat', name: 'ジャパニーズボブテイル', rarity: 'common', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいいジャパニーズボブテイル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc022', species: 'cat', name: 'クリリアンボブテイル', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいいクリリアンボブテイル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc023', species: 'cat', name: 'アメリカンボブテイル', rarity: 'rare', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいアメリカンボブテイル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc024', species: 'cat', name: 'ピクシーボブ', rarity: 'legendary', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいピクシーボブ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc025', species: 'cat', name: 'キムリック', rarity: 'common', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいキムリック。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc026', species: 'cat', name: 'マンクス', rarity: 'common', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいいマンクス。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc027', species: 'cat', name: 'トイガー', rarity: 'uncommon', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいいトイガー。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc028', species: 'cat', name: 'サバンナ', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいいサバンナ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc029', species: 'cat', name: 'シャウジー', rarity: 'uncommon', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいいシャウジー。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc030', species: 'cat', name: 'セレンゲティ', rarity: 'rare', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいいセレンゲティ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc031', species: 'cat', name: 'ターキッシュバン', rarity: 'rare', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいターキッシュバン。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc032', species: 'cat', name: 'ドンスコイ', rarity: 'epic', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいドンスコイ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc033', species: 'cat', name: 'ピーターボールド', rarity: 'common', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいピーターボールド。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc034', species: 'cat', name: 'ミヌエット(ナポレオン)', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいミヌエット(ナポレオン)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc035', species: 'cat', name: 'キンカロー', rarity: 'rare', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいキンカロー。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc036', species: 'cat', name: 'ハイランドフォールド', rarity: 'legendary', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいいハイランドフォールド。',
+      art: { base: 'cat', ear: 'fold', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc037', species: 'cat', name: 'ラムキン', rarity: 'common', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいいラムキン。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc038', species: 'cat', name: 'バンビーノ', rarity: 'common', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいバンビーノ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc039', species: 'cat', name: 'メコンボブテイル', rarity: 'uncommon', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいメコンボブテイル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc040', species: 'cat', name: '三毛', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいい三毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc041', species: 'cat', name: 'キジ白', rarity: 'uncommon', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいいキジ白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc042', species: 'cat', name: '黒白(タキシード)', rarity: 'rare', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいい黒白(タキシード)。',
+      art: { base: 'cat', ear: 'prick', color: '#2c2622', color2: '#fbf2e6', pattern: 'tuxedo', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc043', species: 'cat', name: '三毛(長毛)', rarity: 'rare', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいい三毛(長毛)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc044', species: 'cat', name: 'キジトラ白', rarity: 'epic', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいいキジトラ白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc045', species: 'cat', name: 'サビ猫(べっこう)', rarity: 'common', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいいサビ猫(べっこう)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc046', species: 'cat', name: 'サビ白', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいサビ白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc047', species: 'cat', name: 'グレー(青)', rarity: 'rare', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいグレー(青)。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc048', species: 'cat', name: 'グレー白', rarity: 'legendary', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいグレー白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc049', species: 'cat', name: 'クリーム猫', rarity: 'common', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいクリーム猫。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc050', species: 'cat', name: 'クリーム白', rarity: 'common', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいクリーム白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc051', species: 'cat', name: '縞三毛(パッチドタビー)', rarity: 'uncommon', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいい縞三毛(パッチドタビー)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc052', species: 'cat', name: '茶トラ白', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいい茶トラ白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc053', species: 'cat', name: 'ポインテッド風', rarity: 'uncommon', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいポインテッド風。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc054', species: 'cat', name: 'べっこう三毛', rarity: 'rare', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいべっこう三毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc055', species: 'cat', name: '白黒ブチ', rarity: 'rare', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいい白黒ブチ。',
+      art: { base: 'cat', ear: 'prick', color: '#2c2622', color2: '#fbf2e6', pattern: 'tuxedo', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc056', species: 'cat', name: '黒長毛', rarity: 'epic', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいい黒長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#2c2622', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc057', species: 'cat', name: '白長毛', rarity: 'common', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいい白長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc058', species: 'cat', name: 'キジ長毛', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいいキジ長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc059', species: 'cat', name: '茶トラ長毛', rarity: 'rare', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいい茶トラ長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc060', species: 'cat', name: '尾曲がり猫', rarity: 'legendary', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいい尾曲がり猫。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc061', species: 'cat', name: '和猫ボブテイル', rarity: 'common', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいい和猫ボブテイル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc062', species: 'cat', name: '灰トラ', rarity: 'common', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいい灰トラ。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc063', species: 'cat', name: '銀トラ', rarity: 'uncommon', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいい銀トラ。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc064', species: 'cat', name: '赤トラ濃', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいい赤トラ濃。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc065', species: 'cat', name: 'キジ濃色', rarity: 'uncommon', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいキジ濃色。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc066', species: 'cat', name: '三毛濃色', rarity: 'rare', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいい三毛濃色。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc067', species: 'cat', name: '白ソックス', rarity: 'rare', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいい白ソックス。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc068', species: 'cat', name: '鼻ブチ', rarity: 'epic', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいい鼻ブチ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc069', species: 'cat', name: 'おでこハート柄', rarity: 'common', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいおでこハート柄。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc070', species: 'cat', name: 'まんじゅう顔キジ', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいまんじゅう顔キジ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc071', species: 'cat', name: '招き猫風(白×赤)', rarity: 'rare', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいい招き猫風(白×赤)。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc072', species: 'cat', name: '黒', rarity: 'legendary', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいい黒。',
+      art: { base: 'cat', ear: 'prick', color: '#2c2622', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc073', species: 'cat', name: '白', rarity: 'common', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいい白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc074', species: 'cat', name: '青(グレー)', rarity: 'common', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいい青(グレー)。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc075', species: 'cat', name: 'クリーム', rarity: 'uncommon', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいいクリーム。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc076', species: 'cat', name: 'レッド', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいレッド。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc077', species: 'cat', name: 'シナモン', rarity: 'uncommon', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいシナモン。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc078', species: 'cat', name: 'フォーン', rarity: 'rare', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいフォーン。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc079', species: 'cat', name: 'チョコレート', rarity: 'rare', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいチョコレート。',
+      art: { base: 'cat', ear: 'prick', color: '#5a4a3a', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc080', species: 'cat', name: 'ライラック', rarity: 'epic', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいライラック。',
+      art: { base: 'cat', ear: 'prick', color: '#b8a8c0', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc081', species: 'cat', name: 'シルバー', rarity: 'common', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいいシルバー。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc082', species: 'cat', name: 'マッカレル', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいいマッカレル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc083', species: 'cat', name: 'クラシック(渦)', rarity: 'rare', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいクラシック(渦)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc084', species: 'cat', name: 'スポテッド', rarity: 'legendary', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいスポテッド。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc085', species: 'cat', name: 'ティック', rarity: 'common', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいティック。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc086', species: 'cat', name: 'パッチド', rarity: 'common', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいいパッチド。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc087', species: 'cat', name: 'シルバータビー', rarity: 'uncommon', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいいシルバータビー。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc088', species: 'cat', name: 'ブラウンタビー', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいいブラウンタビー。',
+      art: { base: 'cat', ear: 'prick', color: '#5a4a3a', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc089', species: 'cat', name: 'レッドタビー', rarity: 'uncommon', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいいレッドタビー。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc090', species: 'cat', name: 'ブルータビー', rarity: 'rare', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいいブルータビー。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc091', species: 'cat', name: 'クリームタビー', rarity: 'rare', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいクリームタビー。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc092', species: 'cat', name: 'チョコタビー', rarity: 'epic', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいチョコタビー。',
+      art: { base: 'cat', ear: 'prick', color: '#5a4a3a', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc093', species: 'cat', name: 'シナモンタビー', rarity: 'common', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいシナモンタビー。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc094', species: 'cat', name: 'タキシード', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいタキシード。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'tuxedo', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc095', species: 'cat', name: 'ヴァン', rarity: 'rare', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいヴァン。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc096', species: 'cat', name: 'ハーレクイン', rarity: 'legendary', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいいハーレクイン。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc097', species: 'cat', name: 'モーガン(靴下)', rarity: 'common', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいいモーガン(靴下)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc098', species: 'cat', name: 'マスク&マントル', rarity: 'common', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいマスク&マントル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc099', species: 'cat', name: 'キャップ&サドル', rarity: 'uncommon', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいキャップ&サドル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc100', species: 'cat', name: 'ミテッド', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいミテッド。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc101', species: 'cat', name: 'ロケット', rarity: 'uncommon', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいいロケット。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc102', species: 'cat', name: 'ダイリュート三毛', rarity: 'rare', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいいダイリュート三毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc103', species: 'cat', name: '黒べっこう', rarity: 'rare', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいい黒べっこう。',
+      art: { base: 'cat', ear: 'prick', color: '#2c2622', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc104', species: 'cat', name: 'ブルークリーム', rarity: 'epic', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいいブルークリーム。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc105', species: 'cat', name: 'チョコトーティ', rarity: 'common', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいいチョコトーティ。',
+      art: { base: 'cat', ear: 'prick', color: '#5a4a3a', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc106', species: 'cat', name: 'ライラッククリーム', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいライラッククリーム。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc107', species: 'cat', name: 'パッチドタビー三毛', rarity: 'rare', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいパッチドタビー三毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc108', species: 'cat', name: 'トーティ&ホワイト', rarity: 'legendary', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいトーティ&ホワイト。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc109', species: 'cat', name: 'シール', rarity: 'common', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいシール。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc110', species: 'cat', name: 'ブルー', rarity: 'common', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいブルー。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc111', species: 'cat', name: 'チョコ', rarity: 'uncommon', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいいチョコ。',
+      art: { base: 'cat', ear: 'prick', color: '#5a4a3a', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc112', species: 'cat', name: 'レッド(フレーム)', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいいレッド(フレーム)。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc113', species: 'cat', name: 'シールタビー', rarity: 'uncommon', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいシールタビー。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc114', species: 'cat', name: 'トーティ', rarity: 'rare', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいトーティ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc115', species: 'cat', name: 'リンクス(タビー)ポイント', rarity: 'rare', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいリンクス(タビー)ポイント。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'tabby', eye: '#7ab3e0', fluffy: false }
+    },
+    {
+      id: 'pc116', species: 'cat', name: '長毛', rarity: 'epic', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいい長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc117', species: 'cat', name: '短毛', rarity: 'common', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいい短毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc118', species: 'cat', name: '半長毛', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいい半長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc119', species: 'cat', name: '巻き毛(レックス)', rarity: 'rare', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいい巻き毛(レックス)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc120', species: 'cat', name: '無毛(ヘアレス)', rarity: 'legendary', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいい無毛(ヘアレス)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc121', species: 'cat', name: 'ワイヤー', rarity: 'common', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいワイヤー。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc122', species: 'cat', name: 'ダブルコート', rarity: 'common', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいダブルコート。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc123', species: 'cat', name: 'カーリー', rarity: 'uncommon', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいカーリー。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc124', species: 'cat', name: '金目', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいい金目。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#e8a83a', fluffy: false }
+    },
+    {
+      id: 'pc125', species: 'cat', name: '銅目', rarity: 'uncommon', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいい銅目。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#e8a83a', fluffy: false }
+    },
+    {
+      id: 'pc126', species: 'cat', name: '緑目', rarity: 'rare', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいい緑目。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc127', species: 'cat', name: '青目', rarity: 'rare', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいい青目。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#7ab3e0', fluffy: false }
+    },
+    {
+      id: 'pc128', species: 'cat', name: 'ヘーゼル', rarity: 'epic', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいヘーゼル。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc129', species: 'cat', name: 'オッドアイ(金銀)', rarity: 'common', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいオッドアイ(金銀)。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#e8a83a', fluffy: false }
+    },
+    {
+      id: 'pc130', species: 'cat', name: 'アクア', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいアクア。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc131', species: 'cat', name: '折れ耳', rarity: 'rare', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいい折れ耳。',
+      art: { base: 'cat', ear: 'fold', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc132', species: 'cat', name: 'カール耳', rarity: 'legendary', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいいカール耳。',
+      art: { base: 'cat', ear: 'round', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc133', species: 'cat', name: '立ち耳', rarity: 'common', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいい立ち耳。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc134', species: 'cat', name: '短尾(ボブ)', rarity: 'common', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいい短尾(ボブ)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc135', species: 'cat', name: '尾曲がり', rarity: 'uncommon', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいい尾曲がり。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc136', species: 'cat', name: '長尾ふさふさ', rarity: 'uncommon', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいい長尾ふさふさ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc137', species: 'cat', name: 'リンクスティップ(房毛)', rarity: 'uncommon', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいいリンクスティップ(房毛)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc138', species: 'cat', name: 'ポリダクティル(多指)', rarity: 'rare', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいポリダクティル(多指)。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc139', species: 'cat', name: '黒×白ブチ', rarity: 'rare', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいい黒×白ブチ。',
+      art: { base: 'cat', ear: 'prick', color: '#2c2622', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc140', species: 'cat', name: 'グレー×白', rarity: 'epic', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいいグレー×白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc141', species: 'cat', name: '茶×白', rarity: 'common', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいい茶×白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc142', species: 'cat', name: 'キジ×白', rarity: 'uncommon', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいいキジ×白。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc143', species: 'cat', name: '三毛×長毛', rarity: 'rare', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいい三毛×長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'calico', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc144', species: 'cat', name: 'シャム×アメショ風', rarity: 'legendary', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいシャム×アメショ風。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'point', eye: '#7ab3e0', fluffy: false }
+    },
+    {
+      id: 'pc145', species: 'cat', name: 'ベンガル風スポット', rarity: 'common', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいいベンガル風スポット。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'spot', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc146', species: 'cat', name: 'トラ柄濃色', rarity: 'common', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいいトラ柄濃色。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc147', species: 'cat', name: '雪柄(ホワイトミテッド)', rarity: 'uncommon', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいい雪柄(ホワイトミテッド)。',
+      art: { base: 'cat', ear: 'prick', color: '#fbf6ee', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc148', species: 'cat', name: 'タキシード長毛', rarity: 'uncommon', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいいタキシード長毛。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'tuxedo', eye: '#9bd24a', fluffy: true }
+    },
+    {
+      id: 'pc149', species: 'cat', name: 'ハチワレ金目', rarity: 'uncommon', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいいハチワレ金目。',
+      art: { base: 'cat', ear: 'prick', color: '#e8c87a', color2: '#fbf2e6', pattern: 'solid', eye: '#e8a83a', fluffy: false }
+    },
+    {
+      id: 'pc150', species: 'cat', name: 'まる顔グレー', rarity: 'rare', nature: 'やさしい', tier: 'premium',
+      desc: 'きまぐれでかわいいまる顔グレー。',
+      art: { base: 'cat', ear: 'prick', color: '#8a9aa5', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc151', species: 'cat', name: 'ぽっちゃり茶トラ', rarity: 'rare', nature: 'いちず', tier: 'premium',
+      desc: 'きまぐれでかわいいぽっちゃり茶トラ。',
+      art: { base: 'cat', ear: 'prick', color: '#b5642f', color2: '#fbf2e6', pattern: 'tabby', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc152', species: 'cat', name: '子猫(キトゥン)柄', rarity: 'epic', nature: 'ひとなつっこい', tier: 'premium',
+      desc: 'きまぐれでかわいい子猫(キトゥン)柄。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc153', species: 'cat', name: 'シニア貫禄柄', rarity: 'common', nature: 'がんばりや', tier: 'premium',
+      desc: 'きまぐれでかわいいシニア貫禄柄。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc154', species: 'cat', name: 'ハート模様', rarity: 'uncommon', nature: 'おりこう', tier: 'premium',
+      desc: 'きまぐれでかわいいハート模様。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc155', species: 'cat', name: '星模様', rarity: 'rare', nature: 'こうきしん', tier: 'premium',
+      desc: 'きまぐれでかわいい星模様。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc156', species: 'cat', name: '靴下4本', rarity: 'legendary', nature: 'げんきいっぱい', tier: 'premium',
+      desc: 'きまぐれでかわいい靴下4本。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'patch', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc157', species: 'cat', name: '鼻ぺた', rarity: 'common', nature: 'のんびりや', tier: 'premium',
+      desc: 'きまぐれでかわいい鼻ぺた。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc158', species: 'cat', name: 'ヒゲ長', rarity: 'common', nature: 'ぼうけんずき', tier: 'premium',
+      desc: 'きまぐれでかわいいヒゲ長。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc159', species: 'cat', name: 'あくび顔', rarity: 'uncommon', nature: 'クール', tier: 'premium',
+      desc: 'きまぐれでかわいいあくび顔。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc160', species: 'cat', name: '香箱座り', rarity: 'uncommon', nature: 'きまぐれ', tier: 'premium',
+      desc: 'きまぐれでかわいい香箱座り。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc161', species: 'cat', name: 'おすわり', rarity: 'uncommon', nature: 'きれいずき', tier: 'premium',
+      desc: 'きまぐれでかわいいおすわり。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc162', species: 'cat', name: 'ごろん', rarity: 'rare', nature: 'あまえんぼう', tier: 'premium',
+      desc: 'きまぐれでかわいいごろん。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc163', species: 'cat', name: '見上げ', rarity: 'rare', nature: 'おしゃべり', tier: 'premium',
+      desc: 'きまぐれでかわいい見上げ。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
+    },
+    {
+      id: 'pc164', species: 'cat', name: '--', rarity: 'epic', nature: 'おっとり', tier: 'premium',
+      desc: 'きまぐれでかわいい--。',
+      art: { base: 'cat', ear: 'prick', color: '#e0b074', color2: '#fbf2e6', pattern: 'solid', eye: '#9bd24a', fluffy: false }
     }
   ];
 
