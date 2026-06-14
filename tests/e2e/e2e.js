@@ -314,7 +314,7 @@ t('おとな→チョイス→おみあい: 種類を継いだ子・親は図鑑
 
 t('おみあい: 異品種コードでミックス誕生→アルバム記録', async () => {
   const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }));
-  await page.evaluate(() => { window.Math.random = () => 0.9; }); // roll≥0.80 → ミックス固定
+  await page.evaluate(() => { window.Math.random = () => 0.9; }); // roll≥0.50 → ミックス固定
   // コーギーの成体コードを同一ページ内の別計算で生成（決定論）
   const code = await page.evaluate(() => {
     const real = window.Engine.getState();

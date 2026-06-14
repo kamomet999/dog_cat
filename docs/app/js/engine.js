@@ -1001,10 +1001,11 @@
       // 先頭の1回の rnd() が分岐を決める（テストで決定論的に再現できるように）
       var parents = [mine.name, partner.name];
       var bothPure = mine.breedIdx != null && partner.breedIdx != null;
+      // 種類(品種)を確率で継承: 両親とも純血種なら 25%親A / 25%親B / 50%ミックス（遺伝が見えるミックス多め）。
       var roll = bothPure ? rnd() : 1; // 片方でもミックス親なら必ずミックス
       var childBreedIdx = null;
-      if (roll < 0.40) childBreedIdx = mine.breedIdx;
-      else if (roll < 0.80) childBreedIdx = partner.breedIdx;
+      if (roll < 0.25) childBreedIdx = mine.breedIdx;
+      else if (roll < 0.50) childBreedIdx = partner.breedIdx;
       var childIsMix = childBreedIdx == null;
 
       var child, genes = null;
