@@ -672,7 +672,7 @@
       var wear = null;
       if (rnd() < WEAR_DROP_RATE) {
         var pool = WEAR_IDS.filter(function (id) { return !ward.owned[id]; });
-        if (pool.length) { wear = pool[Math.floor(rnd() * pool.length)]; ward.owned[wear] = 1; if (!ward.equipped) ward.equipped = wear; }
+        if (pool.length) { wear = pool[Math.floor(rnd() * pool.length)]; ward.owned[wear] = 1; } // 所持に追加。装備はUIで確認して決める
       }
       var ns = {
         ...s, current: np, task: null,

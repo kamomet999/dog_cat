@@ -18,7 +18,7 @@ const { scenarios, T0 } = require('./scenarios');
 const ROOT = path.resolve(__dirname, '../../');
 const WWW = path.join(ROOT, 'www');
 const OUT = path.join(__dirname, 'out');
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml' };
 
 function serve() {
   return http.createServer((req, res) => {

@@ -402,11 +402,12 @@ button:focus-visible {
 .sheet-x { position: absolute; top: 12px; right: 12px; border: none; background: rgba(0,0,0,.10); color: var(--ink);
   width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; z-index: 2; font-family: inherit; }
 .place-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-.place-cell { border: none; border-radius: 14px; padding: 16px 4px; font-family: inherit; cursor: pointer;
-  color: #3a2f1a; font-weight: 800; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px;
-  box-shadow: var(--shadow); }
-.place-cell .pemo { font-size: 26px; line-height: 1; }
-.place-cell.on { outline: 3px solid var(--accent-d); }
+.place-cell { position: relative; border: none; border-radius: 14px; height: 78px; padding: 0; overflow: hidden;
+  font-family: inherit; cursor: pointer; box-shadow: var(--shadow); background-size: cover; background-position: center; }
+.place-cell .place-name { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 2px 5px;
+  font-size: 12px; font-weight: 800; color: #3a2f1a; text-align: center;
+  background: linear-gradient(to top, rgba(255,255,255,.92), rgba(255,255,255,.55) 60%, rgba(255,255,255,0)); }
+.place-cell.on { outline: 3px solid var(--accent-d); outline-offset: -3px; }
 .sanpo-screen { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .sanpo-top { display: flex; gap: 8px; margin-top: 48px; flex-wrap: wrap; justify-content: center; }
 .place-pill { background: rgba(255,255,255,.88); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-weight: 800; font-size: 13px; }

@@ -107,6 +107,32 @@ function walkPrompt(b) {
     + `Original character — do NOT copy any existing brand or the "Bonless" characters.`;
 }
 
+// おさんぽの場所背景（キャラなしの景色）。背景除去せず、cover用に縮小して保存。
+const PLACE_SCENE = 'Soft pastel picture-book / watercolor storybook style, gentle and calm, rounded soft shapes, '
+  + 'EMPTY scene with NO characters, NO animals, NO people, no text, no watermark. '
+  + 'Cozy game background, soft depth, pleasant for a cute pet to stand in front of. 1:1 square.';
+const PLACE_DEFS = [
+  { id: 'park',     text: 'A sunny cozy park: green grass lawn, a few rounded fluffy trees, a gentle winding path, soft blue sky with round fluffy clouds. ' + PLACE_SCENE },
+  { id: 'river',    text: 'A calm grassy riverbank with a gently winding stream, smooth pebbles, soft reeds and little flowers, blue sky. ' + PLACE_SCENE },
+  { id: 'town',     text: 'A quiet cute pastel town street with small rounded low houses and shops, a clean sidewalk, soft warm sky. ' + PLACE_SCENE },
+  { id: 'mountain', text: 'Soft rolling green hills and gentle rounded mountains, a winding grassy trail, a few trees, pastel sky. ' + PLACE_SCENE },
+  { id: 'beach',    text: 'A calm pastel beach: soft cream sand, gentle turquoise sea with small waves, a clear sky, maybe a tiny shell. ' + PLACE_SCENE },
+  { id: 'night',    text: 'A cozy quiet night path/street under a big round moon and tiny stars, soft navy sky and warm lamplight glow, calm and peaceful. ' + PLACE_SCENE }
+];
+async function genPlace(def, key) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: def.text }] }] }) });
+  if (!res.ok) throw new Error(`${def.id}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+  const data = await res.json();
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const img = parts.find(p => p.inlineData && /image/.test(p.inlineData.mimeType || ''));
+  if (!img) throw new Error(`${def.id}: 画像パートが返らなかった`);
+  const dir = path.join(ROOT, 'www/assets/places');
+  fs.mkdirSync(dir, { recursive: true });
+  const out = await sharp(Buffer.from(img.inlineData.data, 'base64')).resize(720, 720, { fit: 'cover' }).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+  fs.writeFileSync(path.join(dir, `${def.id}.jpg`), out);
+}
+
 function writeManifest(ids) {
   const body = '/* 自動生成: tools/gen_sprites.mjs。生成済みスプライトの登録簿。 */\n'
     + 'window.INUNEKO_SPRITES = ' + JSON.stringify(ids.reduce((o, id) => (o[id] = 1, o), {}), null, 0) + ';\n'
@@ -193,6 +219,25 @@ async function genOne(b, key, opts) {
       catch (e) { console.error(`✗ rebg ${id}: ${e.message}`); }
     }
     writeManifest(existingIds());
+    return;
+  }
+
+  // --places: おさんぽの場所背景（景色）を生成 → www/assets/places/<id>.jpg
+  if (has('--places')) {
+    const key0 = process.env.GEMINI_API_KEY;
+    if (!key0) { console.error('GEMINI_API_KEY が未設定です'); process.exit(1); }
+    const only0 = val('--only');
+    let defs = PLACE_DEFS;
+    if (only0) { const set = new Set(only0.split(',')); defs = defs.filter(d => set.has(d.id)); }
+    let ok0 = 0; const f0 = [];
+    for (const d of defs) {
+      const out = path.join(ROOT, 'www/assets/places', `${d.id}.jpg`);
+      if (fs.existsSync(out) && !has('--force')) { ok0++; continue; }
+      try { await genPlace(d, key0); ok0++; console.log(`✓ place ${d.id}`); }
+      catch (e) { f0.push(d.id); console.error(`✗ ${e.message}`); }
+      await new Promise(r => setTimeout(r, 400));
+    }
+    console.log(`場所背景 完了: ${ok0}件 / 失敗${f0.length}`);
     return;
   }
 

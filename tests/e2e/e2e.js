@@ -19,7 +19,7 @@ const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../../');
 const WWW = path.join(ROOT, 'www');
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
 
 const T0 = 1750000000000;
 const H = 3600000, MIN = 60000;

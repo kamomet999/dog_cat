@@ -710,6 +710,27 @@
     el.style.display = 'block';
   }
 
+  // おさんぽ報酬で着せ替えを入手したときのアナウンス＋「着せる？」確認
+  function showWearDrop(id) {
+    var it = WEAR[id]; if (!it) return;
+    var html = '<div class="center pop">' +
+      '<p class="sub" style="margin-bottom:2px">🎁 おさんぽの ごほうび</p>' +
+      '<div style="font-size:64px;line-height:1.1;margin:4px">' + it.e + '</div>' +
+      '<h2>きせかえ「' + it.label + '」を ひろった！</h2>' +
+      '<p class="sub">いま 着せてみる？（あとでも 👕 から着られるよ）</p>' +
+      '<button id="wdWear" class="big-btn primary mt12" style="width:100%">👕 着せる</button>' +
+      '<button id="wdLater" class="big-btn ghost mt12" style="width:100%">あとで</button>' +
+      '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
+    var m = openModal(html);
+    m.root.querySelector('#wdWear').addEventListener('click', function () {
+      Engine.equipWear(id, now());
+      lastArtKey = ''; render();
+      m.close();
+      showToast('かわいい！👕 ' + it.label + 'を 着たよ');
+    });
+    m.root.querySelector('#wdLater').addEventListener('click', m.close);
+  }
+
   function openWardrobe() {
     var ids = Engine.WEAR_IDS;
     var ward = Engine.wardrobe(), owned = ward.owned || {};
@@ -1237,13 +1258,14 @@
 
   // おさんぽの「場所」（景色）。背景はCSSグラデ＋絵文字（あとで本格背景画像に差し替え可）。
   var PLACES = [
-    { id: 'park',     name: 'こうえん', emo: '🌳', grad: 'linear-gradient(170deg,#9ad98f,#5ba86a 72%)' },
-    { id: 'river',    name: 'かわ',     emo: '🏞️', grad: 'linear-gradient(170deg,#9bd9ec,#5aa9c9 72%)' },
-    { id: 'town',     name: 'まち',     emo: '🏙️', grad: 'linear-gradient(170deg,#ffdca8,#f0a96b 72%)' },
-    { id: 'mountain', name: 'やま',     emo: '⛰️', grad: 'linear-gradient(170deg,#bcdfa6,#6f9e6a 72%)' },
-    { id: 'beach',    name: 'うみ',     emo: '🏖️', grad: 'linear-gradient(170deg,#c2f1ed,#5fc4c0 72%)' },
-    { id: 'night',    name: 'よみち',   emo: '🌙', grad: 'linear-gradient(170deg,#515d88,#2b3350 72%)' }
+    { id: 'park',     name: 'こうえん', emo: '🌳', grad: 'linear-gradient(170deg,#9ad98f,#5ba86a 72%)', bg: 'assets/places/park.jpg' },
+    { id: 'river',    name: 'かわ',     emo: '🏞️', grad: 'linear-gradient(170deg,#9bd9ec,#5aa9c9 72%)', bg: 'assets/places/river.jpg' },
+    { id: 'town',     name: 'まち',     emo: '🏙️', grad: 'linear-gradient(170deg,#ffdca8,#f0a96b 72%)', bg: 'assets/places/town.jpg' },
+    { id: 'mountain', name: 'やま',     emo: '⛰️', grad: 'linear-gradient(170deg,#bcdfa6,#6f9e6a 72%)', bg: 'assets/places/mountain.jpg' },
+    { id: 'beach',    name: 'うみ',     emo: '🏖️', grad: 'linear-gradient(170deg,#c2f1ed,#5fc4c0 72%)', bg: 'assets/places/beach.jpg' },
+    { id: 'night',    name: 'よみち',   emo: '🌙', grad: 'linear-gradient(170deg,#515d88,#2b3350 72%)', bg: 'assets/places/night.jpg' }
   ];
+  function placeBgCss(p) { return "url('" + p.bg + "') center/cover no-repeat, " + p.grad; }
   function placeOf(id) { for (var i = 0; i < PLACES.length; i++) if (PLACES[i].id === id) return PLACES[i]; return PLACES[0]; }
 
   // 🐾 おさんぽ：全画面。散歩中なら景色画面、未開始なら設定（場所→なにする→どのくらい）。
@@ -1257,8 +1279,8 @@
   function renderSanpoSetup() {
     var ov = $('sanpoOverlay');
     var places = PLACES.map(function (p) {
-      return '<button class="place-cell" data-place="' + p.id + '" style="background:' + p.grad + '">' +
-        '<span class="pemo">' + p.emo + '</span><span>' + p.name + '</span></button>';
+      return '<button class="place-cell" data-place="' + p.id + '" style="background:' + placeBgCss(p) + '">' +
+        '<span class="place-name">' + p.emo + ' ' + p.name + '</span></button>';
     }).join('');
     var kinds = TASK_PRESETS.map(function (k) {
       return '<button class="care-btn task-kind" data-kind="' + k.kind + '" style="padding:10px 2px">' +
@@ -1323,7 +1345,7 @@
     if (!t) { hideSanpoOverlay(); return; }
     var p = placeOf(t.place);
     var remain = Math.max(0, t.endsAt - now());
-    ov.innerHTML = '<div class="sanpo-screen" style="background:' + p.grad + '">' +
+    ov.innerHTML = '<div class="sanpo-screen" style="background:' + placeBgCss(p) + '">' +
       '<button id="sanpoBack" class="sheet-x" aria-label="ホームへ">✕</button>' +
       '<div class="sanpo-top"><span class="place-pill">' + p.emo + ' ' + p.name + '</span>' +
       '<span class="place-pill">' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + '</span></div>' +
@@ -1380,9 +1402,8 @@
       happyUntil = now() + 1500;
       lastArtKey = '';
       render();
-      var msg = '🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + '）';
-      if (r.wear && WEAR[r.wear]) msg += '　✨きせかえ「' + WEAR[r.wear].label + '」を ひろった！';
-      showToast(msg);
+      showToast('🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + '）');
+      if (r.wear && WEAR[r.wear]) setTimeout(function () { showWearDrop(r.wear); }, 700); // 入手アナウンス＋着せる確認
     } else {
       if (sceneOpen) { var tm = ov.querySelector('#sanpoTimer'); if (tm) tm.textContent = fmtMMSS(Math.max(0, t.endsAt - now())); }
       renderTaskRow();
