@@ -139,10 +139,8 @@
     var mood = petMood();
     var isMix = !!breed.mix;
     var walking = !!Engine.task() && stage >= 1; // さんぽ課題中は四足の歩き姿
-    var eyeStyle = Engine.eyeStyleOf();
-    // 目なしベース(<id>_noeye)があれば、目スタイルを後乗せ（ホームのみ。図鑑等は従来の目付きスプライト）
-    var useNoEye = !walking && !isMix && stage >= 1 && breed.id && Art.hasSprite(breed.id + '_noeye');
-    var key = breed.id + '_' + stage + '_' + mood + (isMix ? '_m' : '') + (walking ? '_w' : '') + (useNoEye ? '_e' + eyeStyle : '');
+    // 目スタイルの後乗せ(目なしベース)は保留 → 元の目付きスプライトを使う（安定優先）。eyeStyleはデータ上は遺伝で保持。
+    var key = breed.id + '_' + stage + '_' + mood + (isMix ? '_m' : '') + (walking ? '_w' : '');
     $('petName').textContent = stage === 0 ? 'ねんねちゅう…' : breed.name;
     var R = Breeds.RARITY[breed.rarity]; // ミックスは undefined
     $('petSub').textContent = stage === 0 ? 'どんな子かは 目が開いてからの お楽しみ' : (breed.species === 'dog' ? 'いぬ' : 'ねこ') + '・' + STAGE_LABEL[stage];
@@ -154,11 +152,7 @@
     $('petRarity').innerHTML = stage === 0 ? '' :
       rareChip + (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '') + markChip;
     if (key !== lastArtKey) {
-      if (useNoEye) {
-        $('petArt').innerHTML = Art.spriteImg(breed.id + '_noeye') + '<div class="pet-eyes">' + Art.eyeLayerSVG(eyeStyle, breed.id) + '</div>';
-      } else {
-        Art.mount($('petArt'), Art.petSVG(breed, stage, mood, walking ? 'quad' : null));
-      }
+      Art.mount($('petArt'), Art.petSVG(breed, stage, mood, walking ? 'quad' : null));
       lastArtKey = key;
     }
   }
