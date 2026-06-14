@@ -702,20 +702,23 @@
   // 体の記号模様（Engine.MARK_IDS と対応）。ホームでペットの体に重ねて表示。
   // ︎（テキスト異体字）で絵文字化を防ぎ、CSSの色が効く文字記号にする
   var MARK_SYM = { circle: '●︎', triangle: '▲︎', heart: '♥︎', star: '★︎', dbl: '◎︎', diamond: '◆︎' };
-  // 模様は「絶対に変にならない」左右の下ハラ2箇所のみ。顔と胴体の間(首元)には付けない。
-  var MARK_POS = [{ left: 33, top: 70 }, { left: 67, top: 70 }];
+  // 模様は「絶対に変にならない」体の左右2箇所のみ。ペット枠(petArt)基準なので外にはみ出さない。
+  var MARK_POS = [{ left: 36, top: 64 }, { left: 64, top: 64 }];
   function renderMark() {
-    var el = $('petMark'); if (!el) return;
+    var host = $('petArt'); if (!host) return;
+    var old = host.querySelector('.pet-mark'); if (old) old.remove();
     var p = Engine.getState().current;
     var mk = p && p.mark;
-    if (!mk || mk === 'none' || Engine.stage() === 0 || !MARK_SYM[mk]) { el.style.display = 'none'; el.textContent = ''; return; }
-    el.textContent = MARK_SYM[mk];
+    if (!mk || mk === 'none' || Engine.stage() === 0 || !MARK_SYM[mk]) return;
     var breed = Engine.breed();
     var seed = ((breed && breed.id || '') + mk).split('').reduce(function (a, c) { return a + c.charCodeAt(0); }, 0);
     var pos = MARK_POS[seed % MARK_POS.length]; // ペットごとに左右どちらか固定
+    var el = document.createElement('div');
+    el.className = 'pet-mark';
+    el.textContent = MARK_SYM[mk];
     el.style.left = pos.left + '%';
     el.style.top = pos.top + '%';
-    el.style.display = 'block';
+    host.appendChild(el);
   }
 
   // おさんぽ報酬で着せ替えを入手したときのアナウンス＋「着せる？」確認

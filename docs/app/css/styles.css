@@ -433,7 +433,7 @@ button:focus-visible {
   font-size: 15px; color: rgba(86, 62, 44, .58);
   text-shadow: 0 0 3px rgba(255,255,255,.55), 0 0 1.5px rgba(60,40,25,.5);
   filter: blur(.35px);
-  pointer-events: none; display: none; }
+  pointer-events: none; }
 .mark-chip { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
   background: #fdeef2; color: #b5446e; }
 
