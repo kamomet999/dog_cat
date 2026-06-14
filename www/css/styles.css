@@ -429,8 +429,8 @@ button:focus-visible {
 .wear-lbl { font-size: 10px; font-weight: 700; }
 
 /* 体の記号模様（個体の特徴・おさんぽ報酬とは別の遺伝特徴） */
-.pet-mark { position: absolute; left: 37%; top: 61%; transform: translate(-50%, -50%); z-index: 2;
-  font-size: 21px; color: rgba(86, 62, 44, .62);
+.pet-mark { position: absolute; transform: translate(-50%, -50%); z-index: 2;
+  font-size: 15px; color: rgba(86, 62, 44, .58);
   text-shadow: 0 0 3px rgba(255,255,255,.55), 0 0 1.5px rgba(60,40,25,.5);
   filter: blur(.35px);
   pointer-events: none; display: none; }

@@ -700,13 +700,21 @@
     el.style.display = 'block';
   }
   // 体の記号模様（Engine.MARK_IDS と対応）。ホームでペットの体に重ねて表示。
-  var MARK_SYM = { circle: '●', triangle: '▲', heart: '♥', star: '★', dbl: '◎', diamond: '◆' };
+  // ︎（テキスト異体字）で絵文字化を防ぎ、CSSの色が効く文字記号にする
+  var MARK_SYM = { circle: '●︎', triangle: '▲︎', heart: '♥︎', star: '★︎', dbl: '◎︎', diamond: '◆︎' };
+  // 模様は「絶対に変にならない」左右の下ハラ2箇所のみ。顔と胴体の間(首元)には付けない。
+  var MARK_POS = [{ left: 33, top: 70 }, { left: 67, top: 70 }];
   function renderMark() {
     var el = $('petMark'); if (!el) return;
     var p = Engine.getState().current;
     var mk = p && p.mark;
     if (!mk || mk === 'none' || Engine.stage() === 0 || !MARK_SYM[mk]) { el.style.display = 'none'; el.textContent = ''; return; }
     el.textContent = MARK_SYM[mk];
+    var breed = Engine.breed();
+    var seed = ((breed && breed.id || '') + mk).split('').reduce(function (a, c) { return a + c.charCodeAt(0); }, 0);
+    var pos = MARK_POS[seed % MARK_POS.length]; // ペットごとに左右どちらか固定
+    el.style.left = pos.left + '%';
+    el.style.top = pos.top + '%';
     el.style.display = 'block';
   }
 
