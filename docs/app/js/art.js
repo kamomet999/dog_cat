@@ -725,8 +725,8 @@
   // 位置は品種ごとの「本来の目の位置」(INUNEKO_EYEPOS)に合わせる（無ければ既定）。
   function eyeLayerSVG(style, breedId) {
     var INK = '#2a2018', WH = '#ffffff';
-    var P = (global.INUNEKO_EYEPOS && global.INUNEKO_EYEPOS[breedId]) || { y: 184, dx: 66 };
-    var L = [256 - P.dx, P.y], R = [256 + P.dx, P.y];
+    var P = (global.INUNEKO_EYEPOS && global.INUNEKO_EYEPOS[breedId]) || { lx: 190, ly: 184, rx: 322, ry: 184 };
+    var L = [P.lx, P.ly], R = [P.rx, P.ry];
     function one(cx, cy, flip) {
       var s = flip ? -1 : 1;
       if (style === 'genki')
