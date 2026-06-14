@@ -181,6 +181,7 @@ module.exports = {
     { name: 'home-eye-pug',      save: saveBase({ current: petBase({ breedId: 'pug', xp: 300, eyeStyle: 'batchiri', mark: 'none' }) }), steps: [{ wait: 300 }] },
     { name: 'home-eye-bichon',   save: saveBase({ current: petBase({ breedId: 'bichon', xp: 300, eyeStyle: 'batchiri', mark: 'none' }), dex: { bichon: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
     { name: 'home-eye-cat',      save: saveBase({ current: petBase({ breedId: 'siamese', xp: 300, eyeStyle: 'genki' }), dex: { siamese: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
+    { name: "home-mix", save: saveBase({ current: { breedId:"mix", mix:{species:"dog", nature:"げんきいっぱい", parents:["柴犬","ハスキー"], art:{base:"dog", color:"#8fb0d6", color2:"#fdf6ec", pattern:"spot", ear:"flop", eye:"#caa23a", fluffy:true, tail:"curl"}}, xp:300, hunger:64, clean:60, health:100, sanpo:60, runawayH:0, away:false, careCount:12, mark:"star", eyeStyle:"genki" } }), steps:[{wait:300}] },
     {
       name: 'dex',
       save: saveBase({
