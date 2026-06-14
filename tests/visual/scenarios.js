@@ -175,6 +175,7 @@ module.exports = {
     { name: 'home-mark-bichon',  save: saveBase({ current: petBase({ breedId: 'bichon', xp: 300, mark: 'heart' }), dex: { bichon: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
     { name: 'home-mark-dark',    save: saveBase({ current: petBase({ breedId: 'black', xp: 300, mark: 'heart' }), dex: { black: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
     { name: 'home-eye-husky',    save: saveBase({ current: petBase({ breedId: 'husky', xp: 300, eyeStyle: 'batchiri' }) }), steps: [{ wait: 300 }] },
+    { name: 'home-eye-yorkie',   save: saveBase({ current: petBase({ breedId: 'yorkie', xp: 300, eyeStyle: 'genki', mark: 'none' }), dex: { yorkie: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
     { name: 'home-eye-cat',      save: saveBase({ current: petBase({ breedId: 'siamese', xp: 300, eyeStyle: 'genki' }), dex: { siamese: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
     {
       name: 'dex',

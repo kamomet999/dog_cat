@@ -702,8 +702,19 @@
   // 体の記号模様（Engine.MARK_IDS と対応）。ホームでペットの体に重ねて表示。
   // ︎（テキスト異体字）で絵文字化を防ぎ、CSSの色が効く文字記号にする
   var MARK_SYM = { circle: '●︎', triangle: '▲︎', heart: '♥︎', star: '★︎', dbl: '◎︎', diamond: '◆︎' };
-  // 模様は「絶対に変にならない」体の左右2箇所のみ。ペット枠(petArt)基準なので外にはみ出さない。
-  var MARK_POS = [{ left: 36, top: 64 }, { left: 64, top: 64 }];
+  // 模様は体の下のほう・左右2箇所のみ。さらにスプライト形にマスクするので体からはみ出た分はカット。
+  var MARK_POS = [{ left: 33, top: 76 }, { left: 67, top: 76 }];
+  // 模様の色は個体の毛色から導く（明るい毛→暗い同系色／暗い毛→明るい同系色）＝不自然な色にならない
+  function markingColor(hex) {
+    if (!hex || hex[0] !== '#') return 'rgba(86,62,44,.62)';
+    var h = hex.slice(1); if (h.length === 3) h = h.replace(/(.)/g, '$1$1');
+    var r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    if (lum > 0.5) { r *= 0.55; g *= 0.55; b *= 0.55; }                              // 明るい毛 → 暗い同系
+    else { r += (255 - r) * 0.62; g += (255 - g) * 0.62; b += (255 - b) * 0.62; }    // 暗い毛 → 明るい同系
+    function c(x) { return Math.max(0, Math.min(255, Math.round(x))); }
+    return 'rgba(' + c(r) + ',' + c(g) + ',' + c(b) + ',.72)';
+  }
   function renderMark() {
     var host = $('petArt'); if (!host) return;
     var old = host.querySelector('.pet-mark'); if (old) old.remove();
@@ -711,14 +722,22 @@
     var mk = p && p.mark;
     if (!mk || mk === 'none' || Engine.stage() === 0 || !MARK_SYM[mk]) return;
     var breed = Engine.breed();
+    // マスク用スプライト（ホームで表示中の体の形）。無い(ミックス等)ときはマスクなし。
+    var spr = (breed && breed.id && !breed.mix)
+      ? (Art.hasSprite(breed.id + '_noeye') ? breed.id + '_noeye' : (Art.hasSprite(breed.id) ? breed.id : null)) : null;
     var seed = ((breed && breed.id || '') + mk).split('').reduce(function (a, c) { return a + c.charCodeAt(0); }, 0);
-    var pos = MARK_POS[seed % MARK_POS.length]; // ペットごとに左右どちらか固定
-    var el = document.createElement('div');
-    el.className = 'pet-mark';
-    el.textContent = MARK_SYM[mk];
-    el.style.left = pos.left + '%';
-    el.style.top = pos.top + '%';
-    host.appendChild(el);
+    var pos = MARK_POS[seed % MARK_POS.length];
+    var layer = document.createElement('div');
+    layer.className = 'pet-mark'; // petArt全体を覆い、スプライト形にマスク＝体外はカット
+    if (spr) { var u = "url('assets/sprites/" + spr + ".png')"; layer.style.webkitMaskImage = u; layer.style.maskImage = u; }
+    var sym = document.createElement('span');
+    sym.className = 'pet-mark-sym';
+    sym.textContent = MARK_SYM[mk];
+    sym.style.left = pos.left + '%';
+    sym.style.top = pos.top + '%';
+    sym.style.color = markingColor(breed && breed.art && breed.art.color);
+    layer.appendChild(sym);
+    host.appendChild(layer);
   }
 
   // おさんぽ報酬で着せ替えを入手したときのアナウンス＋「着せる？」確認

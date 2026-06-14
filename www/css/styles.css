@@ -429,11 +429,11 @@ button:focus-visible {
 .wear-lbl { font-size: 10px; font-weight: 700; }
 
 /* 体の記号模様（個体の特徴・おさんぽ報酬とは別の遺伝特徴） */
-.pet-mark { position: absolute; transform: translate(-50%, -50%); z-index: 2;
-  font-size: 15px; color: rgba(86, 62, 44, .58);
-  text-shadow: 0 0 3px rgba(255,255,255,.55), 0 0 1.5px rgba(60,40,25,.5);
-  filter: blur(.35px);
-  pointer-events: none; }
+.pet-mark { position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+.pet-mark .pet-mark-sym { position: absolute; transform: translate(-50%, -50%); font-size: 13px;
+  text-shadow: 0 0 2px rgba(255,255,255,.4); filter: blur(.3px); }
 .mark-chip { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
   background: #fdeef2; color: #b5446e; }
 
