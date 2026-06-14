@@ -722,8 +722,11 @@
   }
 
   // 目レイヤー（目なしベース <id>_noeye に重ねる5スタイル）。512座標＝スプライトと同じ。
-  function eyeLayerSVG(style) {
-    var INK = '#2a2018', WH = '#ffffff', L = [190, 184], R = [322, 184];
+  // 位置は品種ごとの「本来の目の位置」(INUNEKO_EYEPOS)に合わせる（無ければ既定）。
+  function eyeLayerSVG(style, breedId) {
+    var INK = '#2a2018', WH = '#ffffff';
+    var P = (global.INUNEKO_EYEPOS && global.INUNEKO_EYEPOS[breedId]) || { y: 184, dx: 66 };
+    var L = [256 - P.dx, P.y], R = [256 + P.dx, P.y];
     function one(cx, cy, flip) {
       var s = flip ? -1 : 1;
       if (style === 'genki')

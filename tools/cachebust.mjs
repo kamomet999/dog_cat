@@ -14,7 +14,7 @@ const V = Date.now().toString(36);
 
 let html = fs.readFileSync(file, 'utf8');
 // href/src が css/… js/… assets/sprites/manifest.js のものに ?v= を付与（既存の?vは置換）
-html = html.replace(/\b(href|src)="(css\/[^"?]+|js\/[^"?]+|assets\/sprites\/manifest\.js)(\?v=[^"]*)?"/g,
+html = html.replace(/\b(href|src)="(css\/[^"?]+|js\/[^"?]+|assets\/sprites\/(?:manifest|eyepos)\.js)(\?v=[^"]*)?"/g,
   (_m, attr, p) => `${attr}="${p}?v=${V}"`);
 fs.writeFileSync(file, html);
 console.log('cache-bust: v=' + V);

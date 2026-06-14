@@ -155,7 +155,7 @@
       rareChip + (breed.nature ? ' <span class="nature-chip">' + breed.nature + '</span>' : '') + markChip;
     if (key !== lastArtKey) {
       if (useNoEye) {
-        $('petArt').innerHTML = Art.spriteImg(breed.id + '_noeye') + '<div class="pet-eyes">' + Art.eyeLayerSVG(eyeStyle) + '</div>';
+        $('petArt').innerHTML = Art.spriteImg(breed.id + '_noeye') + '<div class="pet-eyes">' + Art.eyeLayerSVG(eyeStyle, breed.id) + '</div>';
       } else {
         Art.mount($('petArt'), Art.petSVG(breed, stage, mood, walking ? 'quad' : null));
       }
