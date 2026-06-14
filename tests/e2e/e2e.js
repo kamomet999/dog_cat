@@ -61,6 +61,7 @@ async function newPage(save, opts) {
   page.on('pageerror', e => page._errors.push(e.message));
   await page.addInitScript(([s, t, key, tut, skipTut]) => {
     window.__t = t;
+    window.__INUNEKO_NORMAL_BALANCE__ = true; // E2Eは通常バランスで決定論検証（手動テスト用の加速は無効化）
     Date.now = () => window.__t;
     // 未注入のときだけ書く（リロード後はアプリが保存した内容を保持＝永続化テスト可能）
     if (s && !localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
@@ -106,7 +107,7 @@ t('初回フロー: intro→種選択→チュートリアル5歩→ホーム到
   }
   assert.ok(!(await page.$('#tutNext')), 'チュートリアルが閉じた');
   const st = await engineState(page);
-  assert.strictEqual(st.version, 13);
+  assert.strictEqual(st.version, 14);
   assert.ok(st.current, 'ペットがいる');
   assert.strictEqual((await text(page, '#petName')).trim(), 'ねんねちゅう…');
   const tut = await page.evaluate(k => localStorage.getItem(k), TUT);
@@ -442,7 +443,7 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   const after = await engineState(page);
   assert.strictEqual(Math.floor(after.foodStock), Math.floor(before.foodStock), 'ストックが保持');
   assert.strictEqual(after.current.breedId, before.current.breedId);
-  assert.strictEqual(after.version, 13);
+  assert.strictEqual(after.version, 14);
   await closePage(page);
 });
 
@@ -498,7 +499,7 @@ t('設定: 累計ログ表示・チュートリアル再表示・データリセ
   await closePage(page);
 });
 
-t('旧セーブ(v1)読み込み: 最新v13へ移行して起動できる', async () => {
+t('旧セーブ(v1)読み込み: 最新v14へ移行して起動できる', async () => {
   const v1 = {
     version: 1, coin: 42, luck: 0.1,
     current: { breedId: 'shiba', xp: 30, hunger: 50, mood: 50, clean: 50, energy: 50, careCount: 3 },
@@ -510,7 +511,7 @@ t('旧セーブ(v1)読み込み: 最新v13へ移行して起動できる', async
   const ok = await page.$('#okBtn');
   if (ok) { await ok.click(); await page.waitForTimeout(300); }
   const st = await engineState(page);
-  assert.strictEqual(st.version, 13);
+  assert.strictEqual(st.version, 14);
   assert.strictEqual(st.current.mood, undefined, 'moodは消える');
   assert.ok(st.current.sanpo != null && st.current.health != null);
   await closePage(page);

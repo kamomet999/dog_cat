@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 13;
+  var VERSION = 14;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -17,6 +17,9 @@
   // おくるみの目覚め(約1分・stage0)は据え置き。通常成長は 18/h。
   var IS_TEST = true;
   var TEST_XP_PER_H = 2400; // 成体xp760まで快適度しだいで約25〜35分
+  var TEST_DECAY_MUL = 14;  // テスト時は生存の時計も速める（放置で“死ぬ気がする”ように）。IS_TEST=falseで通常。
+  // E2E/単体テストは通常バランスで決定論検証する（手動プレイテスト用の加速とは分ける）
+  if (typeof global !== 'undefined' && global.__INUNEKO_NORMAL_BALANCE__) IS_TEST = false;
   // ▲▲
 
   // ----- いのちと家出（生存システム。docs/GAME_DESIGN.md が正）-----
@@ -71,6 +74,13 @@
   // きせかえ（おさんぽ報酬でランダム入手するペットのアクセサリ。無料コレクション要素）
   var WEAR_IDS = ['ribbon', 'straw', 'cap', 'crown', 'flower', 'glasses', 'scarf', 'bowtie', 'tiara', 'star', 'bandana', 'mush'];
   var WEAR_DROP_RATE = 0.5; // おさんぽ成功ごとの入手確率
+  // なかよしポイント達成で解放するレア装備（おさんぽドロップ WEAR_IDS には含めない＝達成限定）
+  var MILESTONES = [
+    { pts: 1000,  wear: 'halo' },
+    { pts: 5000,  wear: 'medal' },
+    { pts: 20000, wear: 'party' },
+    { pts: 60000, wear: 'rainbow' }
+  ];
 
   // 成長に必要な累積なかよし度（xp）。index=到達stage
   // 巣立ち(成体)まで体感60時間イメージ（放置xp≈12.6/h・hf0.7想定で 760≈60h）。赤ちゃんは早めに目覚める
@@ -83,8 +93,9 @@
   var DECAY = { hunger: 8.34, clean: 6.25 };
 
   // 世話アクション効果（ごはんは在庫制の feed()／さんぽは task。残る世話は おそうじ のみ）
+  // ※おそうじは「きれい」回復のみ。成長(なかよし)は与えない（クリック連打で無限成長するのを防ぐ）。
   var CARE = {
-    wash:  { clean: 42, xp: 8, coin: 3, label: 'おそうじ' }
+    wash:  { clean: 42, xp: 0, coin: 3, label: 'おそうじ' }
   };
 
   var REROLL_COST = 30;
@@ -120,6 +131,7 @@
     return {
       version: VERSION,
       coin: 0,
+      points: 0,            // なかよしポイント（口座・無限に貯まる。達成でレア装備解放）
       luck: 0,
       premium: false,       // ¥500買い切りで true。全公式品種が抽選・図鑑に解放される
       current: null,        // 種選択後に設定
@@ -225,6 +237,10 @@
       // 目スタイル（個体の特徴）。既存の子は batchiri から
       s = { ...s, version: 13, current: s.current ? { ...s.current, eyeStyle: s.current.eyeStyle || 'batchiri' } : null };
     }
+    if (s.version === 13) {
+      // なかよしポイント（口座・無限）導入
+      s = { ...s, version: 14, points: s.points || 0 };
+    }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
 
@@ -269,9 +285,10 @@
         stock = Math.min(FOOD_STOCK_MAX, stock + FOOD_PER_HOUR * edt);
         earnLeft -= edt;
       }
-      hunger = clamp(hunger - DECAY.hunger * dt, 0, 100);
-      clean  = clamp(clean  - DECAY.clean  * dt, 0, 100);
-      sanpo  = clamp(sanpo  - SANPO_DECAY  * dt, 0, 100);
+      var dmul = IS_TEST ? TEST_DECAY_MUL : 1; // テスト時は生存の時計を速める（食料獲得は据え置き＝放置で危険）
+      hunger = clamp(hunger - DECAY.hunger * dt * dmul, 0, 100);
+      clean  = clamp(clean  - DECAY.clean  * dt * dmul, 0, 100);
+      sanpo  = clamp(sanpo  - SANPO_DECAY  * dt * dmul, 0, 100);
       // 自動給餌（ストックがあるかぎり、何日先まででも勝手にごはんを食べる）
       if (!stage0 && hunger < AUTO_FEED_AT && stock >= 1) {
         stock -= 1;
@@ -280,11 +297,11 @@
       }
       if (!stage0) {
         // いのち＝ごはん。飢えで減り、満たされていれば回復する（リミット短め）
-        if (hunger <= 0) health = clamp(health - STARVE_DRAIN * dt, 0, 100);
-        else if (hunger > 30) health = clamp(health + HEALTH_REGEN * dt, 0, 100);
+        if (hunger <= 0) health = clamp(health - STARVE_DRAIN * dt * dmul, 0, 100);
+        else if (hunger > 30) health = clamp(health + HEALTH_REGEN * dt * dmul, 0, 100);
         // 家出＝さんぽ（いい時間）。ゲージ0がつづくと、あたらしい家族をさがしに出ていく（リミット長め）
         if (sanpo <= 0) {
-          runawayH += dt;
+          runawayH += dt * dmul;
           if (runawayH >= RUNAWAY_H) away = true;
         } else {
           runawayH = 0;
@@ -301,7 +318,8 @@
       sanpo: sanpo, health: health,
       runawayH: runawayH, away: away
     };
-    var ns = { ...state, current: np, coin: state.coin + coinGain, foodStock: stock };
+    // なかよしポイント（口座・無限に貯まる。成体後も加算され、達成でレア装備が解放される）
+    var ns = { ...state, current: np, coin: state.coin + coinGain, foodStock: stock, points: (state.points || 0) + xpGain };
     return { state: ns, coinGain: coinGain, xpGain: xpGain, died: died, ranAway: ranAway, autoFed: autoFed };
   }
 
@@ -690,6 +708,22 @@
     markOf: function () { return (this._state && this._state.current && this._state.current.mark) || 'none'; },
     EYE_STYLES: EYE_STYLES,
     eyeStyleOf: function () { return (this._state && this._state.current && this._state.current.eyeStyle) || 'batchiri'; },
+
+    // ===== なかよしポイント（口座・無限）＆達成報酬 =====
+    points: function () { return this._state ? (this._state.points || 0) : 0; },
+    MILESTONES: MILESTONES,
+    /** ポイント到達で未獲得のレア装備を解放。新規解放した wear id の配列を返す */
+    claimMilestones: function (now) {
+      var s = this._state; if (!s) return [];
+      var pts = s.points || 0;
+      var ward = { owned: Object.assign({}, (s.wardrobe && s.wardrobe.owned) || {}), equipped: (s.wardrobe && s.wardrobe.equipped) || null };
+      var got = [];
+      for (var i = 0; i < MILESTONES.length; i++) { var m = MILESTONES[i]; if (pts >= m.pts && !ward.owned[m.wear]) { ward.owned[m.wear] = 1; got.push(m.wear); } }
+      if (got.length) { var ns = { ...s, wardrobe: ward, lastSavedAt: now || s.lastSavedAt }; this._state = ns; persist(ns); }
+      return got;
+    },
+    /** テスト用: 成長/生存の高速化トグル（リリース後の通常バランスは false） */
+    setTest: function (b) { IS_TEST = !!b; },
 
     // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める） =====
     WEAR_IDS: WEAR_IDS,

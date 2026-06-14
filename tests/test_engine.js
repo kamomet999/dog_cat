@@ -30,6 +30,7 @@ function freshWorld(storage) {
   for (const f of ['www/js/breeds.js', 'www/js/engine.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sandbox, { filename: f });
   }
+  sandbox.Engine.setTest(false); // 単体テストは通常バランス（成長18/h・生存の時計も等倍）で決定論的に検証
   return sandbox;
 }
 
@@ -92,10 +93,11 @@ test('無料抽選は無料ティアのみ／課金抽選は全品種', () => {
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v13 の初期状態ができる', () => {
+test('newGame で v14 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 13);
+  assert.strictEqual(s.version, 14);
+  assert.strictEqual(s.points, 0);
   assert.strictEqual(s.premium, false);
   eqJSON(s.album, []);
   assert.strictEqual(s.foodStock, 6);
@@ -164,7 +166,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 13);
+  assert.strictEqual(s.version, 14);
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
@@ -342,11 +344,10 @@ test('おさんぽ中の二重開始は拒否される', () => {
 
 console.log('# いのち（生存システム）');
 
-/** stage1 まで育てるヘルパ（世話2回で xp16 >= 12） */
+/** stage1 まで育てるヘルパ（おそうじは成長しなくなったので、なかよしを直接与える） */
 function toStage1(w, t) {
-  // GROW[1]=15。おそうじ(xp+8)を2回で 16 ≥ 15 → 赤ちゃん
-  w.Engine.care('wash', t);
-  w.Engine.care('wash', t + 1000);
+  // GROW[1]=0.225 を超えれば赤ちゃん
+  w.Engine.getState().current.xp = 10;
   assert.ok(w.Engine.stage() >= 1);
 }
 

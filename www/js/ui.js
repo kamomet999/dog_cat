@@ -208,22 +208,23 @@
   }
 
   // 性格（nature）ごとの タップ反応（しぐさ＋絵文字）。breeds.js の NATURES と対応。
+  // 各性格に複数のしぐさ。タップのたびに順番に切り替わる（毎回ちがう反応で飽きない）。
   var NATURE_REACT = {
-    'いちず':         { anim: 'bounce', emo: '❤️' },
-    'ひとなつっこい': { anim: 'hop',    emo: '🤝' },
-    'がんばりや':     { anim: 'shake',  emo: '🔥' },
-    'おりこう':       { anim: 'spin',   emo: '✨' },
-    'こうきしん':     { anim: 'wiggle', emo: '❓' },
-    'げんきいっぱい': { anim: 'hop',    emo: '⚡' },
-    'のんびりや':     { anim: 'wiggle', emo: '🍃' },
-    'ぼうけんずき':   { anim: 'spin',   emo: '🧭' },
-    'クール':         { anim: 'shake',  emo: '😎' },
-    'きまぐれ':       { anim: 'pop',    emo: '🎲' },
-    'きれいずき':     { anim: 'wiggle', emo: '🌸' },
-    'あまえんぼう':   { anim: 'bounce', emo: '🥰' },
-    'おしゃべり':     { anim: 'wiggle', emo: '💬' },
-    'おっとり':       { anim: 'bounce', emo: '🌼' },
-    'やさしい':       { anim: 'bounce', emo: '💗' }
+    'いちず':         [{ anim: 'bounce', emo: '❤️' }, { anim: 'hop', emo: '💞' }, { anim: 'wiggle', emo: '💗' }],
+    'ひとなつっこい': [{ anim: 'hop', emo: '🤝' }, { anim: 'bounce', emo: '🐾' }, { anim: 'wiggle', emo: '😊' }],
+    'がんばりや':     [{ anim: 'shake', emo: '🔥' }, { anim: 'hop', emo: '💪' }, { anim: 'bounce', emo: '⭐' }],
+    'おりこう':       [{ anim: 'spin', emo: '✨' }, { anim: 'wiggle', emo: '📘' }, { anim: 'pop', emo: '💡' }],
+    'こうきしん':     [{ anim: 'wiggle', emo: '❓' }, { anim: 'spin', emo: '👀' }, { anim: 'pop', emo: '🔍' }],
+    'げんきいっぱい': [{ anim: 'hop', emo: '⚡' }, { anim: 'bounce', emo: '🌟' }, { anim: 'shake', emo: '🎉' }],
+    'のんびりや':     [{ anim: 'wiggle', emo: '🍃' }, { anim: 'bounce', emo: '☁️' }, { anim: 'hop', emo: '🌿' }],
+    'ぼうけんずき':   [{ anim: 'spin', emo: '🧭' }, { anim: 'hop', emo: '🗺️' }, { anim: 'shake', emo: '⛰️' }],
+    'クール':         [{ anim: 'shake', emo: '😎' }, { anim: 'pop', emo: '❄️' }, { anim: 'spin', emo: '✌️' }],
+    'きまぐれ':       [{ anim: 'pop', emo: '🎲' }, { anim: 'spin', emo: '🌀' }, { anim: 'wiggle', emo: '🎭' }],
+    'きれいずき':     [{ anim: 'wiggle', emo: '🌸' }, { anim: 'bounce', emo: '🌷' }, { anim: 'spin', emo: '💎' }],
+    'あまえんぼう':   [{ anim: 'bounce', emo: '🥰' }, { anim: 'wiggle', emo: '🫶' }, { anim: 'hop', emo: '💕' }],
+    'おしゃべり':     [{ anim: 'wiggle', emo: '💬' }, { anim: 'pop', emo: '🗨️' }, { anim: 'hop', emo: '🎵' }],
+    'おっとり':       [{ anim: 'bounce', emo: '🌼' }, { anim: 'wiggle', emo: '🍮' }, { anim: 'hop', emo: '🧸' }],
+    'やさしい':       [{ anim: 'bounce', emo: '💗' }, { anim: 'wiggle', emo: '🌷' }, { anim: 'hop', emo: '🤲' }]
   };
 
   // タップは成長させず、犬・猫らしいしぐさ＋ほほ笑みの演出だけ（発案者FB）
@@ -240,9 +241,11 @@
     var r = Engine.pet();
     if (!r) return;
     if (r.asleep) { happyUntil = now() + 700; bump('wiggle'); floatReact('💤'); render(); return; }
-    // 性格でリアクションが変わる。性格が無い/未定義なら従来の犬猫しぐさにフォールバック
+    // 性格でリアクションが変わる。タップのたびに性格内のしぐさを順番に切り替え。
+    // 性格が無い/未定義なら従来の犬猫しぐさにフォールバック
     var b = Engine.breed();
-    var pick = (b && NATURE_REACT[b.nature]) || (function () { var l = r.species === 'cat' ? REACT_CAT : REACT_DOG; return l[reactIdx++ % l.length]; })();
+    var list = (b && NATURE_REACT[b.nature]) || (r.species === 'cat' ? REACT_CAT : REACT_DOG);
+    var pick = list[reactIdx++ % list.length];
     happyUntil = now() + 1100; // ほほ笑み（happy顔）
     bump(pick.anim);
     floatReact(pick.emo);
@@ -681,8 +684,15 @@
     tiara:   { label: 'ティアラ',     e: '💎', pos: 'head' },
     star:    { label: 'ほし',         e: '⭐', pos: 'head' },
     bandana: { label: 'すず',         e: '🔔', pos: 'neck' },
-    mush:    { label: 'きのこ',       e: '🍄', pos: 'head' }
+    mush:    { label: 'きのこ',       e: '🍄', pos: 'head' },
+    // レア装備（なかよしポイント達成で解放。Engine.MILESTONES と対応）
+    halo:    { label: 'てんしのわ',   e: '😇', pos: 'head', rare: true },
+    medal:   { label: 'メダル',       e: '🏅', pos: 'neck', rare: true },
+    party:   { label: 'パーティ',     e: '🎉', pos: 'head', rare: true },
+    rainbow: { label: 'にじ',         e: '🌈', pos: 'head', rare: true }
   };
+  // レア装備のid（おさんぽドロップには含めず、達成で解放）
+  var RARE_WEAR_IDS = Engine.MILESTONES.map(function (m) { return m.wear; });
   // 装備中のアクセサリをペットの上に重ねる（home stage）
   function renderWear() {
     var el = $('petWear'); if (!el) return;
@@ -759,14 +769,23 @@
     var ids = Engine.WEAR_IDS;
     var ward = Engine.wardrobe(), owned = ward.owned || {};
     var have = ids.filter(function (id) { return owned[id]; }).length;
-    var cells = ids.map(function (id) {
+    function cell(id, lockedLabel) {
       var it = WEAR[id], got = !!owned[id], on = ward.equipped === id;
-      return '<button class="wear-cell' + (on ? ' on' : '') + (got ? '' : ' locked') + '" data-wear="' + id + '"' + (got ? '' : ' disabled') + '>' +
-        '<span class="wear-emo">' + (got ? it.e : '❔') + '</span><span class="wear-lbl">' + (got ? it.label : '？？？') + '</span></button>';
+      return '<button class="wear-cell' + (on ? ' on' : '') + (got ? '' : ' locked') + (it.rare ? ' rare' : '') + '" data-wear="' + id + '"' + (got ? '' : ' disabled') + '>' +
+        '<span class="wear-emo">' + (got ? it.e : '❔') + '</span><span class="wear-lbl">' + (got ? it.label : (lockedLabel || '？？？')) + '</span></button>';
+    }
+    var cells = ids.map(function (id) { return cell(id); }).join('');
+    // レア装備（なかよしポイント達成で解放）。未達成は必要ポイントをヒント表示
+    var pts = Engine.points();
+    var rareCells = Engine.MILESTONES.map(function (m) {
+      return cell(m.wear, '🏆' + m.pts.toLocaleString());
     }).join('');
     var html = '<h2>👕 きせかえ</h2>' +
       '<p class="sub">おさんぽの ごほうびで あつまるよ（<b>' + have + '</b>/' + ids.length + '）。<br>タップで きせかえ・もういちどで ぬぐ。</p>' +
       '<div class="wear-grid">' + cells + '</div>' +
+      '<div class="dex-section-title" style="margin-top:14px">🏆 レア（なかよし ' + pts.toLocaleString() + 'pt）</div>' +
+      '<p class="sub" style="margin-top:0">お世話やおさんぽで たまる なかよしポイントを ためると もらえる とくべつな かざり。</p>' +
+      '<div class="wear-grid">' + rareCells + '</div>' +
       (ward.equipped ? '<button id="wearOff" class="big-btn ghost mt12" style="width:100%">ぜんぶ ぬぐ</button>' : '');
     var m = openModal(html);
     m.root.querySelectorAll('[data-wear]').forEach(function (b) {
@@ -1009,6 +1028,14 @@
       '<p class="muted">成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ ロック合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
       '<div class="dex-section-title">🐾 おさんぽ ダッシュボード</div>' +
       '<p class="muted">継続 <b>' + ts.days + '</b> 日（最高 <b>' + ts.bestDays + '</b>）／ 合計 <b>' + Math.floor(ts.totalMin / 60) + '</b> 時間 ' + (ts.totalMin % 60) + ' 分 ／ スコア <b>' + Engine.taskScore() + '</b>' + byKindStr + '</p>' +
+      '<div class="dex-section-title">🏆 なかよしポイント</div>' +
+      (function () {
+        var pts = Engine.points();
+        var next = Engine.MILESTONES.filter(function (m) { return pts < m.pts; })[0];
+        return '<p class="muted">これまで ためた なかよし：<b>' + pts.toLocaleString() + '</b> pt' +
+          (next ? '<br>つぎの レア「' + (WEAR[next.wear] ? WEAR[next.wear].label : next.wear) + '」まで あと <b>' + (next.pts - pts).toLocaleString() + '</b> pt' : '<br>レア装備を ぜんぶ あつめたよ！🎉') +
+          '<br><span style="font-size:11px">おとなになっても お世話やおさんぽで ずっと たまるよ。</span></p>';
+      })() +
       '<button id="allowSet" class="big-btn ghost mt12" style="width:100%">📱 おすわり中に使ってOKなアプリ</button>' +
       '<button id="remindSet" class="big-btn ghost mt12" style="width:100%">⏰ さんぽリマインド時刻</button>' +
       '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種' +
@@ -1373,7 +1400,11 @@
       '<button id="sanpoBack" class="sheet-x" aria-label="ホームへ">✕</button>' +
       '<div class="sanpo-top"><span class="place-pill">' + p.emo + ' ' + p.name + '</span>' +
       '<span class="place-pill">' + (TASK_EMO[t.kind] || '🐾') + ' ' + t.kind + '</span></div>' +
+      '<div class="sanpo-stage">' +
       '<div id="sanpoPet" class="sanpo-scene-pet"></div>' +
+      '<div class="sanpo-shadow"></div>' +
+      '<div class="sanpo-ground"></div>' +
+      '</div>' +
       '<div class="sanpo-card">' +
       '<div id="sanpoTimer" class="walk-timer" style="color:var(--ink)">' + fmtMMSS(remain) + '</div>' +
       '<p class="muted" style="margin:0 0 12px">スマホを置いて、すきな いいことを。<br>もどってきたら ごほうび（さんぽ＋エサ）。</p>' +
@@ -1513,6 +1544,32 @@
     toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms || 1800);
   }
 
+  // なかよしポイント達成で解放したレア装備を順番にアナウンス（責めないトーン＝良い知らせのみ）
+  function checkMilestones() {
+    var got = Engine.claimMilestones(now());
+    if (!got || !got.length) return;
+    got.forEach(function (id, i) {
+      var it = WEAR[id]; if (!it) return;
+      setTimeout(function () { showRareUnlock(id, it); }, i * 400);
+    });
+  }
+  function showRareUnlock(id, it) {
+    var html = '<div class="center pop">' +
+      '<p class="sub" style="margin-bottom:2px">🏆 なかよしポイント達成！</p>' +
+      '<div style="font-size:64px;line-height:1.1;margin:4px">' + it.e + '</div>' +
+      '<h2>レアな きせかえ「' + it.label + '」を もらった！</h2>' +
+      '<p class="sub">たくさん いっしょに すごした しるし。<br>いま 着せてみる？（あとでも 👕 から着られるよ）</p>' +
+      '<button id="ruWear" class="big-btn primary mt12" style="width:100%">👕 着せる</button>' +
+      '<button id="ruLater" class="big-btn ghost mt12" style="width:100%">あとで</button>' +
+      '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
+    var m = openModal(html);
+    m.root.querySelector('#ruWear').addEventListener('click', function () {
+      Engine.equipWear(id, now()); lastArtKey = ''; render(); m.close();
+      showToast('かわいい！👕 ' + it.label + 'を 着たよ');
+    });
+    m.root.querySelector('#ruLater').addEventListener('click', m.close);
+  }
+
   // ---------- メインループ ----------
   function loop() {
     var st = Engine.getState();
@@ -1525,6 +1582,7 @@
     syncTask();
     render();
     if (post > pre) celebrateGrowth(post);
+    checkMilestones();
   }
 
   // ---------- 起動 ----------
@@ -1563,6 +1621,7 @@
       syncWalk();
       syncTask();
       render();
+      checkMilestones();
     }
     // バックグラウンドへ行く瞬間に「危険の予告」をローカル通知でスケジュール（GAME_DESIGN.md §4）
     function onPause() {
