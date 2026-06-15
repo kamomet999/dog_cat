@@ -91,6 +91,22 @@ test('無料抽選は無料ティアのみ／課金抽選は全品種', () => {
   assert.ok(![...seenFree].some(id => w.Breeds.isPremium(w.Breeds.get(id))));
 });
 
+test('抽選: 収集済み・直前と同じ品種は出にくい（同じ子ばかり対策）', () => {
+  const w = freshWorld();
+  const B = w.Breeds;
+  const countRolls = (opts) => {
+    const c = {};
+    for (let i = 0; i < 2000; i++) { const b = B.roll(() => i / 2000, 0, false, 'dog', opts); c[b.id] = (c[b.id] || 0) + 1; }
+    return c;
+  };
+  const base = countRolls(undefined);
+  const top = Object.keys(base).sort((a, b) => base[b] - base[a])[0]; // 最頻の犬種
+  const damped = countRolls({ owned: { [top]: 1 }, avoid: top });
+  assert.ok((damped[top] || 0) < base[top] * 0.5, `収集済み＆直前は半減以下: ${base[top]}→${damped[top] || 0}`);
+  const sum = (o) => Object.keys(o).reduce((a, k) => a + o[k], 0);
+  assert.strictEqual(sum(damped), 2000, '必ず何か返る（合計不変）');
+});
+
 console.log('# 新規ゲームとセーブ');
 
 test('newGame で v14 の初期状態ができる', () => {

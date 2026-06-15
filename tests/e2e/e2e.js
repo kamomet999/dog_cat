@@ -499,6 +499,36 @@ t('設定: 累計ログ表示・チュートリアル再表示・データリセ
   await closePage(page);
 });
 
+t('うちの子カード: 設定から作成→プレビュー画像と共有/保存ボタンが出る', async () => {
+  const page = await newPage(saveBase({ current: petBase({ xp: 300 }) }));
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(350);
+  assert.ok(await page.$('#cardSet'), 'カード作成ボタン');
+  await page.click('#cardSet');
+  await page.waitForTimeout(900); // 画像合成（canvas）待ち
+  assert.ok(await page.$('#cardWrap img'), 'カードのプレビュー画像ができる');
+  const share = await page.$('#cardShare'), save = await page.$('#cardSave');
+  assert.ok(share && !(await share.isDisabled()), '共有ボタンが有効');
+  assert.ok(save && !(await save.isDisabled()), '保存ボタンが有効');
+  await closePage(page);
+});
+
+t('開発者トグル: 版表記5タップで「はや回し」が出て切り替えできる', async () => {
+  const page = await newPage(saveBase());
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(350);
+  assert.ok(!(await page.$('#devFast')) || !(await (await page.$('#devBox')).isVisible()), '初期は隠れている');
+  for (let i = 0; i < 5; i++) { await page.click('#verLabel'); }
+  await page.waitForTimeout(150);
+  assert.ok(await (await page.$('#devBox')).isVisible(), '5タップで開発者メニューが出る');
+  assert.match(await text(page, '#devFast'), /OFF/);
+  await page.click('#devFast');
+  await page.waitForTimeout(150);
+  assert.match(await text(page, '#devFast'), /ON/);
+  assert.strictEqual(await page.evaluate(() => Engine.isTest()), true);
+  await closePage(page);
+});
+
 t('旧セーブ(v1)読み込み: 最新v14へ移行して起動できる', async () => {
   const v1 = {
     version: 1, coin: 42, luck: 0.1,

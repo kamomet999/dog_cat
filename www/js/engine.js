@@ -12,13 +12,14 @@
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
 
-  // ▼▼ テスト段階の成長加速（リリース前に IS_TEST=false に戻す）▼▼
-  // 赤ちゃん以降(stage≥1)を高速化して、約30分で成体（＝おみあい可）に到達させる。
-  // おくるみの目覚め(約1分・stage0)は据え置き。通常成長は 18/h。
-  var IS_TEST = true;
-  var TEST_XP_PER_H = 2400; // 成体xp760まで快適度しだいで約25〜35分
-  var TEST_DECAY_MUL = 14;  // テスト時は生存の時計も速める（放置で“死ぬ気がする”ように）。IS_TEST=falseで通常。
-  // E2E/単体テストは通常バランスで決定論検証する（手動プレイテスト用の加速とは分ける）
+  // ▼▼ バランス: 通常は本番設定（成体まで数日／放置だけでは死なない＝“育てた重み”と“責めない”を守る）。
+  // 手動プレイテスト用に「はや回し」を隠しトグルで有効化できる（localStorageに永続）。出荷既定はOFF。
+  var DEV_FAST_KEY = 'inuneko_dev_fast_v1';
+  var IS_TEST = false;
+  var TEST_XP_PER_H = 2400; // はや回し時のみ: 成体xp760まで快適度しだいで約25〜35分
+  var TEST_DECAY_MUL = 14;  // はや回し時のみ: 生存の時計も速める（放置で“死ぬ気がする”か確認用）
+  try { if (typeof global !== 'undefined' && global.localStorage && global.localStorage.getItem(DEV_FAST_KEY) === '1') IS_TEST = true; } catch (e) {}
+  // E2E/単体テストは必ず通常バランス（決定論検証。はや回しフラグより優先）
   if (typeof global !== 'undefined' && global.__INUNEKO_NORMAL_BALANCE__) IS_TEST = false;
   // ▲▲
 
@@ -722,8 +723,13 @@
       if (got.length) { var ns = { ...s, wardrobe: ward, lastSavedAt: now || s.lastSavedAt }; this._state = ns; persist(ns); }
       return got;
     },
-    /** テスト用: 成長/生存の高速化トグル（リリース後の通常バランスは false） */
-    setTest: function (b) { IS_TEST = !!b; },
+    /** 成長/生存の「はや回し」トグル（手動テスト用。localStorageに永続。出荷既定OFF） */
+    setTest: function (b) {
+      IS_TEST = !!b;
+      try { if (global.localStorage) { if (b) global.localStorage.setItem(DEV_FAST_KEY, '1'); else global.localStorage.removeItem(DEV_FAST_KEY); } } catch (e) {}
+    },
+    /** いまが「はや回し」かどうか（設定の開発者トグル表示用） */
+    isTest: function () { return IS_TEST; },
 
     // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める） =====
     WEAR_IDS: WEAR_IDS,
@@ -804,7 +810,7 @@
       var cause = s.current.health <= 0 ? 'star' : (s.current.away ? 'away' : null);
       if (!cause) return null;
       var breed = Breeds.get(s.current.breedId);
-      var next = Breeds.roll(rnd, s.luck, !!s.premium, species);
+      var next = Breeds.roll(rnd, s.luck, !!s.premium, species, { owned: s.dex, avoid: s.current.breedId });
       var ns = {
         ...s,
         deaths: (s.deaths || 0) + (cause === 'star' ? 1 : 0),
@@ -959,7 +965,8 @@
       }
 
       var luck = clamp(s.luck + 0.04, 0, 2);
-      var next = Breeds.roll(rnd, luck, !!s.premium, species);
+      // 次の子は「未収集が出やすく・直前と同じになりにくい」よう抽選（同じ品種ばかり対策）
+      var next = Breeds.roll(rnd, luck, !!s.premium, species, { owned: dex, avoid: s.current.breedId });
 
       var ns = {
         ...s,
@@ -1092,7 +1099,7 @@
       if (!s || !s.current) return null;
       if (stageOf(s.current.xp) !== 0) return { error: 'already_hatched' };
       if (s.coin < REROLL_COST) return { error: 'no_coin' };
-      var next = Breeds.roll(rnd, s.luck, !!s.premium, species);
+      var next = Breeds.roll(rnd, s.luck, !!s.premium, species, { owned: s.dex, avoid: s.current.breedId });
       var ns = { ...s, coin: s.coin - REROLL_COST, current: freshPet(next.id, rnd), lastSavedAt: now };
       this._state = ns;
       persist(ns);

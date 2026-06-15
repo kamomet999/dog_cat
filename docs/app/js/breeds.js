@@ -2085,14 +2085,19 @@
       return premiumUnlocked ? BREEDS : BREEDS.filter(isFree);
     },
     /** レアリティ重みに従って1匹抽選。luck>0 でレア寄りに補正。premiumUnlocked で対象拡張。 */
-    roll: function (rnd, luck, premiumUnlocked, species) {
+    roll: function (rnd, luck, premiumUnlocked, species, opts) {
       luck = luck || 0;
+      opts = opts || {};
+      var owned = opts.owned || null;   // すでに図鑑にいる品種は出にくくして「同じ子ばかり」を減らす
+      var avoid = opts.avoid || null;   // 直前の子の品種は強めに回避（連続で同じを防ぐ）
       var src = this.pool(premiumUnlocked);
       if (species) src = src.filter(function (b) { return b.species === species; }); // 犬/猫の指定（おみあいは指定しない）
       var pool = src.map(function (b) {
         var w = RARITY[b.rarity].weight;
         // luck はレア度の高い品種の重みを引き上げる（stars が大きいほど効く）
         var boost = 1 + luck * (RARITY[b.rarity].stars - 1) * 0.5;
+        if (owned && owned[b.id]) boost *= 0.22; // 収集済みは出現を抑え、未発見が出やすい＝コンプが進む
+        if (avoid && b.id === avoid) boost *= 0.12; // 直前と同じ品種は更に抑える（体感の偏り対策）
         return { breed: b, w: w * boost };
       });
       var total = pool.reduce(function (s, p) { return s + p.w; }, 0);

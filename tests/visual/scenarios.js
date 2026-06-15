@@ -278,9 +278,14 @@ module.exports = {
     },
     {
       name: 'settings',
-      save: saveBase({ graduates: 7, walkStats: { success: 18, fail: 3, streak: 4, best: 9, totalMin: 1240 }, taskStats: { success: 9, days: 4, bestDays: 6, lastDay: 0, totalMin: 320, byKind: { 'ほんよみ': 180, 'ダイエット': 90, 'うんどう': 50 } } }),
+      save: saveBase({ points: 3200, wardrobe: { owned: { halo: 1 }, equipped: null }, graduates: 7, walkStats: { success: 18, fail: 3, streak: 4, best: 9, totalMin: 1240 }, taskStats: { success: 9, days: 4, bestDays: 6, lastDay: 0, totalMin: 320, byKind: { 'ほんよみ': 180, 'ダイエット': 90, 'うんどう': 50 } } }),
       fullPage: true,
       steps: [{ click: '#settingsBtn' }, { wait: 400 }]
+    },
+    {
+      name: 'share-card',
+      save: saveBase({ points: 3200, wardrobe: { owned: { halo: 1 }, equipped: null }, current: petBase({ breedId: 'shiba', xp: 300, mark: 'star' }) }),
+      steps: [{ click: '#settingsBtn' }, { wait: 300 }, { click: '#cardSet' }, { wait: 900 }]
     },
     {
       name: 'allowapps',

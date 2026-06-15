@@ -346,7 +346,7 @@
     var html = '<div class="intro">' +
       '<div class="intro-hero"><div id="introPet"></div></div>' +
       '<h2 class="intro-title">スマホを離れるほど、<br>いぬねこが育つ。</h2>' +
-      '<p class="intro-lead">スマホを置いた時間が、この子の <b>ごはん</b> になる。</p>' +
+      '<p class="intro-lead">スマホを見ない時間が、そのまま この子の <b>ごはん</b>。<br>だから <b>置くほど 育つ</b>。<span style="white-space:nowrap">📱 → 🍚 → 🐶</span></p>' +
       '<div class="intro-steps">' +
       '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>おすわり</b><br>スマホを置くと エサが貯まる</span></div>' +
       '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>お散歩</b><br>読書・英語・運動・ダイエットの間、となりに</span></div>' +
@@ -392,7 +392,7 @@
 
   var TUT_STEPS = [
     { sel: '#petArt', title: 'いまは ねんね中', text: 'タップすると <b>いろんなしぐさ</b> で よろこぶよ（成長はしない）。<br>ごはんや時間で、もうすぐ目を覚ます。', place: 'below' },
-    { sel: '#walkBtn', title: '① おすわり＝スマホを置く', text: '“スマホを置く” と この子は おすわりして待つよ。その時間が <b>エサ</b> になる（長いほど たくさん）。これが一番大事！', place: 'above' },
+    { sel: '#walkBtn', title: '① おすわり＝スマホを置く', text: '“スマホを置く” と この子は おすわりして待つよ。<b>見なかった時間が そのまま エサ</b>（📱→🍚 長いほど たくさん）。これが一番大事！', place: 'above' },
     { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動・ダイエットの間、となりにいてくれる。<b>取り組むと エサも少しもらえる</b>“いい時間”。', place: 'above' },
     { sel: '#stats', title: 'お腹・機嫌・いのち', text: 'ごはんは ストックから <span class="calm">自動で</span> 食べるよ。毎日ひらかなくても、<span class="calm">忘れても責めないよ</span>。', place: 'below' },
     { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。犬・猫それぞれ30種〜、友達と「おみあい」もできるよ！', place: 'above' }
@@ -1021,8 +1021,8 @@
       ? '<br><span style="font-size:11px">' + Object.keys(byKind).map(function (k) { return (TASK_EMO[k] || '🐾') + k + ' ' + Math.floor(byKind[k] / 60) + 'h' + (byKind[k] % 60) + 'm'; }).join('　') + '</span>'
       : '';
     var html = '<h2>⚙ せってい</h2>' +
-      '<p class="sub">「いぬねこ図鑑」 β10（2026-06-13）— スマホを離れて、育てる いぬねこ</p>' +
-      '<p class="muted">アプリを閉じているあいだも時間がすすみ、少しずつ成長します（最大24時間ぶんまで）。「おすわり」で計画的にスマホから離れると、もっと早く育って ごほうびがもらえます。</p>' +
+      '<p class="sub" id="verLabel">「いぬねこ図鑑」 β11（2026-06-15）— スマホを離れて、育てる いぬねこ</p>' +
+      '<p class="muted">アプリを閉じているあいだも 時間がすすみ、少しずつ育ちます。<b>一度に進むのは3日ぶんまで</b>なので、たまに見られない日があっても、ふだん ごはんを ためておけば だいじょうぶ。あわてず ゆっくりで いいよ。</p>' +
       '<hr class="soft">' +
       '<div class="dex-section-title">🐾 おすわり</div>' +
       '<p class="muted">成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ ロック合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
@@ -1031,9 +1031,16 @@
       '<div class="dex-section-title">🏆 なかよしポイント</div>' +
       (function () {
         var pts = Engine.points();
-        var next = Engine.MILESTONES.filter(function (m) { return pts < m.pts; })[0];
-        return '<p class="muted">これまで ためた なかよし：<b>' + pts.toLocaleString() + '</b> pt' +
-          (next ? '<br>つぎの レア「' + (WEAR[next.wear] ? WEAR[next.wear].label : next.wear) + '」まで あと <b>' + (next.pts - pts).toLocaleString() + '</b> pt' : '<br>レア装備を ぜんぶ あつめたよ！🎉') +
+        var ms = Engine.MILESTONES;
+        var next = ms.filter(function (m) { return pts < m.pts; })[0];
+        var prevPts = 0;
+        for (var i = 0; i < ms.length; i++) { if (pts >= ms[i].pts) prevPts = ms[i].pts; }
+        var pct = next ? Math.floor((pts - prevPts) / (next.pts - prevPts) * 100) : 100;
+        var bar = '<div class="grow-bar"><div class="grow-fill" style="width:' + pct + '%"></div></div>';
+        return '<p class="muted">これまで ためた なかよし：<b>' + pts.toLocaleString() + '</b> pt</p>' +
+          bar +
+          '<p class="muted" style="margin-top:6px">' +
+          (next ? 'つぎの レア「' + (WEAR[next.wear] ? WEAR[next.wear].e + ' ' + WEAR[next.wear].label : next.wear) + '」まで あと <b>' + (next.pts - pts).toLocaleString() + '</b> pt' : 'レア装備を ぜんぶ あつめたよ！🎉') +
           '<br><span style="font-size:11px">おとなになっても お世話やおさんぽで ずっと たまるよ。</span></p>';
       })() +
       '<button id="allowSet" class="big-btn ghost mt12" style="width:100%">📱 おすわり中に使ってOKなアプリ</button>' +
@@ -1045,9 +1052,31 @@
       (Engine.isPremium()
         ? '<p class="muted">⭐ プレミアム図鑑：<b>解放ずみ</b>（ぜんぶの公式品種が あつまります）</p>'
         : '<button id="premSet" class="big-btn primary" style="width:100%">⭐ プレミアム図鑑を 解放（' + Breeds.PREMIUM.price + '）</button>') +
+      '<button id="cardSet" class="big-btn ghost mt12" style="width:100%">📸 うちの子カードを作る（保存・共有）</button>' +
       '<button id="tutAgain" class="big-btn ghost mt12" style="width:100%">📖 あそびかたを もういちど みる</button>' +
-      '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--badge-new)">🗑 データをリセット</button>';
+      '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--badge-new)">🗑 データをリセット</button>' +
+      '<div id="devBox" style="display:none;margin-top:14px">' +
+        '<hr class="soft">' +
+        '<div class="dex-section-title">🛠 開発者</div>' +
+        '<p class="muted" style="font-size:11px">「はや回し」は手動テスト用。ONにすると 成長と いのちの減りが速くなる（出荷は必ずOFF）。</p>' +
+        '<button id="devFast" class="big-btn ghost" style="width:100%">はや回し：' + (Engine.isTest() ? 'ON（テスト中）' : 'OFF（通常）') + '</button>' +
+      '</div>';
     var m = openModal(html);
+    // 隠し開発者メニュー: バージョン表記を5回タップで出す
+    var ver = m.root.querySelector('#verLabel');
+    var verTaps = 0;
+    if (ver) ver.addEventListener('click', function () {
+      if (++verTaps >= 5) { var db = m.root.querySelector('#devBox'); if (db) db.style.display = 'block'; }
+    });
+    var df = m.root.querySelector('#devFast');
+    if (df) df.addEventListener('click', function () {
+      var on = !Engine.isTest();
+      Engine.setTest(on);
+      df.textContent = 'はや回し：' + (on ? 'ON（テスト中）' : 'OFF（通常）');
+      showToast(on ? '⚡ はや回しON（テスト用）' : '🐢 通常スピードに戻したよ');
+    });
+    var cb = m.root.querySelector('#cardSet');
+    if (cb) cb.addEventListener('click', function () { m.close(); openShareCard(); });
     var as = m.root.querySelector('#allowSet');
     if (as) as.addEventListener('click', function () { m.close(); openAllowApps(); });
     var rs2 = m.root.querySelector('#remindSet');
@@ -1066,6 +1095,116 @@
         openSpeciesPicker();
         showToast('データをリセットしました');
       };
+    });
+  }
+
+  // ===== うちの子カード（共有・画像保存）=====
+  // ホームの子を1枚のカード画像にして、保存／共有できる（SNS導線・バイラル）。
+  var MARK_LABEL = { circle: '丸', triangle: '三角', heart: 'ハート', star: '星', dbl: '二重丸', diamond: 'ダイヤ' };
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  // ホームの子の絵を Image にして返す（純血=スプライトPNG／ミックス=手続きSVG）
+  function petCardImage() {
+    return new Promise(function (resolve) {
+      var html = Art.petSVG(Engine.breed(), 3, 'happy');
+      var src, mm = html.match(/<img[^>]*src="([^"]+)"/);
+      if (mm) { src = mm[1]; }
+      else {
+        // SVGは intrinsic サイズが要るので width/height を補う
+        var svg = html.replace(/^<svg/, '<svg width="512" height="512"');
+        src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      }
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(null); };
+      img.src = src;
+    });
+  }
+  function buildCardCanvas() {
+    var breed = Engine.breed(); if (!breed) return Promise.resolve(null);
+    var p = Engine.getState().current;
+    var W = 1080, Hh = 1350;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = Hh;
+    var ctx = cv.getContext('2d');
+    var g = ctx.createLinearGradient(0, 0, 0, Hh);
+    g.addColorStop(0, '#fff6e9'); g.addColorStop(1, '#ffe6c8');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, Hh);
+    roundRectPath(ctx, 56, 56, W - 112, Hh - 112, 56); ctx.fillStyle = '#fffdf8'; ctx.fill();
+    // 接地影＋ペット
+    return petCardImage().then(function (img) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,.10)';
+      ctx.beginPath(); ctx.ellipse(W / 2, 770, 230, 46, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      if (img) { var s = 640; ctx.drawImage(img, (W - s) / 2, 150, s, s); }
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#4a3a2a'; ctx.font = 'bold 92px sans-serif';
+      ctx.fillText(p.mix ? 'ミックス' : breed.name, W / 2, 920);
+      // 個性の行（種類・性格・模様）
+      ctx.fillStyle = '#8a7860'; ctx.font = '44px sans-serif';
+      var bits = [(breed.species === 'cat' ? '🐱 ねこ' : '🐶 いぬ')];
+      if (breed.nature) bits.push(breed.nature);
+      if (p.mark && MARK_LABEL[p.mark]) bits.push(MARK_LABEL[p.mark] + 'もよう');
+      ctx.fillText(bits.join('　/　'), W / 2, 1010);
+      // レア度（純血のみ）
+      var R = Breeds.RARITY[breed.rarity];
+      if (!p.mix && R) {
+        ctx.fillStyle = '#caa24a'; ctx.font = '52px sans-serif';
+        ctx.fillText('★'.repeat(R.stars) + ' ' + R.label, W / 2, 1090);
+      } else {
+        ctx.fillStyle = '#d98ca8'; ctx.font = '50px sans-serif';
+        ctx.fillText('💞 おみあいっ子', W / 2, 1090);
+      }
+      // なかよし pt
+      ctx.fillStyle = '#a08a6a'; ctx.font = '40px sans-serif';
+      ctx.fillText('なかよし ' + Engine.points().toLocaleString() + ' pt', W / 2, 1170);
+      // ウォーターマーク
+      ctx.fillStyle = '#c9b79a'; ctx.font = 'bold 40px sans-serif';
+      ctx.fillText('いぬねこ図鑑 🐾', W / 2, 1255);
+      return cv;
+    });
+  }
+  function openShareCard() {
+    if (!Engine.breed()) { showToast('まだ目を覚ましてないよ'); return; }
+    var html = '<div class="center"><h2>📸 うちの子カード</h2>' +
+      '<p class="sub">この子の今を 1枚に。<br>保存して、友だちに 自慢しよう！</p>' +
+      '<div id="cardWrap" style="margin:10px auto;max-width:300px"><p class="muted">つくっています…</p></div>' +
+      '<button id="cardShare" class="big-btn primary mt12" style="width:100%" disabled>📲 共有する</button>' +
+      '<button id="cardSave" class="big-btn ghost mt12" style="width:100%" disabled>💾 画像を保存</button>' +
+      '</div>';
+    var m = openModal(html);
+    buildCardCanvas().then(function (cv) {
+      var wrap = m.root.querySelector('#cardWrap'); if (!wrap) return;
+      if (!cv) { wrap.innerHTML = '<p class="muted">カードを作れませんでした</p>'; return; }
+      var url = cv.toDataURL('image/png');
+      wrap.innerHTML = '<img src="' + url + '" alt="うちの子カード" style="width:100%;border-radius:16px;box-shadow:var(--shadow)">';
+      var save = m.root.querySelector('#cardSave');
+      var share = m.root.querySelector('#cardShare');
+      function withBlob(cb) { cv.toBlob(function (b) { if (b) cb(b); }, 'image/png'); }
+      if (save) { save.disabled = false; save.addEventListener('click', function () {
+        var a = document.createElement('a'); a.href = url; a.download = 'inuneko_card.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast('💾 画像を保存したよ');
+      }); }
+      if (share) {
+        // Web Share API（ファイル対応端末）。非対応なら保存にフォールバック。
+        share.disabled = false;
+        share.addEventListener('click', function () {
+          withBlob(function (blob) {
+            var file = new File([blob], 'inuneko_card.png', { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              navigator.share({ files: [file], text: 'うちの子を見て！ #いぬねこ図鑑' }).catch(function () {});
+            } else if (save) { save.click(); showToast('この端末は共有に未対応。画像を保存したよ'); }
+          });
+        });
+      }
     });
   }
 
@@ -1143,10 +1282,10 @@
     if (!rep || rep.elapsedMs < 60000) return;
     var p = Engine.getState().current;
     var msgs = [];
-    if (p.hunger < 25) msgs.push('お腹ぺこぺこ…🍚');
-    if (p.clean < 25) msgs.push('お風呂に入れてあげて🛁');
-    if (p.sanpo != null && p.sanpo < 25) msgs.push('そろそろ いっしょに「いい時間」を過ごしたいな🐾');
-    if (p.health != null && p.health < 50) msgs.push('なんだか具合が悪そう…💧');
+    if (p.health != null && p.health < 50) msgs.push('ちょっと よわってるみたい。ごはんを あげれば すぐ 元気になるよ🍚');
+    else if (p.hunger < 25) msgs.push('おなか すいてるみたい。ごはんを あげよう🍚');
+    if (p.clean < 25) msgs.push('よかったら お風呂にも いれてあげて🛁');
+    if (p.sanpo != null && p.sanpo < 25) msgs.push('そろそろ いっしょに「いい時間」を 過ごせると うれしいな🐾');
     if (rep.autoFed > 0) msgs.push('留守の間に ごはんを ' + rep.autoFed + '回 食べたよ🍚');
     if (rep.afterStage > rep.beforeStage) msgs.push('その間に大きくなったよ！✨');
     var grewNote = rep.elapsedMs > rep.cappedMs ?
@@ -1517,7 +1656,7 @@
         '</div>'
       : '<div class="center">' +
         '<h2>' + b.name + 'は<br>おほしさまに なりました</h2>' +
-        '<p class="sub">ごはんが足りなかったみたい。<br>いっしょに過ごした時間は消えないよ。</p>' +
+        '<p class="sub">ゆっくり ねむりにつきました。<br>いっしょに過ごした時間は、ちゃんと のこっているよ。<br>また あたらしい子と、のんびり いこうね。</p>' +
         '<div style="font-size:56px;margin:10px">🌟</div>' +
         '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">新しい子を迎える</button>' +
         '</div>';
