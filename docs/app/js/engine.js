@@ -254,9 +254,12 @@
   // ----- 時間進行（純粋計算）-----
   // state を simMs 分シミュレーションし、報酬は rewardMs 分だけ与えた新しい state を返す。
   // 生存（いのち）は区分線形なので 0.25h 刻みで決定論的に積分する。
-  function advance(state, simMs, rewardMs) {
+  // opts.survive=true（前面=スマホ稼働中）のときだけ 生存の減衰・死/家出が進む。
+  // 離れている間（applyOffline）は減らさない＝「スマホを使わない限り いなくならない」(GAME_DESIGN.md §4)。
+  function advance(state, simMs, rewardMs, opts) {
     if (rewardMs === undefined) rewardMs = simMs;
     if (simMs <= 0 || !state.current) return { state: state, coinGain: 0, xpGain: 0, died: false };
+    var survive = !!(opts && opts.survive); // デスタイマーは前面(tick)でのみ稼働
     var p = state.current;
     var stage0 = stageOf(p.xp) === 0; // おくるみは保護（生存消耗なし）
     var hf = clamp(avgStatus(p) / 100, 0.15, 1); // 快適度（瀕死でも0.15は育つ）
@@ -280,32 +283,37 @@
     while (remaining > 0 && health > 0 && !away) {
       var dt = remaining < 0.25 ? remaining : 0.25;
       remaining -= dt;
-      // えさ獲得（スマホを触らない時間がそのまま えさ になる）
-      if (earnLeft > 0) {
+      // えさ獲得＝「スマホを置いた（アプリを閉じた）時間」。前面(survive)では貯まらない
+      if (!survive && earnLeft > 0) {
         var edt = earnLeft < dt ? earnLeft : dt;
         stock = Math.min(FOOD_STOCK_MAX, stock + FOOD_PER_HOUR * edt);
         earnLeft -= edt;
       }
-      var dmul = IS_TEST ? TEST_DECAY_MUL : 1; // テスト時は生存の時計を速める（食料獲得は据え置き＝放置で危険）
-      hunger = clamp(hunger - DECAY.hunger * dt * dmul, 0, 100);
-      clean  = clamp(clean  - DECAY.clean  * dt * dmul, 0, 100);
-      sanpo  = clamp(sanpo  - SANPO_DECAY  * dt * dmul, 0, 100);
-      // 自動給餌（ストックがあるかぎり、何日先まででも勝手にごはんを食べる）
+      var dmul = IS_TEST ? TEST_DECAY_MUL : 1; // はや回し時のみ 生存の時計を速める
+      // 生存の減衰は「スマホ稼働中（前面）」だけ。離れている間は おなか・きれい・さんぽは減らない
+      if (survive) {
+        hunger = clamp(hunger - DECAY.hunger * dt * dmul, 0, 100);
+        clean  = clamp(clean  - DECAY.clean  * dt * dmul, 0, 100);
+        sanpo  = clamp(sanpo  - SANPO_DECAY  * dt * dmul, 0, 100);
+      }
+      // 自動給餌は常に働く（離れている間も、置いた時間でたまった在庫で空腹を満たす＝救われる）
       if (!stage0 && hunger < AUTO_FEED_AT && stock >= 1) {
         stock -= 1;
         hunger = clamp(hunger + FOOD_HUNGER, 0, 100);
         autoFed++;
       }
       if (!stage0) {
-        // いのち＝ごはん。飢えで減り、満たされていれば回復する（リミット短め）
-        if (hunger <= 0) health = clamp(health - STARVE_DRAIN * dt * dmul, 0, 100);
+        // いのち＝ごはん。飢えで減るのは前面のときだけ。満たされていれば いつでも回復する（休息）
+        if (survive && hunger <= 0) health = clamp(health - STARVE_DRAIN * dt * dmul, 0, 100);
         else if (hunger > 30) health = clamp(health + HEALTH_REGEN * dt * dmul, 0, 100);
-        // 家出＝さんぽ（いい時間）。ゲージ0がつづくと、あたらしい家族をさがしに出ていく（リミット長め）
-        if (sanpo <= 0) {
-          runawayH += dt * dmul;
-          if (runawayH >= RUNAWAY_H) away = true;
-        } else {
-          runawayH = 0;
+        // 家出＝さんぽ（いい時間）。前面でゲージ0がつづくと旅に出る。離れている間は進まない
+        if (survive) {
+          if (sanpo <= 0) {
+            runawayH += dt * dmul;
+            if (runawayH >= RUNAWAY_H) away = true;
+          } else {
+            runawayH = 0;
+          }
         }
       }
     }
@@ -554,7 +562,8 @@
       var msSim = clamp(raw, 0, MAX_SIM);
       var beforeStage = stageOf(s.current.xp);
       var beforeStatus = { ...s.current };
-      var r = advance(s, msSim, msReward);
+      // 離れていた間: 生存は減らさない（むしろ在庫で回復）。育ち・コイン・えさだけ進む
+      var r = advance(s, msSim, msReward, { survive: false });
       var ns = { ...r.state, lastSavedAt: now };
       this._state = ns;
       persist(ns);
@@ -577,7 +586,8 @@
       if (!s || !s.current) return;
       var ms = now - s.lastSavedAt;
       if (ms < 0) ms = 0;
-      var r = advance(s, clamp(ms, 0, MAX_SIM), clamp(ms, 0, MAX_OFFLINE));
+      // 前面（スマホ稼働中）の進行: デスタイマー（生存の減衰・死/家出）はここでのみ進む
+      var r = advance(s, clamp(ms, 0, MAX_SIM), clamp(ms, 0, MAX_OFFLINE), { survive: true });
       this._state = { ...r.state, lastSavedAt: now };
       persist(this._state);
     },
@@ -825,27 +835,10 @@
     },
 
     /** 危険の予測（通知スケジュール用）。
-        hunger=空腹予告 / detox=おさんぽ催促（家出の前ぶれ） / health=いのち警告 */
-    dangerForecast: function (now) {
-      var s = this._state;
-      if (!s || !s.current || stageOf(s.current.xp) < 1) return [];
-      var p = s.current;
-      var ev = [];
-      var stock = s.foodStock == null ? 0 : s.foodStock;
-      // ストックがあるかぎり自動給餌される＝飢えるのは「ストック切れ＋おなかが空いたとき」
-      var hoursOfStock = (stock * FOOD_HUNGER + p.hunger) / DECAY.hunger;
-      var tHunger0 = hoursOfStock; // 実質の空腹到達(h)
-      ev.push({ type: 'hunger', at: now + tHunger0 * H });
-      var sp = p.sanpo == null ? 100 : p.sanpo;
-      if (sp > 0) ev.push({ type: 'sanpo', at: now + (sp / SANPO_DECAY) * H });
-      // いのち50%割れ＝飢えのみで決まるため閉形式で出せる
-      var health = p.health == null ? 100 : p.health;
-      if (health > 50) {
-        ev.push({ type: 'health', at: now + (tHunger0 + (health - 50) / STARVE_DRAIN) * H });
-      }
-      ev.sort(function (a, b) { return a.at - b.at; });
-      return ev;
-    },
+        新設計では「離れている間（スマホを使わない間）は いのちが減らない」ため、
+        留守中の危険予告は存在しない＝常に空（責めない／途切れる予告をしない・DESIGN.md 原則2）。
+        デスタイマーはアプリ前面（スマホ稼働中）でのみ進む。 */
+    dangerForecast: function () { return []; },
 
     // ===== おさんぽ（Forest型セッション） =====
     WALK_OPTIONS: WALK_OPTIONS,
