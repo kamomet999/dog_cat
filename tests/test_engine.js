@@ -109,11 +109,12 @@ test('抽選: 収集済み・直前と同じ品種は出にくい（同じ子ば
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v14 の初期状態ができる', () => {
+test('newGame で v15 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 14);
+  assert.strictEqual(s.version, 15);
   assert.strictEqual(s.points, 0);
+  eqJSON(s.crossDex, {});
   assert.strictEqual(s.premium, false);
   eqJSON(s.album, []);
   assert.strictEqual(s.foodStock, 6);
@@ -182,7 +183,8 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 14);
+  assert.strictEqual(s.version, 15);
+  eqJSON(s.crossDex, {}); // 交配種図鑑が移行で追加される
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
@@ -701,6 +703,37 @@ test('壊れたコードは checksum / format で弾く', () => {
   assert.ok(r.error, '改変を検出する: ' + JSON.stringify(r));
   assert.ok(a.Engine.decodeMate('まったく無効').error);
   assert.ok(a.Engine.decodeMate('').error);
+});
+
+test('交配種: チワワ×ダックス → チワックスが生まれ、巣立ちで交配種図鑑に登録', () => {
+  const me = adultWorld('chihuahua');
+  const partnerCode = adultWorld('dachshund').Engine.mateCode();
+  const res = me.Engine.breedWith(me.Engine.decodeMate(partnerCode), T0, () => 0.9); // roll≥0.5 → 交配種枠
+  assert.strictEqual(res.isCross, true);
+  assert.strictEqual(res.child.id, 'chiwax');
+  assert.strictEqual(me.Engine.getState().current.breedId, 'chiwax');
+  assert.ok(!me.Engine.getState().current.mix, '交配種は mix ではない（実物コレクション扱い）');
+  // 育てて巣立ち → 交配種図鑑に登録（原種図鑑には入らない）
+  me.Engine.getState().current.xp = 1000;
+  me.Engine.graduate(T0, rnd0);
+  assert.ok(me.Engine.crossDex().chiwax, '交配種図鑑に登録される');
+  assert.ok(!me.Engine.getState().dex.chiwax, '原種図鑑には入らない');
+  assert.strictEqual(me.Engine.crossProgress().found, 1);
+});
+
+test('交配種の課金ゲート: 課金交配種は未課金だと原種に振替・課金者なら誕生', () => {
+  const partnerCode = adultWorld('ragdoll').Engine.mateCode(); // ねこ
+  // 未課金: もふおう(premium)は生まれず、原種(親)に振り替わる
+  const free = adultWorld('mainecoon');
+  const r1 = free.Engine.breedWith(free.Engine.decodeMate(partnerCode), T0, () => 0.9);
+  assert.strictEqual(r1.isCross, false, '未課金は課金交配種が生まれない');
+  assert.ok(['mainecoon', 'ragdoll'].indexOf(r1.child.id) >= 0, '原種(どちらかの親)に振替');
+  // 課金者: もふおうが誕生する
+  const paid = adultWorld('mainecoon');
+  paid.Engine.unlockPremium(T0);
+  const r2 = paid.Engine.breedWith(paid.Engine.decodeMate(partnerCode), T0, () => 0.9);
+  assert.strictEqual(r2.isCross, true);
+  assert.strictEqual(r2.child.id, 'mofuking');
 });
 
 test('おみあいコードは メッセージ全文を貼っても抜き出せる', () => {

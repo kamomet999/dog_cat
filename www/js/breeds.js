@@ -2066,6 +2066,20 @@
   var byId = {};
   BREEDS.forEach(function (b) { byId[b.id] = b; });
 
+  // ===== 交配種（クロスブリード）: おみあいでのみ生まれる名前付き掛け合わせ。PLAN_v2 §9-B1 =====
+  // parents=原種2品種id（順不同）。tier=段（1=F1=原種×原種）。premium=true は課金者のみ誕生。
+  // art は手続き描画のプレースホルダ（実物スプライトは後で nanobanana 差し替え）。試作は第1段5種。
+  var CROSS = [
+    { id: 'chiwax',    name: 'チワックス',       species: 'dog', rarity: 'uncommon', tier: 1, parents: ['chihuahua', 'dachshund'], nature: 'げんきいっぱい', desc: 'チワワとダックスの にんきミックス', art: { base: 'dog', color: '#d8a86a', color2: '#fff3e0', pattern: 'tan',   ear: 'flop', eye: '#5a3b22', fluffy: false, tail: 'normal' } },
+    { id: 'goldoodle', name: 'ゴールドゥードル', species: 'dog', rarity: 'rare',     tier: 1, parents: ['golden', 'poodle'],        nature: 'やさしい',     desc: 'もふもふで かしこい にんきもの',   art: { base: 'dog', color: '#e6c388', color2: '#fff7e8', pattern: 'solid', ear: 'flop', eye: '#6a4a2a', fluffy: true,  tail: 'curl'   } },
+    { id: 'puggle',    name: 'パグル',           species: 'dog', rarity: 'uncommon', tier: 1, parents: ['beagle', 'pug'],            nature: 'のんびりや',   desc: 'パグとビーグルの ゆるかわ',         art: { base: 'dog', color: '#caa06a', color2: '#fff3df', pattern: 'patch', ear: 'flop', eye: '#3a2a1a', fluffy: false, tail: 'curl'   } },
+    { id: 'scomunchi', name: 'スコマンチ',       species: 'cat', rarity: 'rare',     tier: 1, parents: ['munchkin', 'scottish'],     nature: 'あまえんぼう', desc: 'みじかい あしと おりみみ',          art: { base: 'cat', color: '#b9a98f', color2: '#f3ece0', pattern: 'tabby', ear: 'fold', eye: '#caa23a', fluffy: true,  tail: 'normal' } },
+    { id: 'mofuking',  name: 'もふおう',         species: 'cat', rarity: 'epic',     tier: 1, parents: ['mainecoon', 'ragdoll'],     nature: 'おっとり', premium: true, desc: 'おおきくて おうじゃの ふうかく',    art: { base: 'cat', color: '#cdb89a', color2: '#f6efe2', pattern: 'point', ear: 'prick', eye: '#6fae6f', fluffy: true,  tail: 'normal' } }
+  ];
+  CROSS.forEach(function (c) { c.cross = true; byId[c.id] = c; }); // get()で解決できるように
+  var crossByPair = {};
+  CROSS.forEach(function (c) { crossByPair[c.parents.slice().sort().join('+')] = c; });
+
   function isFree(b) { return !b || b.tier !== 'premium'; }
 
   // 課金情報（ストア商品ID・表示価格）。実購入は端末側（Capacitor）で後付け。
@@ -2079,6 +2093,11 @@
     isFree: isFree,
     isPremium: function (b) { return !isFree(b); },
     get: function (id) { return byId[id]; },
+    // ===== 交配種 =====
+    CROSS: CROSS,
+    isCross: function (b) { return !!(b && b.cross); },
+    /** 原種2品種idの掛け合わせレシピ（順不同）。無ければ null */
+    crossOf: function (a, bb) { return crossByPair[[a, bb].sort().join('+')] || null; },
     ofSpecies: function (sp) { return BREEDS.filter(function (b) { return b.species === sp; }); },
     /** 抽選対象プール。premiumUnlocked=false なら無料種のみ */
     pool: function (premiumUnlocked) {

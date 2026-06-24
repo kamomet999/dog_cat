@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 14;
+  var VERSION = 15;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -136,7 +136,8 @@
       luck: 0,
       premium: false,       // ¥500買い切りで true。全公式品種が抽選・図鑑に解放される
       current: null,        // 種選択後に設定
-      dex: {},              // breedId -> { count, firstAt, unseen }
+      dex: {},              // 原種の図鑑。breedId -> { count, firstAt, unseen }
+      crossDex: {},         // 交配種の図鑑（おみあいでのみ生まれる名前付き掛け合わせ）。crossId -> { count, firstAt, unseen }
       lastSavedAt: now,
       graduates: 0,
       deaths: 0,            // おほしさまになった子の数
@@ -241,6 +242,10 @@
     if (s.version === 13) {
       // なかよしポイント（口座・無限）導入
       s = { ...s, version: 14, points: s.points || 0 };
+    }
+    if (s.version === 14) {
+      // 交配種の図鑑（おみあいでのみ生まれる名前付き掛け合わせ）導入
+      s = { ...s, version: 15, crossDex: s.crossDex || {} };
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -392,6 +397,10 @@
       return { species: p.mix.species, breedIdx: null, nature: p.mix.nature, art: p.mix.art, name: 'ミックス', mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
     }
     var b = Breeds.get(p.breedId);
+    if (Breeds.isCross(b)) {
+      // 交配種を親にした場合（多段交配の入口）: いまは mix 親として扱う＝子は手続きミックス（tier2の名前付き結果は今後）
+      return { species: b.species, breedIdx: null, nature: b.nature, art: b.art, name: b.name, mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
+    }
     return { species: b.species, breedIdx: Breeds.ALL.indexOf(b), nature: b.nature, art: b.art, name: b.name, mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
   }
   function genomeToBytes(g) {
@@ -944,26 +953,30 @@
       var s = this._state;
       if (!s || !s.current || stageOf(s.current.xp) < 3) return null;
       var dex = { ...s.dex };
-      var isNew = false, reward, breed;
+      var crossDex = { ...(s.crossDex || {}) };
+      var isNew = false, reward, breed, isCross = false;
       if (s.current.mix) {
-        // ミックスは30種図鑑には登録しない（アルバムが記録）。巣立ちボーナスのみ
+        // レシピ未定義のミックスは図鑑に登録しない（アルバムが記録）。巣立ちボーナスのみ
         breed = mixBreed(s.current.mix);
         reward = 60;
       } else {
         breed = Breeds.get(s.current.breedId);
-        isNew = !s.dex[breed.id];
+        isCross = Breeds.isCross(breed);
+        var book = isCross ? crossDex : dex;       // 交配種は専用図鑑へ
+        isNew = !book[breed.id];
         reward = 20 + Breeds.RARITY[breed.rarity].stars * 40 + (isNew ? 100 : 0);
-        var prev = dex[breed.id] || { count: 0, firstAt: now };
-        dex[breed.id] = { count: prev.count + 1, firstAt: prev.firstAt || now, unseen: true };
+        var prev = book[breed.id] || { count: 0, firstAt: now };
+        book[breed.id] = { count: prev.count + 1, firstAt: prev.firstAt || now, unseen: true };
       }
 
       var luck = clamp(s.luck + 0.04, 0, 2);
-      // 次の子は「未収集が出やすく・直前と同じになりにくい」よう抽選（同じ品種ばかり対策）
+      // 次の子は「未収集が出やすく・直前と同じになりにくい」よう抽選（同じ品種ばかり対策）。次は必ず原種
       var next = Breeds.roll(rnd, luck, !!s.premium, species, { owned: dex, avoid: s.current.breedId });
 
       var ns = {
         ...s,
         dex: dex,
+        crossDex: crossDex,
         coin: s.coin + reward,
         luck: luck,
         graduates: s.graduates + 1,
@@ -972,7 +985,7 @@
       };
       this._state = ns;
       persist(ns);
-      return { breed: breed, isNew: isNew, reward: reward, next: next };
+      return { breed: breed, isNew: isNew, reward: reward, next: next, isCross: isCross };
     },
 
     // ===== おみあい（ブリード）API =====
@@ -1042,9 +1055,27 @@
       else if (roll < 0.50) childBreedIdx = partner.breedIdx;
       var childIsMix = childBreedIdx == null;
 
+      // 交配種（クロスブリード）: 「ミックス枠」に落ち かつ 両親とも純血なら 樹形図レシピを引く（PLAN_v2 §9-B1）。
+      // レシピがあれば名前付き交配種が誕生＝実物コレクション。課金交配種は未課金だと原種に振替（課金ゲート）。
+      var crossBreed = null;
+      if (childIsMix && bothPure) {
+        var recipe = Breeds.crossOf(Breeds.ALL[mine.breedIdx].id, Breeds.ALL[partner.breedIdx].id);
+        if (recipe) {
+          if (recipe.premium && !s.premium) {
+            childBreedIdx = (rnd() < 0.5) ? mine.breedIdx : partner.breedIdx; // 未課金: 原種に振替
+            childIsMix = false;
+          } else {
+            crossBreed = recipe;   // 定義済み交配種が誕生
+            childIsMix = false;
+          }
+        }
+      }
+
       var child, genes = null;
-      if (childIsMix) {
-        // ミックス: 色・目の色・模様・耳・ふわふわ・しっぽを 親から各50%で継承（突然変異あり）
+      if (crossBreed) {
+        child = crossBreed;
+      } else if (childIsMix) {
+        // レシピ未定義のミックス: 色・目・模様・耳・ふわふわ・しっぽを 親から各50%で継承（突然変異あり）
         genes = mixGenes(rnd, mine, partner);
         child = mixBreed({ species: mine.species, nature: genes.nature, art: genes.art, parents: parents });
       } else {
@@ -1054,7 +1085,7 @@
       var inheritedBreed = childIsMix ? null : child.name;
       var mutated = genes ? genes.mutated : false;
 
-      var newPet = freshPet(childIsMix ? 'mix' : child.id, rnd);
+      var newPet = freshPet(child.id, rnd); // child.id は 原種id / 交配種id / 'mix'
       // 記号模様・目スタイルも遺伝: 親A/Bから50%、6%で突然変異
       newPet.mark = inherit(rnd, mine.mark || 'none', partner.mark || 'none', rollMark, 0.06, null);
       newPet.eyeStyle = inherit(rnd, mine.eyeStyle || 'batchiri', partner.eyeStyle || 'batchiri', rollEye, 0.06, null);
@@ -1079,11 +1110,25 @@
       };
       this._state = ns;
       persist(ns);
-      return { child: child, isMix: childIsMix, isNew: isNew, reward: reward, parents: parents, mutated: mutated, inheritedBreed: inheritedBreed };
+      return { child: child, isMix: childIsMix, isCross: !!crossBreed, isNew: isNew, reward: reward, parents: parents, mutated: mutated, inheritedBreed: inheritedBreed };
     },
 
     /** ミックスのアルバム（新しい順） */
     album: function () { return (this._state && this._state.album) || []; },
+
+    // ===== 交配種の図鑑 =====
+    crossDex: function () { return (this._state && this._state.crossDex) || {}; },
+    /** 交配種コレクションの進捗（無料/課金を分けて集計） */
+    crossProgress: function () {
+      var s = this._state;
+      var premium = !!(s && s.premium);
+      var all = Breeds.CROSS;
+      var total = all.length;
+      var book = (s && s.crossDex) || {};
+      var found = 0;
+      all.forEach(function (c) { if (book[c.id]) found++; });
+      return { total: total, found: found, premiumLocked: all.filter(function (c) { return c.premium && !premium; }).length };
+    },
 
     /** ねんね中(stage0)のうちは別の子と会い直せる（コイン消費） */
     reroll: function (now, rnd, species) {
