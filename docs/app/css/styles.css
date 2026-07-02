@@ -445,8 +445,18 @@ button:focus-visible {
 /* きせかえ（おさんぽ報酬のアクセサリ）。GAME_DESIGN v6 */
 .wear-btn { position: absolute; top: 8px; right: 48px; z-index: 3; border: none; cursor: pointer;
   width: 34px; height: 34px; border-radius: 50%; font-size: 17px; background: rgba(255,255,255,.78); box-shadow: var(--shadow); }
-.pet-wear { position: absolute; left: 50%; transform: translateX(-50%); z-index: 3; font-size: 40px;
-  line-height: 1; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(80,60,40,.2)); display: none; }
+/* きせかえ（自由配置）: ペット(192x192)にちょうど重なる層。items を x,y=0..1 で配置 */
+.pet-wear { position: absolute; left: 50%; top: 8px; transform: translateX(-50%);
+  width: 192px; height: 192px; z-index: 3; pointer-events: none; display: none; }
+.pet-wear-item { position: absolute; transform: translate(-50%, -50%); font-size: 34px; line-height: 1;
+  filter: drop-shadow(0 2px 2px rgba(80,60,40,.2)); }
+/* きせかえエディタ（ドラッグ配置。ペット絵の上にアクセサリ） */
+.wear-edit { position: relative; width: 200px; height: 200px; margin: 6px auto 12px; touch-action: none; }
+.wear-edit-pet { width: 100%; height: 100%; }
+.wear-edit-item { position: absolute; transform: translate(-50%, -50%); font-size: 38px; line-height: 1;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; z-index: 2;
+  filter: drop-shadow(0 2px 3px rgba(80,60,40,.25)); }
+.wear-edit-item.dragging { transform: translate(-50%, -50%) scale(1.18); cursor: grabbing; z-index: 5; }
 .wear-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .wear-cell { border: 2px solid transparent; background: #faf4ea; border-radius: 12px; padding: 10px 2px;
   font-family: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink); }

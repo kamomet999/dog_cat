@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 16;
+  var VERSION = 17;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -149,7 +149,7 @@
       taskStats: { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} }, // さんぽ課題ダッシュボード
       allowApps: [],        // おすわり中に使ってよいアプリ（{name,url?}）。v1はオナー/ショートカット、v2でOS遮断対象
       reminders: { enabled: false, times: [] }, // 時間指定「さんぽしないの？」（"HH:MM" 配列）
-      wardrobe: { owned: {}, equipped: null }, // きせかえ（おさんぽ報酬で集める）
+      wardrobe: { owned: {}, items: [] }, // きせかえ（おさんぽ報酬で集める・自由配置）
       album: [],            // おみあいで生まれたミックスの記録（30種図鑑とは別）
       room: defaultRoom()   // 部屋の模様替え（スロット→アイテムid。¥500で全アイテム解放）
     };
@@ -157,6 +157,11 @@
   // 部屋（自由配置）: 背景bg ＋ 飾りリスト items[{id,x,y}]（x,y は 0..1 の相対座標）
   function defaultRoom() {
     return { bg: 'cream', items: [] };
+  }
+  // きせかえ（自由配置）: 所持owned ＋ 着けているアクセサリ items[{id,x,y}]
+  function cloneWardrobe(s) {
+    var w = (s && s.wardrobe) || {};
+    return { owned: Object.assign({}, w.owned || {}), items: w.items ? w.items.slice() : [] };
   }
 
   // ----- 永続化 -----
@@ -261,6 +266,12 @@
         });
       }
       s = { ...s, version: 16, room: { bg: oldRoom.bg || 'cream', items: items } };
+    }
+    if (s.version === 16) {
+      // きせかえを「1個装備」→「自由配置」へ。装備中のものは頭あたりの既定位置へ
+      var w = s.wardrobe || { owned: {} };
+      var witems = Array.isArray(w.items) ? w.items : (w.equipped ? [{ id: w.equipped, x: 0.5, y: 0.12 }] : []);
+      s = { ...s, version: 17, wardrobe: { owned: w.owned || {}, items: witems } };
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -744,8 +755,8 @@
       var foods = taskFoodGain(t.minutes);
       var np = { ...p, sanpo: clamp((p.sanpo == null ? 100 : p.sanpo) + gain, 0, 100), runawayH: 0 };
       var bumped = bumpTaskStats(s.taskStats, t.kind, t.minutes, now);
-      // きせかえドロップ: 確率で未所持のアクセサリを1つ入手（初回は自動で着せる）
-      var ward = { owned: Object.assign({}, (s.wardrobe && s.wardrobe.owned) || {}), equipped: (s.wardrobe && s.wardrobe.equipped) || null };
+      // きせかえドロップ: 確率で未所持のアクセサリを1つ入手（所持に追加・配置はUIで）
+      var ward = cloneWardrobe(s);
       var wear = null;
       if (rnd() < WEAR_DROP_RATE) {
         var pool = WEAR_IDS.filter(function (id) { return !ward.owned[id]; });
@@ -775,7 +786,7 @@
     claimMilestones: function (now) {
       var s = this._state; if (!s) return [];
       var pts = s.points || 0;
-      var ward = { owned: Object.assign({}, (s.wardrobe && s.wardrobe.owned) || {}), equipped: (s.wardrobe && s.wardrobe.equipped) || null };
+      var ward = cloneWardrobe(s);
       var got = [];
       for (var i = 0; i < MILESTONES.length; i++) { var m = MILESTONES[i]; if (pts >= m.pts && !ward.owned[m.wear]) { ward.owned[m.wear] = 1; got.push(m.wear); } }
       if (got.length) { var ns = { ...s, wardrobe: ward, lastSavedAt: now || s.lastSavedAt }; this._state = ns; persist(ns); }
@@ -789,19 +800,41 @@
     /** いまが「はや回し」かどうか（設定の開発者トグル表示用） */
     isTest: function () { return IS_TEST; },
 
-    // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める） =====
+    // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める。自由配置） =====
     WEAR_IDS: WEAR_IDS,
-    wardrobe: function () { return this._state ? (this._state.wardrobe || { owned: {}, equipped: null }) : { owned: {}, equipped: null }; },
-    /** きせかえを着る（id=null で脱ぐ）。未所持は無視 */
-    equipWear: function (id, now) {
+    MAX_WEAR_ITEMS: 8,
+    wardrobe: function () {
+      var w = (this._state && this._state.wardrobe) || { owned: {}, items: [] };
+      return { owned: Object.assign({}, w.owned || {}), items: w.items ? w.items.slice() : [] };
+    },
+    _saveWard: function (ward, now) {
       var s = this._state; if (!s) return null;
-      var ward = { owned: Object.assign({}, (s.wardrobe && s.wardrobe.owned) || {}), equipped: (s.wardrobe && s.wardrobe.equipped) || null };
-      if (id && !ward.owned[id]) return ward;
-      ward.equipped = id || null;
       var ns = { ...s, wardrobe: ward, lastSavedAt: now || s.lastSavedAt };
-      this._state = ns;
-      persist(ns);
-      return ward;
+      this._state = ns; persist(ns); return ward;
+    },
+    /** アクセサリをペットの自由な位置に着ける（x,y=0..1・petArt相対）。未所持は無視 */
+    addWear: function (id, x, y, now) {
+      var s = this._state; if (!s) return null;
+      var ward = cloneWardrobe(s);
+      if (!ward.owned[id]) return { error: 'not_owned' };
+      if (ward.items.length >= this.MAX_WEAR_ITEMS) return { error: 'full' };
+      ward.items.push({ id: id, x: clamp(x, 0, 1), y: clamp(y, 0, 1) });
+      this._saveWard(ward, now);
+      return { index: ward.items.length - 1, wardrobe: ward };
+    },
+    /** 着けたアクセサリを動かす（index指定・x,y=0..1） */
+    moveWear: function (i, x, y, now) {
+      var ward = cloneWardrobe(this._state || {});
+      if (!ward.items[i]) return null;
+      ward.items[i] = { ...ward.items[i], x: clamp(x, 0, 1), y: clamp(y, 0, 1) };
+      return this._saveWard(ward, now);
+    },
+    /** 着けたアクセサリを外す（index指定） */
+    removeWear: function (i, now) {
+      var ward = cloneWardrobe(this._state || {});
+      if (i < 0 || i >= ward.items.length) return null;
+      ward.items.splice(i, 1);
+      return this._saveWard(ward, now);
     },
 
     /** さんぽをやめる（失敗ではない。ゲージ回復なしなだけ） */

@@ -108,7 +108,7 @@ t('初回フロー: intro→種選択→チュートリアル5歩→ホーム到
   }
   assert.ok(!(await page.$('#tutNext')), 'チュートリアルが閉じた');
   const st = await engineState(page);
-  assert.strictEqual(st.version, 16);
+  assert.strictEqual(st.version, 17);
   assert.ok(st.current, 'ペットがいる');
   assert.strictEqual((await text(page, '#petName')).trim(), 'ねんねちゅう…');
   const tut = await page.evaluate(k => localStorage.getItem(k), TUT);
@@ -477,6 +477,34 @@ t('部屋(課金後): プレミアム飾りも自由配置で置ける', async (
   await closePage(page);
 });
 
+t('きせかえ(自由配置): もちものをタップで着せる→ペットに反映→×でぬぐ', async () => {
+  const page = await newPage(saveBase({ current: petBase({ xp: 300 }), wardrobe: { owned: { crown: 1, glasses: 1 }, items: [] } }));
+  await page.click('#wearBtn');
+  await page.waitForTimeout(400);
+  // もちものをタップで着せる
+  await page.click('.wear-cell[data-add-wear="crown"]');
+  await page.waitForTimeout(250);
+  let items = (await engineState(page)).wardrobe.items;
+  assert.strictEqual(items.length, 1, 'アクセサリが1つ着く');
+  assert.strictEqual(items[0].id, 'crown');
+  assert.ok(await page.$('#wearEdit .wear-edit-item'), 'エディタに着けた飾りが出る');
+  // 未所持は着せられない（そもそもボタンが disabled）
+  assert.ok(await page.$('.wear-cell[data-add-wear="tiara"][disabled]'), '未所持はロック');
+  // 2つ目も着ける（複数OK）
+  await page.click('.wear-cell[data-add-wear="glasses"]');
+  await page.waitForTimeout(250);
+  assert.strictEqual((await engineState(page)).wardrobe.items.length, 2);
+  // × でぬぐ
+  await page.click('#wearEdit .room-edit-x');
+  await page.waitForTimeout(250);
+  assert.strictEqual((await engineState(page)).wardrobe.items.length, 1, 'ぬげる');
+  // ホームのペットにも反映（petWear層）
+  await page.click('.modal-close');
+  await page.waitForTimeout(250);
+  assert.ok(await page.$('#petWear .pet-wear-item'), 'ホームのペットに反映');
+  await closePage(page);
+});
+
 t('永続化: 操作→リロードしても状態が残る', async () => {
   const page = await newPage(saveBase());
   await page.click('[data-act="feed"]');
@@ -490,7 +518,7 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   const after = await engineState(page);
   assert.strictEqual(Math.floor(after.foodStock), Math.floor(before.foodStock), 'ストックが保持');
   assert.strictEqual(after.current.breedId, before.current.breedId);
-  assert.strictEqual(after.version, 16);
+  assert.strictEqual(after.version, 17);
   await closePage(page);
 });
 
@@ -576,7 +604,7 @@ t('開発者トグル: 版表記5タップで「はや回し」が出て切り�
   await closePage(page);
 });
 
-t('旧セーブ(v1)読み込み: 最新v16へ移行して起動できる', async () => {
+t('旧セーブ(v1)読み込み: 最新v17へ移行して起動できる', async () => {
   const v1 = {
     version: 1, coin: 42, luck: 0.1,
     current: { breedId: 'shiba', xp: 30, hunger: 50, mood: 50, clean: 50, energy: 50, careCount: 3 },
@@ -588,7 +616,7 @@ t('旧セーブ(v1)読み込み: 最新v16へ移行して起動できる', async
   const ok = await page.$('#okBtn');
   if (ok) { await ok.click(); await page.waitForTimeout(300); }
   const st = await engineState(page);
-  assert.strictEqual(st.version, 16);
+  assert.strictEqual(st.version, 17);
   assert.strictEqual(st.current.mood, undefined, 'moodは消える');
   assert.ok(st.current.sanpo != null && st.current.health != null);
   await closePage(page);

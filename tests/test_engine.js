@@ -109,10 +109,10 @@ test('抽選: 収集済み・直前と同じ品種は出にくい（同じ子ば
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v16 の初期状態ができる', () => {
+test('newGame で v17 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 16);
+  assert.strictEqual(s.version, 17);
   assert.strictEqual(s.points, 0);
   eqJSON(s.crossDex, {});
   assert.strictEqual(s.premium, false);
@@ -130,7 +130,7 @@ test('newGame で v16 の初期状態ができる', () => {
   eqJSON(s.taskStats, { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} });
   eqJSON(s.allowApps, []);
   eqJSON(s.reminders, { enabled: false, times: [] });
-  eqJSON(s.wardrobe, { owned: {}, equipped: null });
+  eqJSON(s.wardrobe, { owned: {}, items: [] });
 });
 
 test('unlockPremium で全品種が解放される', () => {
@@ -197,7 +197,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 16);
+  assert.strictEqual(s.version, 17);
   eqJSON(s.crossDex, {}); // 交配種図鑑が移行で追加される
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
@@ -212,7 +212,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   assert.strictEqual(s.taskStats.days, 0); // v10でさんぽダッシュボードが付与される
   eqJSON(s.allowApps, []);
   eqJSON(s.reminders, { enabled: false, times: [] });
-  eqJSON(s.wardrobe, { owned: {}, equipped: null }); // v11できせかえが付与される
+  eqJSON(s.wardrobe, { owned: {}, items: [] }); // v11できせかえが付与される
 });
 
 console.log('# オフライン進行');
@@ -495,7 +495,7 @@ test('さんぽ課題でも餌がもらえる＋継続日数が伸びる/リセ�
   assert.ok(w.Engine.taskScore() > 0);
 });
 
-test('おさんぽ報酬: きせかえが手に入る（所持に追加・装備はUIで確認）', () => {
+test('おさんぽ報酬: きせかえが手に入り、自由配置で着せる/動かす/ぬぐ', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   // rnd=0 → ドロップ判定ヒット＆pool[0] を取得
@@ -504,16 +504,26 @@ test('おさんぽ報酬: きせかえが手に入る（所持に追加・装備
   assert.ok(done.wear, 'きせかえをドロップ');
   const ward = w.Engine.wardrobe();
   assert.ok(ward.owned[done.wear], '所持に追加される');
-  assert.strictEqual(ward.equipped, null, '自動装備はしない（UIで聞く）');
-  w.Engine.equipWear(done.wear, T0); // UIで「着る」を選んだ相当
-  assert.strictEqual(w.Engine.wardrobe().equipped, done.wear, '選べば着られる');
+  assert.strictEqual(ward.items.length, 0, '自動装着はしない（UIで置く）');
+  // 未所持は着せられない
+  const notOwned = w.Engine.WEAR_IDS.filter(function (id) { return !ward.owned[id]; })[0];
+  assert.strictEqual(w.Engine.addWear(notOwned, 0.5, 0.2, T0).error, 'not_owned');
+  // 所持品を自由な位置に着ける
+  const a = w.Engine.addWear(done.wear, 0.3, 0.2, T0);
+  assert.strictEqual(a.index, 0);
+  assert.strictEqual(w.Engine.wardrobe().items[0].id, done.wear);
+  assert.ok(Math.abs(w.Engine.wardrobe().items[0].x - 0.3) < 1e-9);
+  // 動かす（クランプ）
+  w.Engine.moveWear(0, -1, 2, T0);
+  assert.strictEqual(w.Engine.wardrobe().items[0].x, 0);
+  assert.strictEqual(w.Engine.wardrobe().items[0].y, 1);
+  // ぬぐ
+  w.Engine.removeWear(0, T0);
+  assert.strictEqual(w.Engine.wardrobe().items.length, 0);
   // rnd=0.99 → ドロップなし
   w.Engine.startTask('えいご', 30, T0 + 2 * 60 * MIN);
   const d2 = w.Engine.checkTask(T0 + 2 * 60 * MIN + 31 * MIN, () => 0.99);
   assert.strictEqual(d2.wear, null, '確率に外れたら出ない');
-  // 脱ぐ／着替える
-  w.Engine.equipWear(null, T0);
-  assert.strictEqual(w.Engine.wardrobe().equipped, null);
 });
 
 test('維持シナリオ: 毎日30分のごはんさがし＋2日に1回のさんぽ課題で10日間元気', () => {

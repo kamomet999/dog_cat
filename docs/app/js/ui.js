@@ -705,14 +705,16 @@
   // レア装備のid（おさんぽドロップには含めず、達成で解放）
   var RARE_WEAR_IDS = Engine.MILESTONES.map(function (m) { return m.wear; });
   // 装備中のアクセサリをペットの上に重ねる（home stage）
+  // 着けているアクセサリを ペットの上に自由配置(x,y=0..1)で重ねる
   function renderWear() {
     var el = $('petWear'); if (!el) return;
-    var eq = Engine.wardrobe().equipped;
-    var it = eq && WEAR[eq];
-    if (!it || Engine.stage() === 0) { el.style.display = 'none'; el.textContent = ''; return; }
-    el.textContent = it.e;
-    el.style.top = (it.pos === 'face' ? 32 : it.pos === 'neck' ? 54 : 6) + '%';
+    var items = Engine.wardrobe().items || [];
+    if (!items.length || Engine.stage() === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = 'block';
+    el.innerHTML = items.map(function (p) {
+      var it = WEAR[p.id]; if (!it) return '';
+      return '<span class="pet-wear-item" style="left:' + (p.x * 100) + '%;top:' + (p.y * 100) + '%">' + it.e + '</span>';
+    }).join('');
   }
   // 体の記号模様（Engine.MARK_IDS と対応）。ホームでペットの体に重ねて表示。
   // ︎（テキスト異体字）で絵文字化を防ぎ、CSSの色が効く文字記号にする
@@ -755,6 +757,12 @@
     host.appendChild(layer);
   }
 
+  // アクセサリの既定位置（pos から。あとで自由に動かせる）
+  function wearDefaultXY(id) {
+    var it = WEAR[id];
+    var y = it && it.pos === 'face' ? 0.34 : (it && it.pos === 'neck' ? 0.52 : 0.12);
+    return { x: 0.5, y: y };
+  }
   // おさんぽ報酬で着せ替えを入手したときのアナウンス＋「着せる？」確認
   function showWearDrop(id) {
     var it = WEAR[id]; if (!it) return;
@@ -768,47 +776,96 @@
       '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
     var m = openModal(html);
     m.root.querySelector('#wdWear').addEventListener('click', function () {
-      Engine.equipWear(id, now());
+      var d = wearDefaultXY(id);
+      Engine.addWear(id, d.x, d.y, now());
       lastArtKey = ''; render();
       m.close();
-      showToast('かわいい！👕 ' + it.label + 'を 着たよ');
+      showToast('かわいい！👕 ' + it.label + 'を 着たよ（位置は 👕 で調整）');
     });
     m.root.querySelector('#wdLater').addEventListener('click', m.close);
   }
 
   function openWardrobe() {
     var ids = Engine.WEAR_IDS;
-    var ward = Engine.wardrobe(), owned = ward.owned || {};
+    var owned = Engine.wardrobe().owned || {};
     var have = ids.filter(function (id) { return owned[id]; }).length;
     function cell(id, lockedLabel) {
-      var it = WEAR[id], got = !!owned[id], on = ward.equipped === id;
-      return '<button class="wear-cell' + (on ? ' on' : '') + (got ? '' : ' locked') + (it.rare ? ' rare' : '') + '" data-wear="' + id + '"' + (got ? '' : ' disabled') + '>' +
+      var it = WEAR[id], got = !!owned[id];
+      return '<button class="wear-cell' + (got ? '' : ' locked') + (it.rare ? ' rare' : '') + '" data-add-wear="' + id + '"' + (got ? '' : ' disabled') + '>' +
         '<span class="wear-emo">' + (got ? it.e : '❔') + '</span><span class="wear-lbl">' + (got ? it.label : (lockedLabel || '？？？')) + '</span></button>';
     }
     var cells = ids.map(function (id) { return cell(id); }).join('');
-    // レア装備（なかよしポイント達成で解放）。未達成は必要ポイントをヒント表示
     var pts = Engine.points();
-    var rareCells = Engine.MILESTONES.map(function (m) {
-      return cell(m.wear, '🏆' + m.pts.toLocaleString());
-    }).join('');
+    var rareCells = Engine.MILESTONES.map(function (m) { return cell(m.wear, '🏆' + m.pts.toLocaleString()); }).join('');
     var html = '<h2>👕 きせかえ</h2>' +
-      '<p class="sub">おさんぽの ごほうびで あつまるよ（<b>' + have + '</b>/' + ids.length + '）。<br>タップで きせかえ・もういちどで ぬぐ。</p>' +
+      '<p class="sub">あつめた かざりを タップで ペットに。指で <b>すきな場所</b>へ ドラッグ・<b>×</b>で ぬぐ（<b>' + have + '</b>/' + ids.length + '）。</p>' +
+      '<div id="wearEdit" class="wear-edit"><div id="wearEditPet" class="wear-edit-pet"></div></div>' +
+      '<div class="dex-section-title">もちもの（タップで 着せる）</div>' +
       '<div class="wear-grid">' + cells + '</div>' +
       '<div class="dex-section-title" style="margin-top:14px">🏆 レア（なかよし ' + pts.toLocaleString() + 'pt）</div>' +
-      '<p class="sub" style="margin-top:0">お世話やおさんぽで たまる なかよしポイントを ためると もらえる とくべつな かざり。</p>' +
-      '<div class="wear-grid">' + rareCells + '</div>' +
-      (ward.equipped ? '<button id="wearOff" class="big-btn ghost mt12" style="width:100%">ぜんぶ ぬぐ</button>' : '');
+      '<p class="sub" style="margin-top:0">お世話やおさんぽで たまる なかよしポイントで もらえる とくべつな かざり。</p>' +
+      '<div class="wear-grid">' + rareCells + '</div>';
     var m = openModal(html);
-    m.root.querySelectorAll('[data-wear]').forEach(function (b) {
+    var edit = m.root.querySelector('#wearEdit');
+    var petBox = m.root.querySelector('#wearEditPet');
+    if (petBox && Engine.stage() > 0) Art.mount(petBox, Art.petSVG(Engine.breed(), Engine.stage(), 'happy'));
+    function paintWear() {
+      // ペット絵は残し、アクセサリだけ差し替え
+      Array.prototype.forEach.call(edit.querySelectorAll('.wear-edit-item'), function (n) { n.remove(); });
+      Engine.wardrobe().items.forEach(function (p, i) {
+        var it = WEAR[p.id]; if (!it) return;
+        var span = document.createElement('span');
+        span.className = 'wear-edit-item';
+        span.setAttribute('data-index', i);
+        span.style.left = (p.x * 100) + '%'; span.style.top = (p.y * 100) + '%';
+        span.innerHTML = it.e + '<button class="room-edit-x" data-del="' + i + '" aria-label="ぬぐ">×</button>';
+        edit.appendChild(span);
+      });
+    }
+    paintWear();
+    // もちものタップで着せる（既定位置に追加→ドラッグで調整）
+    m.root.querySelectorAll('[data-add-wear]').forEach(function (b) {
       if (b.disabled) return;
       b.addEventListener('click', function () {
-        var id = b.getAttribute('data-wear');
-        Engine.equipWear(Engine.wardrobe().equipped === id ? null : id, now());
-        lastArtKey = ''; render(); m.close(); openWardrobe();
+        var id = b.getAttribute('data-add-wear');
+        var d = wearDefaultXY(id);
+        var r = Engine.addWear(id, d.x, d.y, now());
+        if (r && r.error === 'full') return showToast('これ以上 着けられないよ');
+        paintWear(); lastArtKey = ''; render();
       });
     });
-    var off = m.root.querySelector('#wearOff');
-    if (off) off.addEventListener('click', function () { Engine.equipWear(null, now()); lastArtKey = ''; render(); m.close(); openWardrobe(); });
+    // × でぬぐ
+    edit.addEventListener('click', function (e) {
+      var x = e.target.closest && e.target.closest('.room-edit-x');
+      if (!x) return;
+      e.stopPropagation();
+      Engine.removeWear(parseInt(x.getAttribute('data-del'), 10), now());
+      paintWear(); lastArtKey = ''; render();
+    });
+    // ドラッグで移動
+    var drag = null;
+    edit.addEventListener('pointerdown', function (e) {
+      var item = e.target.closest && e.target.closest('.wear-edit-item');
+      if (!item || (e.target.closest && e.target.closest('.room-edit-x'))) return;
+      drag = { el: item, index: parseInt(item.getAttribute('data-index'), 10), x: null, y: null };
+      try { item.setPointerCapture(e.pointerId); } catch (err) {}
+      item.classList.add('dragging');
+    });
+    edit.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var rect = edit.getBoundingClientRect();
+      var x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      var y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+      drag.el.style.left = (x * 100) + '%'; drag.el.style.top = (y * 100) + '%';
+      drag.x = x; drag.y = y;
+    });
+    function endDrag() {
+      if (!drag) return;
+      if (drag.x != null) Engine.moveWear(drag.index, drag.x, drag.y, now());
+      drag.el.classList.remove('dragging'); drag = null; lastArtKey = ''; render();
+    }
+    edit.addEventListener('pointerup', endDrag);
+    edit.addEventListener('pointercancel', endDrag);
   }
 
   function openRoomModal() {
@@ -1767,8 +1824,9 @@
       '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
     var m = openModal(html);
     m.root.querySelector('#ruWear').addEventListener('click', function () {
-      Engine.equipWear(id, now()); lastArtKey = ''; render(); m.close();
-      showToast('かわいい！👕 ' + it.label + 'を 着たよ');
+      var d = wearDefaultXY(id);
+      Engine.addWear(id, d.x, d.y, now()); lastArtKey = ''; render(); m.close();
+      showToast('かわいい！👕 ' + it.label + 'を 着たよ（位置は 👕 で調整）');
     });
     m.root.querySelector('#ruLater').addEventListener('click', m.close);
   }
