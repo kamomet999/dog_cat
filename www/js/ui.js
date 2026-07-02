@@ -5,6 +5,10 @@
 (function () {
   'use strict';
 
+  // v1は無料で出す（IAPはv1.1）: 課金導線を隠し、プレミアム内容はロックのまま「近日公開」表示。
+  // テスト等で購入フローを検証したいときは window.__INUNEKO_IAP__ = true で有効化。
+  var IAP_ENABLED = (typeof window !== 'undefined' && window.__INUNEKO_IAP__ === true);
+
   var STATS = [
     { key: 'hunger', ico: '🍚', name: 'お腹' },
     { key: 'sanpo',  ico: '🐾', name: '散歩' },
@@ -519,7 +523,7 @@
     if (premium) {
       premBlock = '<div class="dex-section-title">⭐ プレミアム図鑑（' + prog.premiumFound + '/' + prog.premiumTotal + '）</div>' +
         '<div class="dex-grid">' + grid(premDogs.concat(premCats)) + '</div>';
-    } else if (prog.found >= 3) {
+    } else if (prog.found >= 3 && IAP_ENABLED) {
       premBlock = '<div class="prem-cta">' +
         '<div class="prem-cta-title">⭐ もっと あつめたい人へ</div>' +
         '<p class="prem-cta-sub"><b>広告ゼロ・買い切り。延命や復活の課金はナシ。</b><br>' +
@@ -527,6 +531,13 @@
         'メジャーな ' + prog.freeTotal + 'しゅるいは ずっと むりょう。</p>' +
         '<div class="dex-grid prem-peek">' + grid(premDogs.slice(0, 3).concat(premCats.slice(0, 3))) + '</div>' +
         '<button id="premBtn" class="big-btn primary" style="width:100%;margin-top:10px">' + Breeds.PREMIUM.price + 'で すべて解放</button>' +
+        '</div>';
+    } else if (prog.found >= 3) {
+      // v1（無料）: 購入導線は出さず「近日公開」の予告のみ。内容はロックのまま（無料開放しない）
+      premBlock = '<div class="prem-cta">' +
+        '<div class="prem-cta-title">⭐ もっと たくさんの子たち（近日公開）</div>' +
+        '<p class="prem-cta-sub">メジャーな ' + prog.freeTotal + 'しゅるいは ずっと むりょう。<br>もっとたくさんの公式品種は これから じゅんびちゅう。おたのしみに！</p>' +
+        '<div class="dex-grid prem-peek">' + grid(premDogs.slice(0, 3).concat(premCats.slice(0, 3))) + '</div>' +
         '</div>';
     }
 
@@ -823,13 +834,13 @@
         '<div class="room-grid">' + none + items.map(itemCell).join('') + '</div>';
     }).join('');
     var html = '<h2>🛋️ もようがえ</h2>' +
-      '<p class="sub">決まった場所に 飾りを はめ込もう。' + (premium ? '' : '無料は ' + roomFreeCount() + '種、<b>¥500で50種</b>に増えるよ。') + '</p>' +
+      '<p class="sub">決まった場所に 飾りを はめ込もう。' + (premium ? '' : (IAP_ENABLED ? '無料は ' + roomFreeCount() + '種、<b>¥500で50種</b>に増えるよ。' : '無料は ' + roomFreeCount() + '種。もっとたくさんの飾りは <b>近日公開</b>。')) + '</p>' +
       sections +
-      (premium ? '' : '<button id="roomPrem" class="big-btn primary mt12" style="width:100%">⭐ ¥500で 50種＋全キャラ解放</button>');
+      (premium || !IAP_ENABLED ? '' : '<button id="roomPrem" class="big-btn primary mt12" style="width:100%">⭐ ¥500で 50種＋全キャラ解放</button>');
     var m = openModal(html);
     Array.prototype.forEach.call(m.root.querySelectorAll('.room-cell'), function (cell) {
       cell.addEventListener('click', function () {
-        if (cell.getAttribute('data-locked')) { m.close(); return openPremiumModal(); }
+        if (cell.getAttribute('data-locked')) { if (IAP_ENABLED) { m.close(); return openPremiumModal(); } return showToast('この飾りは 近日公開だよ'); }
         Engine.equipRoom(cell.getAttribute('data-slot'), cell.getAttribute('data-item') || null, now());
         renderRoom();
         // 選択状態を更新（同スロットのonを付け替え）
@@ -1051,7 +1062,9 @@
       '<hr class="soft">' +
       (Engine.isPremium()
         ? '<p class="muted">⭐ プレミアム図鑑：<b>解放ずみ</b>（ぜんぶの公式品種が あつまります）</p>'
-        : '<button id="premSet" class="big-btn primary" style="width:100%">⭐ プレミアム図鑑を 解放（' + Breeds.PREMIUM.price + '）</button>') +
+        : (IAP_ENABLED
+          ? '<button id="premSet" class="big-btn primary" style="width:100%">⭐ プレミアム図鑑を 解放（' + Breeds.PREMIUM.price + '）</button>'
+          : '<p class="muted">⭐ プレミアム図鑑（もっとたくさんの公式品種）は <b>近日公開</b>。無料の ' + Breeds.ALL.filter(Breeds.isFree).length + ' 種は ずっと あそべます。</p>')) +
       '<button id="cardSet" class="big-btn ghost mt12" style="width:100%">📸 うちの子カードを作る（保存・共有）</button>' +
       '<button id="tutAgain" class="big-btn ghost mt12" style="width:100%">📖 あそびかたを もういちど みる</button>' +
       '<button id="resetBtn" class="big-btn ghost mt12" style="width:100%;color:var(--badge-new)">🗑 データをリセット</button>' +

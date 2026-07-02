@@ -59,14 +59,15 @@ async function newPage(save, opts) {
   const page = await ctx.newPage();
   page._errors = [];
   page.on('pageerror', e => page._errors.push(e.message));
-  await page.addInitScript(([s, t, key, tut, skipTut]) => {
+  await page.addInitScript(([s, t, key, tut, skipTut, iap]) => {
     window.__t = t;
     window.__INUNEKO_NORMAL_BALANCE__ = true; // E2Eは通常バランスで決定論検証（手動テスト用の加速は無効化）
+    if (iap) window.__INUNEKO_IAP__ = true;    // v1.1の購入フローを検証したいテストだけ有効化（v1既定は無効）
     Date.now = () => window.__t;
     // 未注入のときだけ書く（リロード後はアプリが保存した内容を保持＝永続化テスト可能）
     if (s && !localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(s));
     if (skipTut) localStorage.setItem(tut, '1');
-  }, [save || null, opts.t0 || T0, KEY, TUT, opts.skipTutorial !== false]);
+  }, [save || null, opts.t0 || T0, KEY, TUT, opts.skipTutorial !== false, !!opts.iap]);
   await page.goto('http://localhost:8940/' + (opts.query || ''));
   await page.waitForSelector('#app');
   await page.waitForTimeout(600);
@@ -263,7 +264,7 @@ t('家出(旅立ち): 散歩の怠り→旅に出ました・runaways+1', async 
   await closePage(page);
 });
 
-t('図鑑と課金: 4種集めるとCTA→¥500解放→目標が全種に広がる', async () => {
+t('図鑑と課金(v1.1 IAP有効時): 4種集めるとCTA→¥500解放→目標が全種に広がる', async () => {
   const page = await newPage(saveBase({
     dex: {
       shiba: { count: 1, firstAt: T0, unseen: false },
@@ -271,7 +272,7 @@ t('図鑑と課金: 4種集めるとCTA→¥500解放→目標が全種に広が
       kijitora: { count: 1, firstAt: T0, unseen: false },
       calico: { count: 1, firstAt: T0, unseen: false }
     }
-  }));
+  }), { iap: true }); // v1は購入導線を隠すので、購入フロー検証は IAP 有効化して行う
   const totalFree = await page.evaluate(() => window.Engine.dexProgress().total);
   await page.click('#dexBtn');
   await page.waitForTimeout(500);
@@ -292,6 +293,25 @@ t('図鑑と課金: 3種未満ではCTAも¥500も見えない', async () => {
   await page.waitForTimeout(500);
   assert.ok(!(await page.$('#premBtn')), '課金導線が出ない');
   assert.ok(!/¥500/.test(await text(page, '.modal')), '¥500の文字も出ない');
+  await closePage(page);
+});
+
+t('v1(無料版): 4種集めても購入導線は出ず「近日公開」表示・¥500は出ない', async () => {
+  const page = await newPage(saveBase({
+    dex: {
+      shiba: { count: 1, firstAt: T0, unseen: false },
+      golden: { count: 1, firstAt: T0, unseen: false },
+      kijitora: { count: 1, firstAt: T0, unseen: false },
+      calico: { count: 1, firstAt: T0, unseen: false }
+    }
+  })); // iap 無し = v1 既定
+  await page.click('#dexBtn');
+  await page.waitForTimeout(500);
+  assert.ok(!(await page.$('#premBtn')), 'v1では購入ボタンが出ない');
+  const body = await text(page, '.modal');
+  assert.ok(!/¥500/.test(body), 'v1では¥500の文字が出ない');
+  assert.match(body, /近日公開/, '近日公開の予告が出る');
+  assert.ok(!(await page.evaluate(() => window.Engine.isPremium())), '未解放のまま');
   await closePage(page);
 });
 
@@ -411,7 +431,7 @@ t('成長: 赤ちゃんは保護され、時間がたつと目を覚ます(stage
   await closePage(page);
 });
 
-t('部屋の模様替え: 無料の飾りをはめ込む→シーンに反映。プレミアム飾りは課金導線', async () => {
+t('部屋の模様替え: 無料の飾りをはめ込む→シーンに反映。プレミアム飾りは近日公開(v1)', async () => {
   const page = await newPage(saveBase());
   await page.click('#roomBtn');
   await page.waitForTimeout(400);
@@ -423,9 +443,10 @@ t('部屋の模様替え: 無料の飾りをはめ込む→シーンに反映。
   assert.strictEqual((await engineState(page)).room.bg, 'bg_sky');
   await page.click('.room-cell[data-item="w_clock"]'); // プレミアム品（ロック）
   await page.waitForTimeout(350);
-  assert.ok(await page.$('#buyPrem'), 'ロック品タップで課金モーダルへ');
+  assert.ok(!(await page.$('#buyPrem')), 'v1ではロック品タップで購入モーダルは出ない');
+  assert.match(await text(page, '#toast'), /近日公開/, 'ロック品は近日公開の案内');
   assert.notStrictEqual((await engineState(page)).room.wall, 'w_clock', '未解放品は装備されない');
-  await page.click('.modal-close');
+  await page.click('.modal-close'); // 部屋モーダルを閉じる
   await page.waitForTimeout(250);
   assert.match(await text(page, '#rsWall'), /🖼️/, 'シーンに反映');
   await closePage(page);

@@ -1,17 +1,18 @@
-# ストア掲載情報（ドラフト）
+# ストア掲載情報（ドラフト・v1 = 無料版）
 
-> 提出時にコピペで使う文言一式。文字数制限に合わせて調整済み。
+> 提出時にコピペで使う文言一式。**v1は無料で出す（アプリ内課金なし）**方針に合わせて改訂（2026-06-23）。
+> IAP（¥500プレミアム）は v1.1 で有効化予定。v1では購入導線を隠し、プレミアム内容は「近日公開」表示。
 
 ## 共通
 
 - アプリ名: **いぬねこ図鑑 - スマホをはなれて育てるペット**
 - カテゴリ: iOS「ライフスタイル」or「ヘルスケア/フィットネス」/ Android「ライフスタイル」
-- 年齢区分: 全年齢（暴力・課金・広告・UGCなし）
+- 年齢区分: 全年齢（暴力・**アプリ内課金なし(v1)**・広告なし・UGCなし）
 - プライバシーポリシーURL: GitHub Pages に `privacy-policy` を設置して指定（公開前にURL確定）
 
 ## ショート説明（Google Play・80字以内）
 
-> スマホを置くと、犬や猫が育つ。ぜんぶで30種の いぬねこ図鑑をコンプリートしよう。やさしいデジタルデトックス。
+> スマホを置くほど、犬や猫が育つ。犬猫60種＋交配種の いぬねこ図鑑を集めよう。責めない、やさしいデジタルデトックス。
 
 ## サブタイトル（iOS・30字以内）
 
@@ -20,20 +21,21 @@
 ## 説明文（日本語）
 
 スマホをはなれた時間が、そのまま「いぬ・ねこ」の成長になる。
-がんばらないデジタルデトックス × ゆるい育成ゲームです。
+がんばらない・責めない デジタルデトックス × ゆるい育成ゲームです。
 
 【あそびかた】
-1. ねんね中の あかちゃんを おむかえする（いぬ？ ねこ？）
-2. 「おさんぽ」の時間をきめて、スマホをふせる（30分・1時間・2時間）
-3. もどってこなければ、おさんぽ成功！ ごほうびと成長がまっています
-4. とちゅうでアプリをひらくと失敗。ペットがしょんぼりしちゃう…
+1. ねんね中の あかちゃんを おむかえ（いぬ？ ねこ？）
+2. 「おすわり」＝スマホを置くと、その時間が この子の ごはんに
+3. 「おさんぽ」＝どくしょ・えいご・うんどうの あいだ となりに（取り組んだぶん ごほうび）
+4. 育った子は 図鑑に登録。あたらしい子を おむかえして コンプを目指そう
 
 【とくちょう】
-■ 放置するほど育つ — アプリを閉じているあいだも、ペットはすこしずつ成長します
-■ ぜんぶで30種の図鑑 — 柴犬からベンガルまで。レアな子に出会って図鑑をうめよう
-■ れんぞく成功ボーナス — 毎日つづけるほど、ごほうびアップ
-■ いのちの せってい — ごはんと「スマホをはなれた時間」が たりないと、おわかれが きてしまいます。だから毎日がいとおしい
-■ 広告ゼロ・登録不要 — 図鑑コンプまで課金はいっさい不要。データはぜんぶ端末の中だけ。やさしい設計です
+■ 置くほど育つ — アプリを閉じているあいだも、少しずつ成長します
+■ 犬猫60種＋交配種の図鑑 — 柴犬からベンガルまで。おみあいで「チワックス」などの交配種も
+■ おみあい（ブリード） — 友だちとコードを交換して、色・耳・もよう・目・種類を受け継いだ子をおむかえ
+■ きせかえ・記号模様・目スタイル — その子だけの個性。おさんぽのごほうびで集まる
+■ 責めない設計 — **スマホを使っていない間は、この子はいなくなりません**。あわてず ゆっくりで だいじょうぶ
+■ 広告ゼロ・登録不要・**アプリ内課金なし** — データはぜんぶ端末の中だけ。やさしい設計です
 
 スマホとちょっと距離を置きたいあなたへ。
 かわいい相棒と、すこしずつ。
@@ -43,30 +45,31 @@
 ## 説明文（英語・グローバル配信用）
 
 Put your phone down, and your dog or cat grows.
-A gentle digital detox app crossed with a cozy pet-collecting game.
+A gentle, guilt-free digital detox app crossed with a cozy pet-collecting game.
 
 HOW IT WORKS
 1. Welcome a sleeping puppy or kitten
-2. Start a "walk" (30 min / 1 h / 2 h) and put your phone face down
-3. Stay away until time's up — your pet grows and rewards await
-4. Open the app too early and the walk fails…
+2. "Sit" — put your phone down, and that time becomes your pet's food
+3. "Walk" — keep it by your side while you read, study, or exercise (earn treats)
+4. Raise each pet, add it to your Dex, and welcome the next one
 
 FEATURES
-- Idle growth: your pet keeps growing while the app is closed
-- All 30 breeds to collect, from Shiba Inu to Bengal
-- Streak bonuses for daily success
-- Real stakes: without food and phone-free time, your pet may pass away
-- No ads, no sign-up. Complete the whole collection without paying. All data stays on your device.
+- Grows while you're away: your pet keeps growing while the app is closed
+- 60 dog & cat breeds plus crossbreeds to collect
+- Breeding: swap codes with friends to inherit color, ears, markings, eyes and breed
+- Dress-up, body markings, eye styles — every pet is one of a kind
+- Guilt-free: your pet never leaves while you're not using your phone
+- No ads, no sign-up, no in-app purchases (v1). All data stays on your device.
 
 ## スクリーンショット構成案（6.7" / 6.5" / 5.5" とAndroid共通）
 
 > 並びは `docs/DESIGN.md` §10（Value → Usage → Trust）を正とする。
 
 1. ホーム画面 — **ペットの顔が最大要素（画面の1/3以上）**「スマホを置くと、育つ。」
-2. おさんぽ中画面「30分の おさんぽから」
-3. 図鑑画面「ぜんぶ無料で 30種コンプ」
-4. 使い方3コマ（おむかえ → ふせる → 成功モーダル）
-5. 図鑑画面の実写（フッターの一言が写るもの）「広告ゼロ・登録不要」
+2. おすわり画面「スマホを置いた時間が ごはんになる」
+3. 図鑑画面「犬猫60種＋交配種を あつめよう」
+4. おみあい画面「友だちと コードを交換して 交配種を」
+5. 図鑑/ホームの実写（フッターの一言が写るもの）「広告ゼロ・登録不要・課金なし」
 
 ※ 別途: Google Play フィーチャーグラフィック（ペット顔＋「スマホを置くと、育つ。」の1メッセージ。DESIGN.md §10）
 
@@ -74,4 +77,11 @@ FEATURES
 
 - データ収集: **なし** / データ共有: **なし** / 暗号化: 該当なし（送信なし）
 - トラッキング: なし / 広告ID使用: なし
+- アプリ内課金: **なし（v1）**（v1.1でIAP有効化時に「デジタルコンテンツ」を申告し直す）
 - iOS「App Privacy」: Data Not Collected
+
+## v1.1（IAP有効化）で更新が必要な項目 ※提出時の備忘
+
+- アプリ内課金: **あり**（¥500 買い切り「プレミアム図鑑」＝非消費型）に変更
+- 年齢区分・データセーフティの「課金」項目を更新
+- 説明文の「課金なし」を「延命・復活課金なし／コレクション拡張のみ ¥500買い切り」に変更
