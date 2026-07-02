@@ -98,13 +98,16 @@ module.exports = {
     },
     {
       name: 'room-decorated',
-      // 飾りをはめ込んだ部屋（背景そら＋壁の絵＋観葉＋くま＋ベッド）
-      save: saveBase({ room: { bg: 'bg_sky', wall: 'w_pic', left: 'l_plant', right: 'r_bear', floor: 'f_bed' } }),
+      // 自由配置した部屋（背景そら＋飾りを好きな位置に）
+      save: saveBase({ room: { bg: 'bg_sky', items: [
+        { id: 'w_pic', x: 0.5, y: 0.18 }, { id: 'l_plant', x: 0.16, y: 0.62 },
+        { id: 'r_bear', x: 0.84, y: 0.66 }, { id: 'f_bed', x: 0.5, y: 0.86 }
+      ] } }),
       steps: [{ wait: 300 }]
     },
     {
       name: 'room-modal',
-      save: saveBase({ room: { bg: 'bg_sky', wall: 'w_pic', left: 'l_plant', right: null, floor: null } }),
+      save: saveBase({ room: { bg: 'bg_sky', items: [{ id: 'w_pic', x: 0.4, y: 0.3 }, { id: 'l_plant', x: 0.7, y: 0.6 }] } }),
       fullPage: true,
       steps: [{ click: '#roomBtn' }, { wait: 400 }]
     },

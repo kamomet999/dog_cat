@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 15;
+  var VERSION = 16;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -154,9 +154,9 @@
       room: defaultRoom()   // 部屋の模様替え（スロット→アイテムid。¥500で全アイテム解放）
     };
   }
-  // 部屋の初期スロット（はめ込み式。背景＝bg、その他は飾り。null=なし）
+  // 部屋（自由配置）: 背景bg ＋ 飾りリスト items[{id,x,y}]（x,y は 0..1 の相対座標）
   function defaultRoom() {
-    return { bg: 'cream', wall: null, left: null, right: null, floor: null };
+    return { bg: 'cream', items: [] };
   }
 
   // ----- 永続化 -----
@@ -246,6 +246,21 @@
     if (s.version === 14) {
       // 交配種の図鑑（おみあいでのみ生まれる名前付き掛け合わせ）導入
       s = { ...s, version: 15, crossDex: s.crossDex || {} };
+    }
+    if (s.version === 15) {
+      // 部屋を「スロット固定」→「自由配置」へ。旧スロットの飾りを既定位置に置き換える
+      var oldRoom = s.room || {};
+      var items;
+      if (Array.isArray(oldRoom.items)) {
+        items = oldRoom.items; // すでに自由配置形式ならそのまま保持
+      } else {
+        var DEFPOS = { wall: { x: 0.5, y: 0.24 }, left: { x: 0.2, y: 0.6 }, right: { x: 0.8, y: 0.6 }, floor: { x: 0.5, y: 0.82 } };
+        items = [];
+        ['wall', 'left', 'right', 'floor'].forEach(function (sl) {
+          if (oldRoom[sl]) items.push({ id: oldRoom[sl], x: DEFPOS[sl].x, y: DEFPOS[sl].y });
+        });
+      }
+      s = { ...s, version: 16, room: { bg: oldRoom.bg || 'cream', items: items } };
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -540,17 +555,41 @@
     },
 
     // ===== 部屋の模様替え（はめ込み式。slot→itemId） =====
-    getRoom: function () { return (this._state && this._state.room) || defaultRoom(); },
-    /** スロットにアイテムをはめる（itemId=null で外す）。アイテムの解放可否はUI側で判定 */
-    equipRoom: function (slot, itemId, now) {
-      var s = this._state;
-      if (!s) return null;
-      var room = Object.assign(defaultRoom(), s.room || {});
-      room[slot] = itemId;
+    getRoom: function () {
+      var r = (this._state && this._state.room) || defaultRoom();
+      return { bg: r.bg || 'cream', items: r.items ? r.items.slice() : [] };
+    },
+    MAX_ROOM_ITEMS: 24,
+    _saveRoom: function (room, now) {
+      var s = this._state; if (!s) return null;
       var ns = { ...s, room: room, lastSavedAt: now || s.lastSavedAt };
-      this._state = ns;
-      persist(ns);
-      return room;
+      this._state = ns; persist(ns); return room;
+    },
+    /** 背景を変える */
+    setRoomBg: function (bgId, now) {
+      var r = this.getRoom(); r.bg = bgId; return this._saveRoom(r, now);
+    },
+    /** 飾りを自由な位置に置く（x,y は 0..1 の相対座標）。上限まで。追加した index を返す */
+    addRoomItem: function (id, x, y, now) {
+      var r = this.getRoom();
+      if (r.items.length >= this.MAX_ROOM_ITEMS) return { error: 'full' };
+      r.items.push({ id: id, x: clamp(x, 0, 1), y: clamp(y, 0, 1) });
+      this._saveRoom(r, now);
+      return { index: r.items.length - 1, room: r };
+    },
+    /** 置いた飾りを動かす（index 指定・x,y は 0..1） */
+    moveRoomItem: function (i, x, y, now) {
+      var r = this.getRoom();
+      if (!r.items[i]) return null;
+      r.items[i] = { ...r.items[i], x: clamp(x, 0, 1), y: clamp(y, 0, 1) };
+      return this._saveRoom(r, now);
+    },
+    /** 置いた飾りを外す（index 指定） */
+    removeRoomItem: function (i, now) {
+      var r = this.getRoom();
+      if (i < 0 || i >= r.items.length) return null;
+      r.items.splice(i, 1);
+      return this._saveRoom(r, now);
     },
 
     // 現在のペット（pure品種なら Breeds、ミックスなら合成した品種オブジェクト）

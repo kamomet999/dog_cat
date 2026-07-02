@@ -109,10 +109,10 @@ test('抽選: 収集済み・直前と同じ品種は出にくい（同じ子ば
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v15 の初期状態ができる', () => {
+test('newGame で v16 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 15);
+  assert.strictEqual(s.version, 16);
   assert.strictEqual(s.points, 0);
   eqJSON(s.crossDex, {});
   assert.strictEqual(s.premium, false);
@@ -149,17 +149,31 @@ test('unlockPremium で全品種が解放される', () => {
   assert.ok(w.Engine.unlockPremium(T0).already);
 });
 
-test('部屋: 既定cream→はめ込み→外す（課金と独立に保存）', () => {
+test('部屋: 背景変更＋飾りの自由配置（追加・移動・削除）', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   assert.strictEqual(w.Engine.getRoom().bg, 'cream');
-  assert.strictEqual(w.Engine.getRoom().wall, null);
-  w.Engine.equipRoom('wall', 'w_pic', T0);
-  assert.strictEqual(w.Engine.getRoom().wall, 'w_pic');
-  w.Engine.equipRoom('bg', 'bg_sky', T0);
+  eqJSON(w.Engine.getRoom().items, []);
+  // 背景
+  w.Engine.setRoomBg('bg_sky', T0);
   assert.strictEqual(w.Engine.getRoom().bg, 'bg_sky');
-  w.Engine.equipRoom('wall', null, T0); // 外す
-  assert.strictEqual(w.Engine.getRoom().wall, null);
+  // 追加（x,y=0..1）
+  var r = w.Engine.addRoomItem('w_pic', 0.3, 0.7, T0);
+  assert.strictEqual(r.index, 0);
+  assert.strictEqual(w.Engine.getRoom().items.length, 1);
+  assert.strictEqual(w.Engine.getRoom().items[0].id, 'w_pic');
+  assert.ok(Math.abs(w.Engine.getRoom().items[0].x - 0.3) < 1e-9);
+  // 移動（範囲外はクランプ）
+  w.Engine.moveRoomItem(0, 1.5, -0.2, T0);
+  assert.strictEqual(w.Engine.getRoom().items[0].x, 1);
+  assert.strictEqual(w.Engine.getRoom().items[0].y, 0);
+  // 複数置ける
+  w.Engine.addRoomItem('l_plant', 0.2, 0.6, T0);
+  assert.strictEqual(w.Engine.getRoom().items.length, 2);
+  // 削除
+  w.Engine.removeRoomItem(0, T0);
+  assert.strictEqual(w.Engine.getRoom().items.length, 1);
+  assert.strictEqual(w.Engine.getRoom().items[0].id, 'l_plant');
   assert.strictEqual(w.Engine.isPremium(), false); // 部屋の操作は課金フラグに影響しない
 });
 
@@ -183,7 +197,7 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 15);
+  assert.strictEqual(s.version, 16);
   eqJSON(s.crossDex, {}); // 交配種図鑑が移行で追加される
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);

@@ -669,17 +669,17 @@
   ROOM_ITEMS.forEach(function (it) { roomById[it.id] = it; });
   function roomFreeCount() { return ROOM_ITEMS.filter(function (i) { return !i.p; }).length; }
 
-  // 部屋をシーンに反映（home の render から呼ぶ）
+  // 部屋をシーンに反映（home の render から呼ぶ）。飾りは自由配置(x,y=0..1)
   function renderRoom() {
     var room = Engine.getRoom();
     var scene = $('scene');
     if (scene) scene.style.background = ROOM_BG[room.bg] || ROOM_BG.cream;
-    ['wall', 'left', 'right', 'floor'].forEach(function (slot) {
-      var el = $('rs' + slot.charAt(0).toUpperCase() + slot.slice(1));
-      if (!el) return;
-      var it = room[slot] && roomById[room[slot]];
-      el.textContent = it ? (it.e || '') : '';
-    });
+    var layer = $('roomItems');
+    if (!layer) return;
+    layer.innerHTML = (room.items || []).map(function (p) {
+      var it = roomById[p.id]; if (!it) return '';
+      return '<span class="room-item" style="left:' + (p.x * 100) + '%;top:' + (p.y * 100) + '%">' + (it.e || '') + '</span>';
+    }).join('');
   }
 
   // ===== きせかえ（ペットのアクセサリ。おさんぽ報酬で集める。Engine.WEAR_IDS と対応） =====
@@ -813,42 +813,93 @@
 
   function openRoomModal() {
     var premium = Engine.isPremium();
-    var room = Engine.getRoom();
-    function itemCell(it) {
-      var locked = it.p && !premium;
-      var equipped = room[it.slot] === it.id;
-      var inner = it.slot === 'bg'
-        ? '<span class="room-swatch" style="background:' + (ROOM_BG[it.id] || '') + '"></span>'
-        : '<span class="room-emo">' + (it.e || '') + '</span>';
-      return '<button class="room-cell' + (equipped ? ' on' : '') + (locked ? ' locked' : '') + '" ' +
-        'data-item="' + it.id + '" data-slot="' + it.slot + '"' + (locked ? ' data-locked="1"' : '') + '>' +
-        (locked ? '<span class="room-lock">🔒</span>' : '') + inner +
-        '<span class="room-name">' + it.label + '</span></button>';
+    function lockedOf(it) { return it.p && !premium; }
+    function bgCell(it) {
+      var locked = lockedOf(it);
+      return '<button class="room-cell' + (Engine.getRoom().bg === it.id ? ' on' : '') + (locked ? ' locked' : '') + '" data-bg="' + it.id + '"' + (locked ? ' data-locked="1"' : '') + '>' +
+        (locked ? '<span class="room-lock">🔒</span>' : '') +
+        '<span class="room-swatch" style="background:' + (ROOM_BG[it.id] || '') + '"></span><span class="room-name">' + it.label + '</span></button>';
     }
-    var sections = ROOM_SLOTS.map(function (s) {
-      var items = ROOM_ITEMS.filter(function (i) { return i.slot === s.slot; });
-      var none = s.slot === 'bg' ? '' :
-        '<button class="room-cell' + (!room[s.slot] ? ' on' : '') + '" data-item="" data-slot="' + s.slot + '">' +
-        '<span class="room-emo">∅</span><span class="room-name">なし</span></button>';
-      return '<div class="dex-section-title">' + s.label + '</div>' +
-        '<div class="room-grid">' + none + items.map(itemCell).join('') + '</div>';
-    }).join('');
+    function palCell(it) {
+      var locked = lockedOf(it);
+      return '<button class="room-cell' + (locked ? ' locked' : '') + '" data-add="' + it.id + '"' + (locked ? ' data-locked="1"' : '') + '>' +
+        (locked ? '<span class="room-lock">🔒</span>' : '') +
+        '<span class="room-emo">' + (it.e || '') + '</span><span class="room-name">' + it.label + '</span></button>';
+    }
+    var bgs = ROOM_ITEMS.filter(function (i) { return i.slot === 'bg'; });
+    var decos = ROOM_ITEMS.filter(function (i) { return i.slot !== 'bg'; });
     var html = '<h2>🛋️ もようがえ</h2>' +
-      '<p class="sub">決まった場所に 飾りを はめ込もう。' + (premium ? '' : (IAP_ENABLED ? '無料は ' + roomFreeCount() + '種、<b>¥500で50種</b>に増えるよ。' : '無料は ' + roomFreeCount() + '種。もっとたくさんの飾りは <b>近日公開</b>。')) + '</p>' +
-      sections +
+      '<p class="sub">かざりを 下からえらんで、指で <b>すきな場所</b>へ。ドラッグで移動・<b>×</b>でとる。</p>' +
+      '<div id="roomEdit" class="room-edit"></div>' +
+      '<div class="dex-section-title">はいけい</div><div class="room-grid">' + bgs.map(bgCell).join('') + '</div>' +
+      '<div class="dex-section-title">かざり（タップで おく）</div><div class="room-grid">' + decos.map(palCell).join('') + '</div>' +
       (premium || !IAP_ENABLED ? '' : '<button id="roomPrem" class="big-btn primary mt12" style="width:100%">⭐ ¥500で 50種＋全キャラ解放</button>');
     var m = openModal(html);
-    Array.prototype.forEach.call(m.root.querySelectorAll('.room-cell'), function (cell) {
-      cell.addEventListener('click', function () {
-        if (cell.getAttribute('data-locked')) { if (IAP_ENABLED) { m.close(); return openPremiumModal(); } return showToast('この飾りは 近日公開だよ'); }
-        Engine.equipRoom(cell.getAttribute('data-slot'), cell.getAttribute('data-item') || null, now());
-        renderRoom();
-        // 選択状態を更新（同スロットのonを付け替え）
-        var slot = cell.getAttribute('data-slot');
-        Array.prototype.forEach.call(m.root.querySelectorAll('.room-cell[data-slot="' + slot + '"]'), function (c) { c.classList.remove('on'); });
-        cell.classList.add('on');
+    var edit = m.root.querySelector('#roomEdit');
+    function paintEdit() {
+      var room = Engine.getRoom();
+      edit.style.background = ROOM_BG[room.bg] || ROOM_BG.cream;
+      edit.innerHTML = room.items.map(function (p, i) {
+        var it = roomById[p.id]; if (!it) return '';
+        return '<span class="room-edit-item" data-index="' + i + '" style="left:' + (p.x * 100) + '%;top:' + (p.y * 100) + '%">' + (it.e || '') +
+          '<button class="room-edit-x" data-del="' + i + '" aria-label="とる">×</button></span>';
+      }).join('');
+    }
+    paintEdit();
+    function guardLocked(cell) {
+      if (!cell.getAttribute('data-locked')) return false;
+      if (IAP_ENABLED) { m.close(); openPremiumModal(); } else { showToast('これは 近日公開だよ'); }
+      return true;
+    }
+    Array.prototype.forEach.call(m.root.querySelectorAll('[data-bg]'), function (c) {
+      c.addEventListener('click', function () {
+        if (guardLocked(c)) return;
+        Engine.setRoomBg(c.getAttribute('data-bg'), now());
+        Array.prototype.forEach.call(m.root.querySelectorAll('[data-bg]'), function (x) { x.classList.remove('on'); });
+        c.classList.add('on'); paintEdit(); renderRoom();
       });
     });
+    Array.prototype.forEach.call(m.root.querySelectorAll('[data-add]'), function (c) {
+      c.addEventListener('click', function () {
+        if (guardLocked(c)) return;
+        var r = Engine.addRoomItem(c.getAttribute('data-add'), 0.5, 0.45, now());
+        if (r && r.error === 'full') return showToast('これ以上 おけないよ');
+        paintEdit(); renderRoom();
+      });
+    });
+    // × でとる（イベント委譲）
+    edit.addEventListener('click', function (e) {
+      var x = e.target.closest && e.target.closest('.room-edit-x');
+      if (!x) return;
+      e.stopPropagation();
+      Engine.removeRoomItem(parseInt(x.getAttribute('data-del'), 10), now());
+      paintEdit(); renderRoom();
+    });
+    // ドラッグで移動（pointer・タッチ対応）
+    var drag = null;
+    edit.addEventListener('pointerdown', function (e) {
+      var item = e.target.closest && e.target.closest('.room-edit-item');
+      if (!item || (e.target.closest && e.target.closest('.room-edit-x'))) return;
+      drag = { el: item, index: parseInt(item.getAttribute('data-index'), 10), x: null, y: null };
+      try { item.setPointerCapture(e.pointerId); } catch (err) {}
+      item.classList.add('dragging');
+    });
+    edit.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var rect = edit.getBoundingClientRect();
+      var x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      var y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+      drag.el.style.left = (x * 100) + '%'; drag.el.style.top = (y * 100) + '%';
+      drag.x = x; drag.y = y;
+    });
+    function endDrag() {
+      if (!drag) return;
+      if (drag.x != null) Engine.moveRoomItem(drag.index, drag.x, drag.y, now());
+      drag.el.classList.remove('dragging');
+      drag = null; renderRoom();
+    }
+    edit.addEventListener('pointerup', endDrag);
+    edit.addEventListener('pointercancel', endDrag);
     var rp = m.root.querySelector('#roomPrem');
     if (rp) rp.addEventListener('click', function () { m.close(); openPremiumModal(); });
   }

@@ -108,7 +108,7 @@ t('初回フロー: intro→種選択→チュートリアル5歩→ホーム到
   }
   assert.ok(!(await page.$('#tutNext')), 'チュートリアルが閉じた');
   const st = await engineState(page);
-  assert.strictEqual(st.version, 15);
+  assert.strictEqual(st.version, 16);
   assert.ok(st.current, 'ペットがいる');
   assert.strictEqual((await text(page, '#petName')).trim(), 'ねんねちゅう…');
   const tut = await page.evaluate(k => localStorage.getItem(k), TUT);
@@ -431,34 +431,49 @@ t('成長: 赤ちゃんは保護され、時間がたつと目を覚ます(stage
   await closePage(page);
 });
 
-t('部屋の模様替え: 無料の飾りをはめ込む→シーンに反映。プレミアム飾りは近日公開(v1)', async () => {
+t('部屋の模様替え(自由配置): 背景変更＋飾りを置く/とる→シーン反映。プレミアムは近日公開(v1)', async () => {
   const page = await newPage(saveBase());
   await page.click('#roomBtn');
   await page.waitForTimeout(400);
-  await page.click('.room-cell[data-item="w_pic"]'); // 無料の壁飾り
+  // 背景を変える
+  await page.click('.room-cell[data-bg="bg_sky"]');
+  await page.waitForTimeout(200);
+  assert.strictEqual((await engineState(page)).room.bg, 'bg_sky', '背景が変わる');
+  // 無料の飾りを置く（自由配置）
+  await page.click('.room-cell[data-add="l_plant"]');
   await page.waitForTimeout(250);
-  assert.strictEqual((await engineState(page)).room.wall, 'w_pic', '壁にはめ込まれた');
-  await page.click('.room-cell[data-item="bg_sky"]'); // 無料の背景
-  await page.waitForTimeout(250);
-  assert.strictEqual((await engineState(page)).room.bg, 'bg_sky');
-  await page.click('.room-cell[data-item="w_clock"]'); // プレミアム品（ロック）
-  await page.waitForTimeout(350);
-  assert.ok(!(await page.$('#buyPrem')), 'v1ではロック品タップで購入モーダルは出ない');
+  let items = (await engineState(page)).room.items;
+  assert.strictEqual(items.length, 1, '飾りが1つ置かれる');
+  assert.strictEqual(items[0].id, 'l_plant');
+  assert.ok(await page.$('#roomEdit .room-edit-item'), 'エディタに置いた飾りが出る');
+  // プレミアム飾り（ロック）はv1では置けず「近日公開」
+  await page.click('.room-cell[data-add="w_clock"]');
+  await page.waitForTimeout(300);
+  assert.ok(!(await page.$('#buyPrem')), 'v1では購入モーダルは出ない');
   assert.match(await text(page, '#toast'), /近日公開/, 'ロック品は近日公開の案内');
-  assert.notStrictEqual((await engineState(page)).room.wall, 'w_clock', '未解放品は装備されない');
-  await page.click('.modal-close'); // 部屋モーダルを閉じる
+  assert.strictEqual((await engineState(page)).room.items.length, 1, 'ロック品は置かれない');
+  // × でとる
+  await page.click('#roomEdit .room-edit-x');
   await page.waitForTimeout(250);
-  assert.match(await text(page, '#rsWall'), /🖼️/, 'シーンに反映');
+  assert.strictEqual((await engineState(page)).room.items.length, 0, '飾りが とれる');
+  // もう一度置いて、ホームのシーンに反映されるか
+  await page.click('.room-cell[data-add="r_bear"]');
+  await page.waitForTimeout(250);
+  await page.click('.modal-close');
+  await page.waitForTimeout(250);
+  assert.match(await text(page, '#roomItems'), /🧸/, 'シーンに反映');
   await closePage(page);
 });
 
-t('部屋(課金後): プレミアム飾りもはめ込める', async () => {
+t('部屋(課金後): プレミアム飾りも自由配置で置ける', async () => {
   const page = await newPage(saveBase({ premium: true }));
   await page.click('#roomBtn');
   await page.waitForTimeout(400);
-  await page.click('.room-cell[data-item="w_clock"]');
+  await page.click('.room-cell[data-add="w_clock"]');
   await page.waitForTimeout(250);
-  assert.strictEqual((await engineState(page)).room.wall, 'w_clock', '課金済みなら装備できる');
+  const items = (await engineState(page)).room.items;
+  assert.strictEqual(items.length, 1);
+  assert.strictEqual(items[0].id, 'w_clock', '課金済みなら置ける');
   await closePage(page);
 });
 
@@ -475,7 +490,7 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   const after = await engineState(page);
   assert.strictEqual(Math.floor(after.foodStock), Math.floor(before.foodStock), 'ストックが保持');
   assert.strictEqual(after.current.breedId, before.current.breedId);
-  assert.strictEqual(after.version, 15);
+  assert.strictEqual(after.version, 16);
   await closePage(page);
 });
 
@@ -561,7 +576,7 @@ t('開発者トグル: 版表記5タップで「はや回し」が出て切り�
   await closePage(page);
 });
 
-t('旧セーブ(v1)読み込み: 最新v15へ移行して起動できる', async () => {
+t('旧セーブ(v1)読み込み: 最新v16へ移行して起動できる', async () => {
   const v1 = {
     version: 1, coin: 42, luck: 0.1,
     current: { breedId: 'shiba', xp: 30, hunger: 50, mood: 50, clean: 50, energy: 50, careCount: 3 },
@@ -573,7 +588,7 @@ t('旧セーブ(v1)読み込み: 最新v15へ移行して起動できる', async
   const ok = await page.$('#okBtn');
   if (ok) { await ok.click(); await page.waitForTimeout(300); }
   const st = await engineState(page);
-  assert.strictEqual(st.version, 15);
+  assert.strictEqual(st.version, 16);
   assert.strictEqual(st.current.mood, undefined, 'moodは消える');
   assert.ok(st.current.sanpo != null && st.current.health != null);
   await closePage(page);

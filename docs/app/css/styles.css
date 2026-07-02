@@ -80,12 +80,20 @@ body {
 }
 /* 部屋の模様替え（はめ込み式） */
 .stage-card .scene { transition: background .3s ease; }
-.room-slot { position: absolute; font-size: 34px; line-height: 1; pointer-events: none; z-index: 1;
+/* 部屋の飾り（自由配置）。x,y=0..1 を left/top% に。中心そろえで transform */
+.room-items { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.room-item { position: absolute; transform: translate(-50%, -50%); font-size: 30px; line-height: 1;
   filter: drop-shadow(0 2px 2px rgba(80,60,40,.15)); }
-.rs-wall  { top: 8px; left: 50%; transform: translateX(-50%); }
-.rs-left  { bottom: 6px; left: 10px; }
-.rs-right { bottom: 6px; right: 10px; }
-.rs-floor { bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 40px; z-index: 0; opacity: .92; }
+/* もようがえエディタ（ドラッグで配置） */
+.room-edit { position: relative; width: 100%; height: 220px; border-radius: 16px; overflow: hidden;
+  margin: 6px 0 12px; box-shadow: inset 0 0 0 2px rgba(120,90,60,.12); touch-action: none; }
+.room-edit-item { position: absolute; transform: translate(-50%, -50%); font-size: 36px; line-height: 1;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  filter: drop-shadow(0 2px 3px rgba(80,60,40,.22)); }
+.room-edit-item.dragging { transform: translate(-50%, -50%) scale(1.18); cursor: grabbing; z-index: 5; }
+.room-edit-x { position: absolute; top: -10px; right: -12px; width: 20px; height: 20px; border-radius: 50%;
+  border: none; background: rgba(40,32,24,.72); color: #fff; font-size: 14px; line-height: 20px; padding: 0;
+  cursor: pointer; text-align: center; }
 .room-btn { position: absolute; top: 8px; right: 8px; z-index: 3; border: none; cursor: pointer;
   width: 34px; height: 34px; border-radius: 50%; font-size: 17px; background: rgba(255,255,255,.78); box-shadow: var(--shadow); }
 .room-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 4px; }
