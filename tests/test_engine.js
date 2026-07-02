@@ -109,12 +109,12 @@ test('抽選: 収集済み・直前と同じ品種は出にくい（同じ子ば
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v17 の初期状態ができる', () => {
+test('newGame で v18 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 17);
+  assert.strictEqual(s.version, 18);
   assert.strictEqual(s.points, 0);
-  eqJSON(s.crossDex, {});
+  assert.strictEqual(s.crossDex, undefined, '交配種は原種と同じ図鑑（専用crossDexは持たない）');
   assert.strictEqual(s.premium, false);
   eqJSON(s.album, []);
   assert.strictEqual(s.foodStock, 6);
@@ -143,7 +143,7 @@ test('unlockPremium で全品種が解放される', () => {
   assert.ok(r.unlocked);
   assert.strictEqual(w.Engine.isPremium(), true);
   const prog1 = w.Engine.dexProgress();
-  assert.strictEqual(prog1.total, w.Breeds.ALL.length); // 課金後は全種が目標
+  assert.strictEqual(prog1.total, w.Breeds.ALL.length + w.Breeds.CROSS.length); // 課金後は全種（原種＋交配種）が目標
   assert.ok(prog1.premiumTotal > 0);
   // 二重解放は no-op
   assert.ok(w.Engine.unlockPremium(T0).already);
@@ -197,8 +197,8 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 17);
-  eqJSON(s.crossDex, {}); // 交配種図鑑が移行で追加される
+  assert.strictEqual(s.version, 18);
+  assert.strictEqual(s.crossDex, undefined, '交配種は原種と同じ図鑑に統合（crossDexは持たない）');
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
@@ -729,20 +729,23 @@ test('壊れたコードは checksum / format で弾く', () => {
   assert.ok(a.Engine.decodeMate('').error);
 });
 
-test('交配種: チワワ×ダックス → チワックスが生まれ、巣立ちで交配種図鑑に登録', () => {
+test('交配種: チワワ×ダックス → チワックスが生まれ、巣立ちで同じ図鑑に登録（分けない）', () => {
   const me = adultWorld('chihuahua');
   const partnerCode = adultWorld('dachshund').Engine.mateCode();
+  const before = me.Engine.dexProgress().found;
   const res = me.Engine.breedWith(me.Engine.decodeMate(partnerCode), T0, () => 0.9); // roll≥0.5 → 交配種枠
   assert.strictEqual(res.isCross, true);
   assert.strictEqual(res.child.id, 'chiwax');
   assert.strictEqual(me.Engine.getState().current.breedId, 'chiwax');
   assert.ok(!me.Engine.getState().current.mix, '交配種は mix ではない（実物コレクション扱い）');
-  // 育てて巣立ち → 交配種図鑑に登録（原種図鑑には入らない）
+  // 育てて巣立ち → 原種と同じ図鑑(dex)に登録される
   me.Engine.getState().current.xp = 1000;
+  const mid = me.Engine.dexProgress().found; // 親(チワワ)は breedWith 時点で登録済み
   me.Engine.graduate(T0, rnd0);
-  assert.ok(me.Engine.crossDex().chiwax, '交配種図鑑に登録される');
-  assert.ok(!me.Engine.getState().dex.chiwax, '原種図鑑には入らない');
-  assert.strictEqual(me.Engine.crossProgress().found, 1);
+  assert.ok(me.Engine.getState().dex.chiwax, '交配種も 同じ図鑑(dex)に登録される');
+  assert.strictEqual(me.Engine.getState().crossDex, undefined, '専用の交配種図鑑は持たない');
+  assert.strictEqual(me.Engine.dexProgress().found, mid + 1, '図鑑の達成数に数えられる');
+  assert.ok(before >= 0);
 });
 
 test('交配種の課金ゲート: 課金交配種は未課金だと原種に振替・課金者なら誕生', () => {

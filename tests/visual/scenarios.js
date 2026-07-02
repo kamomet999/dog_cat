@@ -196,6 +196,7 @@ module.exports = {
       save: saveBase({
         dex: {
           shiba:  { count: 3, firstAt: T0 - DAY * 3, unseen: false },
+          chiwax: { count: 1, firstAt: T0 - DAY, unseen: true },   // 交配種も同じ図鑑（いぬ欄）
           calico: { count: 1, firstAt: T0 - DAY * 2, unseen: true }
         }
       }),

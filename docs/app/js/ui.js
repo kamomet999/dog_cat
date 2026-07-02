@@ -505,17 +505,21 @@
         '<div class="thumb silhouette">' + Art.slot(b.id) + '</div>' +
         '<div class="dn">' + (isPrem ? 'プレミアム' : '？？？') + '</div><div class="stars">&nbsp;</div></div>';
     }
+    // 原種も交配種も同じ図鑑。プレミアム判定は交配種は .premium、原種は tier で見る
+    function isPremEntry(b) { return b.cross ? !!b.premium : Breeds.isPremium(b); }
     function grid(breeds) {
       return breeds.map(function (b) {
         var d = st.dex[b.id];
         if (d) return cellFound(b, d);
-        return cellLocked(b, Breeds.isPremium(b) && !premium);
+        return cellLocked(b, isPremEntry(b) && !premium);
       }).join('');
     }
-    var freeDogs = Breeds.ofSpecies('dog').filter(Breeds.isFree);
-    var freeCats = Breeds.ofSpecies('cat').filter(Breeds.isFree);
-    var premDogs = Breeds.ofSpecies('dog').filter(Breeds.isPremium);
-    var premCats = Breeds.ofSpecies('cat').filter(Breeds.isPremium);
+    var crossBy = function (sp, prem) { return Breeds.CROSS.filter(function (c) { return c.species === sp && !!c.premium === prem; }); };
+    // 交配種も 同じ 種のセクションに混ぜて表示（分けない）
+    var freeDogs = Breeds.ofSpecies('dog').filter(Breeds.isFree).concat(crossBy('dog', false));
+    var freeCats = Breeds.ofSpecies('cat').filter(Breeds.isFree).concat(crossBy('cat', false));
+    var premDogs = Breeds.ofSpecies('dog').filter(Breeds.isPremium).concat(crossBy('dog', true));
+    var premCats = Breeds.ofSpecies('cat').filter(Breeds.isPremium).concat(crossBy('cat', true));
 
     // プレミアム枠（未解放=CTA／解放後=コレクション）。
     // 初日からの課金圧を避けるため、CTAは3種あつめてから出す（ペルソナP1/P2/P3指摘）。

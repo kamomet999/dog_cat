@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 17;
+  var VERSION = 18;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -136,8 +136,7 @@
       luck: 0,
       premium: false,       // ¥500買い切りで true。全公式品種が抽選・図鑑に解放される
       current: null,        // 種選択後に設定
-      dex: {},              // 原種の図鑑。breedId -> { count, firstAt, unseen }
-      crossDex: {},         // 交配種の図鑑（おみあいでのみ生まれる名前付き掛け合わせ）。crossId -> { count, firstAt, unseen }
+      dex: {},              // 図鑑（原種も交配種も同じ）。id -> { count, firstAt, unseen }
       lastSavedAt: now,
       graduates: 0,
       deaths: 0,            // おほしさまになった子の数
@@ -272,6 +271,14 @@
       var w = s.wardrobe || { owned: {} };
       var witems = Array.isArray(w.items) ? w.items : (w.equipped ? [{ id: w.equipped, x: 0.5, y: 0.12 }] : []);
       s = { ...s, version: 17, wardrobe: { owned: w.owned || {}, items: witems } };
+    }
+    if (s.version === 17) {
+      // 交配種を専用図鑑(crossDex)から 通常の図鑑(dex)へ統合（原種と分けない）
+      var mdex = Object.assign({}, s.dex || {});
+      var cd = s.crossDex || {};
+      Object.keys(cd).forEach(function (id) { if (!mdex[id]) mdex[id] = cd[id]; });
+      s = { ...s, version: 18, dex: mdex };
+      delete s.crossDex;
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -1025,20 +1032,19 @@
       var s = this._state;
       if (!s || !s.current || stageOf(s.current.xp) < 3) return null;
       var dex = { ...s.dex };
-      var crossDex = { ...(s.crossDex || {}) };
       var isNew = false, reward, breed, isCross = false;
       if (s.current.mix) {
         // レシピ未定義のミックスは図鑑に登録しない（アルバムが記録）。巣立ちボーナスのみ
         breed = mixBreed(s.current.mix);
         reward = 60;
       } else {
+        // 原種も交配種も 同じ図鑑(dex)に登録する（分けない）
         breed = Breeds.get(s.current.breedId);
         isCross = Breeds.isCross(breed);
-        var book = isCross ? crossDex : dex;       // 交配種は専用図鑑へ
-        isNew = !book[breed.id];
+        isNew = !dex[breed.id];
         reward = 20 + Breeds.RARITY[breed.rarity].stars * 40 + (isNew ? 100 : 0);
-        var prev = book[breed.id] || { count: 0, firstAt: now };
-        book[breed.id] = { count: prev.count + 1, firstAt: prev.firstAt || now, unseen: true };
+        var prev = dex[breed.id] || { count: 0, firstAt: now };
+        dex[breed.id] = { count: prev.count + 1, firstAt: prev.firstAt || now, unseen: true };
       }
 
       var luck = clamp(s.luck + 0.04, 0, 2);
@@ -1048,7 +1054,6 @@
       var ns = {
         ...s,
         dex: dex,
-        crossDex: crossDex,
         coin: s.coin + reward,
         luck: luck,
         graduates: s.graduates + 1,
@@ -1188,20 +1193,6 @@
     /** ミックスのアルバム（新しい順） */
     album: function () { return (this._state && this._state.album) || []; },
 
-    // ===== 交配種の図鑑 =====
-    crossDex: function () { return (this._state && this._state.crossDex) || {}; },
-    /** 交配種コレクションの進捗（無料/課金を分けて集計） */
-    crossProgress: function () {
-      var s = this._state;
-      var premium = !!(s && s.premium);
-      var all = Breeds.CROSS;
-      var total = all.length;
-      var book = (s && s.crossDex) || {};
-      var found = 0;
-      all.forEach(function (c) { if (book[c.id]) found++; });
-      return { total: total, found: found, premiumLocked: all.filter(function (c) { return c.premium && !premium; }).length };
-    },
-
     /** ねんね中(stage0)のうちは別の子と会い直せる（コイン消費） */
     reroll: function (now, rnd, species) {
       rnd = rnd || Math.random;
@@ -1229,12 +1220,15 @@
     dexProgress: function () {
       var s = this._state;
       var premium = !!(s && s.premium);
-      // 進捗の「全体」は解放状況で変わる（無料は30種コンプ、課金後は全種コンプが目標）
-      var freeTotal = Breeds.ALL.filter(Breeds.isFree).length;
-      var premiumTotal = Breeds.ALL.length - freeTotal;
-      var total = premium ? Breeds.ALL.length : freeTotal;
-      var dogTotal = Breeds.ofSpecies('dog').filter(function (b) { return premium || Breeds.isFree(b); }).length;
-      var catTotal = Breeds.ofSpecies('cat').filter(function (b) { return premium || Breeds.isFree(b); }).length;
+      // 原種と交配種を分けず、ひとつの図鑑として集計する
+      var universe = Breeds.ALL.concat(Breeds.CROSS);
+      function isFreeEntry(b) { return b.cross ? !b.premium : Breeds.isFree(b); }
+      var freeTotal = universe.filter(isFreeEntry).length;
+      var premiumTotal = universe.length - freeTotal;
+      var total = premium ? universe.length : freeTotal;
+      function speciesTotal(sp) { return universe.filter(function (b) { return b.species === sp && (premium || isFreeEntry(b)); }).length; }
+      var dogTotal = speciesTotal('dog');
+      var catTotal = speciesTotal('cat');
       var found = 0, dogFound = 0, catFound = 0, newCount = 0, premiumFound = 0;
       if (s) {
         Object.keys(s.dex).forEach(function (id) {
@@ -1242,7 +1236,7 @@
           if (!b) return;
           found++;
           if (b.species === 'dog') dogFound++; else catFound++;
-          if (!Breeds.isFree(b)) premiumFound++;
+          if (!isFreeEntry(b)) premiumFound++;
           if (s.dex[id].unseen) newCount++;
         });
       }
