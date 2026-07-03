@@ -83,6 +83,10 @@
     { pts: 60000, wear: 'rainbow' }
   ];
 
+  // おすそわけ: きせかえを友だちにコードで贈る（一方向・通信なし）。対象=通常＋レア装備すべて
+  var GIFT_ITEMS = WEAR_IDS.concat(MILESTONES.map(function (m) { return m.wear; }));
+  function giftChk(id) { var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 1000; return h; }
+
   // 成長に必要な累積なかよし度（xp）。index=到達stage
   // 巣立ち(成体)まで体感60時間イメージ（放置xp≈12.6/h・hf0.7想定で 760≈60h）。赤ちゃんは早めに目覚める
   // 0:おくるみ(ねんね) 1:赤ちゃん 2:子 3:成体。
@@ -842,6 +846,30 @@
       if (i < 0 || i >= ward.items.length) return null;
       ward.items.splice(i, 1);
       return this._saveWard(ward, now);
+    },
+
+    // ===== おすそわけ（かざりを 友だちにコードで贈る・通信なし・一方向） =====
+    GIFT_ITEMS: GIFT_ITEMS,
+    /** 所持しているかざりの おすそわけコードを発行（未所持/無効はnull）。渡しても自分のは減らない */
+    giftCode: function (id) {
+      if (GIFT_ITEMS.indexOf(id) < 0) return null;
+      var owned = (this._state && this._state.wardrobe && this._state.wardrobe.owned) || {};
+      if (!owned[id]) return null;
+      return 'OKURI-' + id.toUpperCase() + '-' + giftChk(id);
+    },
+    /** もらったコードを開封してかざりを所持に追加。{item}/{already}/{error} */
+    redeemGift: function (code, now) {
+      if (!code || typeof code !== 'string') return { error: 'format' };
+      var mm = code.toUpperCase().match(/OKURI-([A-Z0-9]+)-(\d+)/);
+      if (!mm) return { error: 'format' };
+      var id = mm[1].toLowerCase();
+      if (GIFT_ITEMS.indexOf(id) < 0 || String(giftChk(id)) !== mm[2]) return { error: 'bad_code' };
+      var s = this._state; if (!s) return { error: 'no_state' };
+      var ward = cloneWardrobe(s);
+      if (ward.owned[id]) return { already: true, item: id };
+      ward.owned[id] = 1;
+      this._saveWard(ward, now);
+      return { item: id };
     },
 
     /** さんぽをやめる（失敗ではない。ゲージ回復なしなだけ） */

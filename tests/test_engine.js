@@ -526,6 +526,28 @@ test('おさんぽ報酬: きせかえが手に入り、自由配置で着せる
   assert.strictEqual(d2.wear, null, '確率に外れたら出ない');
 });
 
+test('おすそわけ: 所持かざりのコード発行→別ユーザーが受け取り→重複/改ざんは弾く', () => {
+  const giver = freshWorld();
+  giver.Engine.newGame('dog', T0, rnd0);
+  // 未所持はコードが出ない
+  assert.strictEqual(giver.Engine.giftCode('ribbon'), null, '未所持は発行できない');
+  giver.Engine.getState().wardrobe.owned.ribbon = 1;
+  const code = giver.Engine.giftCode('ribbon');
+  assert.match(code, /^OKURI-RIBBON-\d+$/);
+  assert.ok(giver.Engine.getState().wardrobe.owned.ribbon, '渡しても自分のは減らない');
+  // 別ユーザーが受け取る
+  const taker = freshWorld();
+  taker.Engine.newGame('cat', T0, rnd0);
+  const r = taker.Engine.redeemGift(code, T0);
+  assert.strictEqual(r.item, 'ribbon');
+  assert.ok(taker.Engine.wardrobe().owned.ribbon, '所持に追加される');
+  // 重複はスキップ
+  assert.ok(taker.Engine.redeemGift(code, T0).already, '二重取得はできない');
+  // 改ざん・無効コードは弾く
+  assert.ok(taker.Engine.redeemGift('OKURI-RIBBON-999', T0).error, 'チェックサム不一致を弾く');
+  assert.ok(taker.Engine.redeemGift('でたらめ', T0).error, '無効コードを弾く');
+});
+
 test('維持シナリオ: 毎日30分のごはんさがし＋2日に1回のさんぽ課題で10日間元気', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);

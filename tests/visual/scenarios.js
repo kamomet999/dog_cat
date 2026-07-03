@@ -159,6 +159,17 @@ module.exports = {
       steps: [{ click: '#wearBtn' }, { wait: 300 }]
     },
     {
+      name: 'gift-make',
+      save: saveBase({ wardrobe: { owned: { ribbon: 1, crown: 1, glasses: 1 }, items: [] } }),
+      fullPage: true,
+      steps: [{ click: '#wearBtn' }, { wait: 250 }, { click: '#wearGift' }, { wait: 250 }, { click: '#giftMake' }, { wait: 250 }, { click: '.wear-cell[data-gift="ribbon"]' }, { wait: 250 }]
+    },
+    {
+      name: 'dex-share',
+      save: saveBase({ dex: { shiba: { count: 3, firstAt: T0 - DAY, unseen: false }, chiwax: { count: 1, firstAt: T0, unseen: false }, calico: { count: 1, firstAt: T0, unseen: false } } }),
+      steps: [{ click: '#dexBtn' }, { wait: 400 }, { click: '#dexShareBtn' }, { wait: 800 }]
+    },
+    {
       // ホームでアクセサリを着けたペット（おうかん）
       name: 'home-dressed',
       save: saveBase({ current: petBase({ xp: 300 }), wardrobe: { owned: { crown: 1, glasses: 1 }, items: [{ id: 'crown', x: 0.5, y: 0.1 }, { id: 'glasses', x: 0.5, y: 0.38 }] } }),

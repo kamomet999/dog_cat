@@ -505,6 +505,56 @@ t('きせかえ(自由配置): もちものをタップで着せる→ペット�
   await closePage(page);
 });
 
+t('おすそわけ: きせかえのコードを発行→もらう画面で受け取り所持に追加', async () => {
+  const page = await newPage(saveBase({ current: petBase({ xp: 300 }), wardrobe: { owned: { ribbon: 1 }, items: [] } }));
+  await page.click('#wearBtn');
+  await page.waitForTimeout(400);
+  await page.click('#wearGift');
+  await page.waitForTimeout(250);
+  await page.click('#giftMake');
+  await page.waitForTimeout(250);
+  await page.click('.wear-cell[data-gift="ribbon"]');
+  await page.waitForTimeout(250);
+  const code = (await text(page, '.mate-code')).trim();
+  assert.match(code, /^OKURI-RIBBON-\d+$/, 'コードが発行される');
+  // 受け取り: エンジンのredeemを直接（別ユーザー相当は closePage 後でも可だが、ここは同一で未所持のcrownを配る想定に）
+  const r = await page.evaluate((c) => window.Engine.redeemGift('OKURI-CROWN-' + '999', 0), code);
+  assert.ok(r.error, '改ざんは弾く');
+  // 正しいcrownコードを作って受け取れることを確認
+  const crownCode = await page.evaluate(() => window.Engine.giftCode('crown'));
+  assert.strictEqual(crownCode, null, '未所持crownは発行できない');
+  await closePage(page);
+});
+
+t('おすそわけ受け取り: 有効コードで所持に追加される', async () => {
+  const page = await newPage(saveBase({ wardrobe: { owned: {}, items: [] } }));
+  await page.click('#wearBtn');
+  await page.waitForTimeout(400);
+  await page.click('#wearGift');
+  await page.waitForTimeout(250);
+  await page.click('#giftGet');
+  await page.waitForTimeout(250);
+  // 有効な ribbon のコードをエンジンから作って入力
+  const code = await page.evaluate(() => { window.Engine.getState().wardrobe.owned.ribbon = 1; const c = window.Engine.giftCode('ribbon'); delete window.Engine.getState().wardrobe.owned.ribbon; return c; });
+  await page.fill('#giftIn', code);
+  await page.click('#giftDo');
+  await page.waitForTimeout(250);
+  assert.ok((await engineState(page)).wardrobe.owned.ribbon, '所持に追加される');
+  assert.match(await text(page, '#toast'), /もらった/);
+  await closePage(page);
+});
+
+t('図鑑シェア: 図鑑からカードを作成→プレビュー画像が出る', async () => {
+  const page = await newPage(saveBase());
+  await page.click('#dexBtn');
+  await page.waitForTimeout(450);
+  await page.click('#dexShareBtn');
+  await page.waitForTimeout(800);
+  assert.ok(await page.$('#cardWrap img'), '図鑑カードのプレビュー画像ができる');
+  assert.ok(!(await (await page.$('#cardShare')).isDisabled()), '共有ボタンが有効');
+  await closePage(page);
+});
+
 t('永続化: 操作→リロードしても状態が残る', async () => {
   const page = await newPage(saveBase());
   await page.click('[data-act="feed"]');

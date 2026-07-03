@@ -567,6 +567,7 @@
       (premium ? '<span class="dex-pill" style="background:#fff0d6">⭐ プレミアム</span>' : '') +
       '</div>' +
       '<div class="grow-bar"><div class="grow-fill" style="width:' + pct + '%"></div></div>' +
+      '<button id="dexShareBtn" class="big-btn ghost mt12" style="width:100%">📸 図鑑をシェアする</button>' +
       '<div class="dex-section-title">🐶 いぬ</div><div class="dex-grid">' + grid(freeDogs) + '</div>' +
       '<div class="dex-section-title">🐱 ねこ</div><div class="dex-grid">' + grid(freeCats) + '</div>' +
       premBlock +
@@ -581,6 +582,8 @@
       }
     });
     Art.hydrate(m.root);
+    var dsb = m.root.querySelector('#dexShareBtn');
+    if (dsb) dsb.addEventListener('click', openDexShareCard);
     // アルバムのミックスは合成品種なので直接マウント（slot/hydrateは品種IDのみ対応）
     album.forEach(function (e, i) {
       var el = m.root.querySelector('#al' + i);
@@ -808,8 +811,11 @@
       '<div class="wear-grid">' + cells + '</div>' +
       '<div class="dex-section-title" style="margin-top:14px">🏆 レア（なかよし ' + pts.toLocaleString() + 'pt）</div>' +
       '<p class="sub" style="margin-top:0">お世話やおさんぽで たまる なかよしポイントで もらえる とくべつな かざり。</p>' +
-      '<div class="wear-grid">' + rareCells + '</div>';
+      '<div class="wear-grid">' + rareCells + '</div>' +
+      '<button id="wearGift" class="big-btn ghost mt12" style="width:100%">🎁 おすそわけ（かざりを 友だちに）</button>';
     var m = openModal(html);
+    var wg = m.root.querySelector('#wearGift');
+    if (wg) wg.addEventListener('click', function () { m.close(); openGiftMenu(); });
     var edit = m.root.querySelector('#wearEdit');
     var petBox = m.root.querySelector('#wearEditPet');
     if (petBox && Engine.stage() > 0) Art.mount(petBox, Art.petSVG(Engine.breed(), Engine.stage(), 'happy'));
@@ -1296,40 +1302,146 @@
       return cv;
     });
   }
+  // カードのプレビュー表示＋保存/共有ボタンの配線（うちの子/図鑑で共通）
+  function presentCard(m, cv, filename, shareText) {
+    var wrap = m.root.querySelector('#cardWrap'); if (!wrap) return;
+    if (!cv) { wrap.innerHTML = '<p class="muted">カードを作れませんでした</p>'; return; }
+    var url = cv.toDataURL('image/png');
+    wrap.innerHTML = '<img src="' + url + '" alt="' + filename + '" style="width:100%;border-radius:16px;box-shadow:var(--shadow)">';
+    var save = m.root.querySelector('#cardSave');
+    var share = m.root.querySelector('#cardShare');
+    function withBlob(cb) { cv.toBlob(function (b) { if (b) cb(b); }, 'image/png'); }
+    if (save) {
+      save.disabled = false;
+      save.addEventListener('click', function () {
+        var a = document.createElement('a'); a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast('💾 画像を保存したよ');
+      });
+    }
+    if (share) {
+      share.disabled = false;
+      share.addEventListener('click', function () {
+        withBlob(function (blob) {
+          var file = new File([blob], filename, { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], text: shareText }).catch(function () {});
+          } else if (save) { save.click(); showToast('この端末は共有に未対応。画像を保存したよ'); }
+        });
+      });
+    }
+  }
+  var CARD_MODAL_TAIL = '<div id="cardWrap" style="margin:10px auto;max-width:300px"><p class="muted">つくっています…</p></div>' +
+    '<button id="cardShare" class="big-btn primary mt12" style="width:100%" disabled>📲 共有する</button>' +
+    '<button id="cardSave" class="big-btn ghost mt12" style="width:100%" disabled>💾 画像を保存</button></div>';
   function openShareCard() {
     if (!Engine.breed()) { showToast('まだ目を覚ましてないよ'); return; }
     var html = '<div class="center"><h2>📸 うちの子カード</h2>' +
-      '<p class="sub">この子の今を 1枚に。<br>保存して、友だちに 自慢しよう！</p>' +
-      '<div id="cardWrap" style="margin:10px auto;max-width:300px"><p class="muted">つくっています…</p></div>' +
-      '<button id="cardShare" class="big-btn primary mt12" style="width:100%" disabled>📲 共有する</button>' +
-      '<button id="cardSave" class="big-btn ghost mt12" style="width:100%" disabled>💾 画像を保存</button>' +
-      '</div>';
+      '<p class="sub">この子の今を 1枚に。<br>保存して、友だちに 自慢しよう！</p>' + CARD_MODAL_TAIL;
     var m = openModal(html);
-    buildCardCanvas().then(function (cv) {
-      var wrap = m.root.querySelector('#cardWrap'); if (!wrap) return;
-      if (!cv) { wrap.innerHTML = '<p class="muted">カードを作れませんでした</p>'; return; }
-      var url = cv.toDataURL('image/png');
-      wrap.innerHTML = '<img src="' + url + '" alt="うちの子カード" style="width:100%;border-radius:16px;box-shadow:var(--shadow)">';
-      var save = m.root.querySelector('#cardSave');
-      var share = m.root.querySelector('#cardShare');
-      function withBlob(cb) { cv.toBlob(function (b) { if (b) cb(b); }, 'image/png'); }
-      if (save) { save.disabled = false; save.addEventListener('click', function () {
-        var a = document.createElement('a'); a.href = url; a.download = 'inuneko_card.png';
-        document.body.appendChild(a); a.click(); a.remove();
-        showToast('💾 画像を保存したよ');
-      }); }
-      if (share) {
-        // Web Share API（ファイル対応端末）。非対応なら保存にフォールバック。
-        share.disabled = false;
-        share.addEventListener('click', function () {
-          withBlob(function (blob) {
-            var file = new File([blob], 'inuneko_card.png', { type: 'image/png' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              navigator.share({ files: [file], text: 'うちの子を見て！ #いぬねこ図鑑' }).catch(function () {});
-            } else if (save) { save.click(); showToast('この端末は共有に未対応。画像を保存したよ'); }
+    buildCardCanvas().then(function (cv) { presentCard(m, cv, 'inuneko_card.png', 'うちの子を見て！ #いぬねこ図鑑'); });
+  }
+
+  // ===== 図鑑シェアカード（あつめた記録を1枚に）=====
+  function buildDexCardCanvas() {
+    var prog = Engine.dexProgress();
+    var pct = prog.total ? Math.floor(prog.found / prog.total * 100) : 0;
+    var W = 1080, Hh = 1350;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = Hh;
+    var ctx = cv.getContext('2d');
+    var g = ctx.createLinearGradient(0, 0, 0, Hh);
+    g.addColorStop(0, '#fff6e9'); g.addColorStop(1, '#ffe6c8');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, Hh);
+    roundRectPath(ctx, 56, 56, W - 112, Hh - 112, 56); ctx.fillStyle = '#fffdf8'; ctx.fill();
+    var petPromise = Engine.breed() ? petCardImage() : Promise.resolve(null);
+    return petPromise.then(function (img) {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#4a3a2a'; ctx.font = 'bold 72px sans-serif';
+      ctx.fillText('📖 いぬねこ図鑑', W / 2, 200);
+      ctx.fillStyle = '#e8894a'; ctx.font = 'bold 200px sans-serif';
+      ctx.fillText(pct + '%', W / 2, 440);
+      ctx.fillStyle = '#8a7860'; ctx.font = '48px sans-serif';
+      ctx.fillText('達成 ' + prog.found + ' / ' + prog.total + ' しゅるい', W / 2, 520);
+      // プログレスバー
+      var bx = 150, bw = W - 300, by = 570, bh = 42;
+      ctx.fillStyle = '#ead9c2'; roundRectPath(ctx, bx, by, bw, bh, 21); ctx.fill();
+      ctx.fillStyle = '#f2a65a'; roundRectPath(ctx, bx, by, Math.max(bh, bw * pct / 100), bh, 21); ctx.fill();
+      // 犬・猫
+      ctx.fillStyle = '#4a3a2a'; ctx.font = 'bold 56px sans-serif';
+      ctx.fillText('🐶 ' + prog.dogFound + '/' + prog.dogTotal + '      🐱 ' + prog.catFound + '/' + prog.catTotal, W / 2, 710);
+      // マスコット（今の子）
+      if (img) {
+        ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.10)';
+        ctx.beginPath(); ctx.ellipse(W / 2, 1160, 190, 38, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+        var sz = 460; ctx.drawImage(img, (W - sz) / 2, 740, sz, sz);
+      }
+      ctx.fillStyle = '#c9b79a'; ctx.font = 'bold 40px sans-serif';
+      ctx.fillText('いぬねこ図鑑 🐾', W / 2, 1270);
+      return cv;
+    });
+  }
+  function openDexShareCard() {
+    var html = '<div class="center"><h2>📸 図鑑シェア</h2>' +
+      '<p class="sub">あつめた記録を 1枚に。<br>友だちと 見せ合おう！</p>' + CARD_MODAL_TAIL;
+    var m = openModal(html);
+    buildDexCardCanvas().then(function (cv) { presentCard(m, cv, 'inuneko_dex.png', 'いぬねこ図鑑、いま何種あつめた？ #いぬねこ図鑑'); });
+  }
+
+  // ===== おすそわけ（かざりを友だちにコードで贈る）=====
+  function openGiftMenu() {
+    var html = '<div class="center"><div style="font-size:40px">🎁</div><h2>おすそわけ</h2>' +
+      '<p class="sub">あつめた かざりを 友だちに コードで おすそわけ。<br>通信なし・渡しても 自分のは 減らないよ。</p>' +
+      '<button id="giftMake" class="big-btn primary mt12" style="width:100%">📤 かざりを おすそわけする</button>' +
+      '<button id="giftGet" class="big-btn ghost mt12" style="width:100%">📥 もらったコードを 入れる</button></div>';
+    var m = openModal(html);
+    m.root.querySelector('#giftMake').addEventListener('click', function () { m.close(); openGiftMake(); });
+    m.root.querySelector('#giftGet').addEventListener('click', function () { m.close(); openGiftRedeem(); });
+  }
+  function openGiftMake() {
+    var owned = Engine.wardrobe().owned || {};
+    var ids = Engine.GIFT_ITEMS.filter(function (id) { return owned[id]; });
+    if (!ids.length) { showToast('まだ おすそわけできる かざりが ないよ'); return openGiftMenu(); }
+    var cells = ids.map(function (id) {
+      var it = WEAR[id];
+      return '<button class="wear-cell' + (it.rare ? ' rare' : '') + '" data-gift="' + id + '"><span class="wear-emo">' + it.e + '</span><span class="wear-lbl">' + it.label + '</span></button>';
+    }).join('');
+    var html = '<h2>🎁 おすそわけ</h2><p class="sub">贈る かざりを えらんでね。</p>' +
+      '<div class="wear-grid">' + cells + '</div><div id="giftOut"></div>';
+    var m = openModal(html, { onClose: openGiftMenu });
+    m.root.querySelectorAll('[data-gift]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-gift'); var code = Engine.giftCode(id);
+        Array.prototype.forEach.call(m.root.querySelectorAll('[data-gift]'), function (c) { c.classList.remove('on'); });
+        b.classList.add('on');
+        m.root.querySelector('#giftOut').innerHTML =
+          '<div class="mate-code" style="margin-top:12px">' + code + '</div>' +
+          '<button id="giftCopy" class="big-btn primary mt12" style="width:100%">📋 コードをコピー</button>' +
+          '<p class="muted" style="font-size:11px">このコードを 友だちに おくってね（何人にでも 渡せるよ）。</p>';
+        m.root.querySelector('#giftCopy').addEventListener('click', function () {
+          copyText('いぬねこ図鑑の おすそわけ🎁 このコードを アプリの「もらう」に入れてね: ' + code, function (ok) {
+            showToast(ok ? '📋 コードをコピー！' : 'コピーできなかった…手で えらんでね');
           });
         });
-      }
+      });
+    });
+  }
+  function openGiftRedeem() {
+    var html = '<div class="center"><h2>📥 おすそわけを もらう</h2>' +
+      '<p class="sub">もらった <b>OKURI-</b> のコードを 貼ってね。</p>' +
+      '<input id="giftIn" class="mate-input" placeholder="OKURI-…" autocomplete="off" autocapitalize="characters" />' +
+      '<button id="giftDo" class="big-btn primary mt12" style="width:100%">うけとる</button></div>';
+    var m = openModal(html, { onClose: openGiftMenu });
+    var input = m.root.querySelector('#giftIn');
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(function (t) { if (t && /OKURI-/i.test(t) && !input.value) input.value = t.trim(); }).catch(function () {});
+    }
+    m.root.querySelector('#giftDo').addEventListener('click', function () {
+      var r = Engine.redeemGift(input.value, now());
+      if (r.error) return showToast('コードが ちがうみたい');
+      var it = WEAR[r.item];
+      if (r.already) { m.close(); return showToast('その かざりは もう もってるよ'); }
+      m.close();
+      showToast('🎁 ' + (it ? it.label : r.item) + ' を もらった！（👕で 着せられるよ）');
     });
   }
 
