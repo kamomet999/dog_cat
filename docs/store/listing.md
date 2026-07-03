@@ -12,7 +12,7 @@
 
 ## ショート説明（Google Play・80字以内）
 
-> スマホを置くほど、犬や猫が育つ。犬猫60種＋交配種の いぬねこ図鑑を集めよう。責めない、やさしいデジタルデトックス。
+> スマホを置くほど、犬や猫が育つ。犬猫60種の いぬねこ図鑑を集めよう。責めない、やさしいデジタルデトックス。
 
 ## サブタイトル（iOS・30字以内）
 
@@ -31,9 +31,9 @@
 
 【とくちょう】
 ■ 置くほど育つ — アプリを閉じているあいだも、少しずつ成長します
-■ 犬猫60種＋交配種の図鑑 — 柴犬からベンガルまで。おみあいで「チワックス」などの交配種も
-■ おみあい（ブリード） — 友だちとコードを交換して、色・耳・もよう・目・種類を受け継いだ子をおむかえ
-■ きせかえ・記号模様・目スタイル — その子だけの個性。おさんぽのごほうびで集まる
+■ 犬猫60種の図鑑 — 柴犬からベンガルまで。レアな子に出会って図鑑をうめよう
+■ きせかえ・記号模様・目スタイル — その子だけの個性。おさんぽのごほうびで集まる（コードで友だちにおすそわけも）
+■ 図鑑・うちの子のシェア — あつめた記録や この子を 1枚の画像にして 友だちと見せ合える
 ■ 責めない設計 — **スマホを使っていない間は、この子はいなくなりません**。あわてず ゆっくりで だいじょうぶ
 ■ 広告ゼロ・登録不要・**アプリ内課金なし** — データはぜんぶ端末の中だけ。やさしい設計です
 
@@ -55,9 +55,9 @@ HOW IT WORKS
 
 FEATURES
 - Grows while you're away: your pet keeps growing while the app is closed
-- 60 dog & cat breeds plus crossbreeds to collect
-- Breeding: swap codes with friends to inherit color, ears, markings, eyes and breed
-- Dress-up, body markings, eye styles — every pet is one of a kind
+- 60 dog & cat breeds to collect
+- Dress-up, body markings, eye styles — every pet is one of a kind (gift accessories to friends by code)
+- Share your Dex progress or your pet as a single image
 - Guilt-free: your pet never leaves while you're not using your phone
 - No ads, no sign-up, no in-app purchases (v1). All data stays on your device.
 
@@ -67,8 +67,8 @@ FEATURES
 
 1. ホーム画面 — **ペットの顔が最大要素（画面の1/3以上）**「スマホを置くと、育つ。」
 2. おすわり画面「スマホを置いた時間が ごはんになる」
-3. 図鑑画面「犬猫60種＋交配種を あつめよう」
-4. おみあい画面「友だちと コードを交換して 交配種を」
+3. 図鑑画面「犬猫60種を あつめよう」
+4. きせかえ画面「その子だけの おしゃれ」
 5. 図鑑/ホームの実写（フッターの一言が写るもの）「広告ゼロ・登録不要・課金なし」
 
 ※ 別途: Google Play フィーチャーグラフィック（ペット顔＋「スマホを置くと、育つ。」の1メッセージ。DESIGN.md §10）

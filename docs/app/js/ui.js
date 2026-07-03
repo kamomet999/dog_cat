@@ -197,10 +197,10 @@
     if (r.stageAfter > r.stageBefore) celebrateGrowth(r.stageAfter);
   }
 
-  // 新しい子をおむかえするとき、犬か猫を選ぶ（おみあいは親から継ぐので選べない）
+  // 新しい子をおむかえするとき、犬か猫を選ぶ
   function chooseSpecies(onPick) {
     var html = '<h2>どっちの子を おむかえ？🐾</h2>' +
-      '<p class="sub">いぬ か ねこ を えらんでね。<br>（おみあいの子は 親から うけつぎます）</p>' +
+      '<p class="sub">いぬ か ねこ を えらんでね。</p>' +
       '<div class="care-grid" style="grid-template-columns:1fr 1fr;gap:14px">' +
       '<button class="care-btn" data-sp="dog" style="padding:20px 4px"><span class="emo" style="font-size:34px">🐶</span><span class="lbl">いぬ</span></button>' +
       '<button class="care-btn" data-sp="cat" style="padding:20px 4px"><span class="emo" style="font-size:34px">🐱</span><span class="lbl">ねこ</span></button>' +
@@ -283,20 +283,17 @@
     }
   }
 
-  // おとなになった子: たまごっち風に「産ませる/もらう」を選ぶ
+  // おとなになった子: 図鑑に登録して、あたらしい子を おむかえ（巣立ち）
   function openGrownChoice() {
     var b = Engine.breed();
     var html = '<div class="center">' +
       '<div style="font-size:44px">🌱</div>' +
       '<h2>' + b.name + ' は<br>おとなに なった！</h2>' +
-      '<p class="sub">どうする？</p>' +
-      '<button id="gcMate" class="big-btn primary mt12" style="width:100%">💞 子供を産ませる（おみあい）</button>' +
-      '<p class="muted" style="font-size:11px;margin:6px 0 12px">友達とコード交換。色・目・模様・種類を 親から受け継いだ子が生まれる。</p>' +
-      '<button id="gcGrad" class="big-btn ghost" style="width:100%">🎓 新しい子をもらう（巣立ち）</button>' +
-      '<p class="muted" style="font-size:11px;margin-top:6px">この子は図鑑に登録。あたらしい子を おむかえ。</p>' +
+      '<p class="sub">立派に育ったね。図鑑に登録して、<br>あたらしい子を おむかえしよう。</p>' +
+      '<button id="gcGrad" class="big-btn primary mt12" style="width:100%">🎓 新しい子をもらう（巣立ち）</button>' +
+      '<p class="muted" style="font-size:11px;margin-top:6px">この子は図鑑に残ります。</p>' +
       '</div>';
     var m = openModal(html);
-    m.root.querySelector('#gcMate').addEventListener('click', function () { m.close(); openMateMenu(); });
     m.root.querySelector('#gcGrad').addEventListener('click', function () {
       m.close();
       chooseSpecies(function (sp) {
@@ -399,7 +396,7 @@
     { sel: '#walkBtn', title: '① おすわり＝スマホを置く', text: '“スマホを置く” と この子は おすわりして待つよ。<b>見なかった時間が そのまま エサ</b>（📱→🍚 長いほど たくさん）。これが一番大事！', place: 'above' },
     { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動・ダイエットの間、となりにいてくれる。<b>取り組むと エサも少しもらえる</b>“いい時間”。', place: 'above' },
     { sel: '#stats', title: 'お腹・きれい・いのち', text: 'おなかが減るのは <b>アプリを使っているとき</b>だけ。<span class="calm">スマホを離れている間は いのちは減らない</span>から、毎日ひらかなくても・忘れても だいじょうぶ。', place: 'below' },
-    { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。犬・猫それぞれ30種〜、友達と「おみあい」もできるよ！', place: 'above' }
+    { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。犬・猫あわせて 60種を あつめよう！', place: 'above' }
   ];
 
   function startTutorial(force) {
@@ -505,21 +502,17 @@
         '<div class="thumb silhouette">' + Art.slot(b.id) + '</div>' +
         '<div class="dn">' + (isPrem ? 'プレミアム' : '？？？') + '</div><div class="stars">&nbsp;</div></div>';
     }
-    // 原種も交配種も同じ図鑑。プレミアム判定は交配種は .premium、原種は tier で見る
-    function isPremEntry(b) { return b.cross ? !!b.premium : Breeds.isPremium(b); }
     function grid(breeds) {
       return breeds.map(function (b) {
         var d = st.dex[b.id];
         if (d) return cellFound(b, d);
-        return cellLocked(b, isPremEntry(b) && !premium);
+        return cellLocked(b, Breeds.isPremium(b) && !premium);
       }).join('');
     }
-    var crossBy = function (sp, prem) { return Breeds.CROSS.filter(function (c) { return c.species === sp && !!c.premium === prem; }); };
-    // 交配種も 同じ 種のセクションに混ぜて表示（分けない）
-    var freeDogs = Breeds.ofSpecies('dog').filter(Breeds.isFree).concat(crossBy('dog', false));
-    var freeCats = Breeds.ofSpecies('cat').filter(Breeds.isFree).concat(crossBy('cat', false));
-    var premDogs = Breeds.ofSpecies('dog').filter(Breeds.isPremium).concat(crossBy('dog', true));
-    var premCats = Breeds.ofSpecies('cat').filter(Breeds.isPremium).concat(crossBy('cat', true));
+    var freeDogs = Breeds.ofSpecies('dog').filter(Breeds.isFree);
+    var freeCats = Breeds.ofSpecies('cat').filter(Breeds.isFree);
+    var premDogs = Breeds.ofSpecies('dog').filter(Breeds.isPremium);
+    var premCats = Breeds.ofSpecies('cat').filter(Breeds.isPremium);
 
     // プレミアム枠（未解放=CTA／解放後=コレクション）。
     // 初日からの課金圧を避けるため、CTAは3種あつめてから出す（ペルソナP1/P2/P3指摘）。
@@ -545,20 +538,6 @@
         '</div>';
     }
 
-    // 💞 アルバム（おみあいで生まれたミックス。30種図鑑とは別・BREEDING_SPEC §4）
-    var album = Engine.album();
-    var albumBlock = '';
-    if (album.length) {
-      var cells = album.map(function (e, i) {
-        var label = (e.parents ? e.parents[0] + '×' + e.parents[1] : 'ミックス');
-        return '<div class="dex-cell found"><div class="thumb" id="al' + i + '"></div>' +
-          '<div class="dn" style="font-size:10px">' + label + '</div>' +
-          '<div class="stars">' + (e.nature || '') + '</div></div>';
-      }).join('');
-      albumBlock = '<div class="dex-section-title">💞 おみあいアルバム（' + album.length + '）</div>' +
-        '<div class="dex-grid">' + cells + '</div>';
-    }
-
     var html = '<h2>📖 いぬねこ図鑑</h2>' +
       '<div class="dex-stats">' +
       '<span class="dex-pill">達成 ' + pct + '%（' + prog.found + '/' + prog.total + '）</span>' +
@@ -571,7 +550,6 @@
       '<div class="dex-section-title">🐶 いぬ</div><div class="dex-grid">' + grid(freeDogs) + '</div>' +
       '<div class="dex-section-title">🐱 ねこ</div><div class="dex-grid">' + grid(freeCats) + '</div>' +
       premBlock +
-      albumBlock +
       // 差別化の旗（広告ゼロは不変。アプリ内でこの1箇所のみ・DESIGN.md §5）
       '<p class="dex-flag">基本むりょうで あそべる。こうこくも、ないよ</p>';
     var m = openModal(html, {
@@ -584,11 +562,6 @@
     Art.hydrate(m.root);
     var dsb = m.root.querySelector('#dexShareBtn');
     if (dsb) dsb.addEventListener('click', openDexShareCard);
-    // アルバムのミックスは合成品種なので直接マウント（slot/hydrateは品種IDのみ対応）
-    album.forEach(function (e, i) {
-      var el = m.root.querySelector('#al' + i);
-      if (el) Art.mount(el, Art.petSVG({ id: 'al' + i, mix: true, species: e.species, name: 'ミックス', rarity: 'mix', nature: e.nature, art: e.art }, 2, 'normal'));
-    });
     Array.prototype.forEach.call(m.root.querySelectorAll('[data-dex]'), function (cell) {
       cell.addEventListener('click', function () { openDexDetail(cell.getAttribute('data-dex')); });
     });
@@ -971,143 +944,6 @@
     if (rp) rp.addEventListener('click', function () { m.close(); openPremiumModal(); });
   }
 
-  // ---------- おみあい（ブリード。コードのコピペで遺伝） ----------
-  function openMateMenu() {
-    if (!Engine.canMate()) return showToast('成体になってから おみあいできるよ');
-    var html = '<div class="center">' +
-      '<div style="font-size:44px">💞</div>' +
-      '<h2>おみあい</h2>' +
-      '<p class="sub">友達の子と「おみあい」すると、<br>二人の特徴を継いだ ミックスの子が やってくるよ。<br><b>🐶いぬ×いぬ・🐱ねこ×ねこ だけ</b>（いぬ×ねこは できません）。<br>コードを交換するだけ・通信なし。</p>' +
-      '<button id="mateShow" class="big-btn primary mt12" style="width:100%">📤 自分のコードを見せる</button>' +
-      '<button id="mateInput" class="big-btn ghost mt12" style="width:100%">📥 相手のコードを入れる</button>' +
-      '<p class="muted mt12" style="font-size:11px">おみあいすると、今の子は巣立って図鑑に残ります。</p>' +
-      '</div>';
-    var m = openModal(html);
-    m.root.querySelector('#mateShow').addEventListener('click', function () { m.close(); openMateShare(); });
-    m.root.querySelector('#mateInput').addEventListener('click', function () { m.close(); openMateInput(); });
-  }
-
-  var PUBLIC_URL = 'https://kamomet999.github.io/dog_cat/app/';
-  function appUrl() {
-    return (location.protocol === 'http:' || location.protocol === 'https:')
-      ? (location.origin + location.pathname).replace(/index\.html$/, '')
-      : PUBLIC_URL;
-  }
-  function inviteText(code, b) {
-    return 'うちの「' + b.name + '」と おみあいしない？🐾\n' +
-      'リンクから あそべるよ → ' + appUrl() + '?mate=' + code + '\n' +
-      '（アプリに直接いれるとき: ' + code + '）\n#いぬねこ図鑑';
-  }
-  // 画像（ペット）＋文字＋リンクで共有。対応端末は画像付き、無理ならテキスト、最後はコピー。
-  function shareInvite(code, b) {
-    var text = inviteText(code, b);
-    function fallback() { copyText(text, function (ok) { showToast(ok ? '📋 さそい文（リンク付き）を コピーした！' : 'コピーできなかった…'); }); }
-    (async function () {
-      try {
-        if (navigator.canShare && b.id && Art.hasSprite && Art.hasSprite(b.id)) {
-          var resp = await fetch('assets/sprites/' + b.id + '.png');
-          if (resp.ok) {
-            var file = new File([await resp.blob()], b.id + '.png', { type: 'image/png' });
-            if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: text }); return; }
-          }
-        }
-        if (navigator.share) { await navigator.share({ text: text }); return; }
-        fallback();
-      } catch (e) { if (!(e && e.name === 'AbortError')) fallback(); }
-    })();
-  }
-
-  function openMateShare() {
-    var code = Engine.mateCode();
-    if (!code) return showToast('成体になってから おみあいできるよ');
-    var b = Engine.breed();
-    var html = '<div class="center">' +
-      '<h2>📤 おみあいに さそう</h2>' +
-      '<p class="sub">この <b>' + b.name + '</b> の おさそいを 友達に送ろう。<br><b>画像＋リンク</b>で送れて、相手は <b>リンクを開くだけ</b>。</p>' +
-      '<div class="mate-code" id="mateCode">' + code + '</div>' +
-      '<button id="shareCode" class="big-btn primary mt12" style="width:100%">📨 画像＋リンクで 送る</button>' +
-      '<button id="copyCode" class="big-btn ghost mt12" style="width:100%">📋 さそい文を コピー</button>' +
-      '</div>';
-    var m = openModal(html, { onClose: openMateMenu });
-    m.root.querySelector('#shareCode').addEventListener('click', function () { shareInvite(code, b); });
-    m.root.querySelector('#copyCode').addEventListener('click', function () {
-      copyText(inviteText(code, b), function (ok) { showToast(ok ? '📋 さそい文（リンク付き）を コピー！' : 'コピーできなかった…手で えらんでね'); });
-    });
-  }
-
-  function openMateInput(prefill) {
-    var html = '<div class="center">' +
-      '<h2>📥 相手のコード</h2>' +
-      '<p class="sub">もらった メッセージを <b>そのまま貼り付け</b>てOK。<br>コードだけ 自動で よみとるよ。</p>' +
-      '<p class="muted" style="font-size:11px;margin:-4px 0 8px">※ <b>🐶いぬ×いぬ・🐱ねこ×ねこ だけ</b>。いぬ×ねこは おみあいできません。</p>' +
-      '<button id="codePaste" class="big-btn primary" style="width:100%">📋 貼り付ける</button>' +
-      '<input id="codeIn" class="mate-input" placeholder="ここに貼り付け（INU- / NEK- …）" autocomplete="off" autocapitalize="characters" />' +
-      '<div id="codePrev" class="mate-prev"></div>' +
-      '<button id="doMate" class="big-btn primary mt12" style="width:100%" disabled>おみあいする</button>' +
-      '</div>';
-    var m = openModal(html, { onClose: openMateMenu });
-    var input = m.root.querySelector('#codeIn');
-    var prev = m.root.querySelector('#codePrev');
-    var btn = m.root.querySelector('#doMate');
-    var parsed = null;
-    function readClip(manual) {
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        navigator.clipboard.readText().then(function (t) {
-          if (t && (manual || (/(INU|NEK)-/i.test(t) && !input.value))) { input.value = t.trim(); check(); }
-          if (manual && !t) showToast('クリップボードが からっぽみたい');
-        }).catch(function () { if (manual) { input.focus(); showToast('入力欄を 長押しして 貼り付けてね'); } });
-      } else if (manual) { input.focus(); showToast('入力欄を 長押しして 貼り付けてね'); }
-    }
-    m.root.querySelector('#codePaste').addEventListener('click', function () { readClip(true); });
-    function check() {
-      var g = Engine.decodeMate(input.value);
-      var mine = Engine.breed();
-      if (g.error) {
-        parsed = null; btn.disabled = true;
-        prev.innerHTML = input.value.length > 3 ? '<span class="mate-bad">コードが ただしくないみたい…</span>' : '';
-        return;
-      }
-      if (mine && g.species !== mine.species) {
-        parsed = null; btn.disabled = true;
-        prev.innerHTML = '<span class="mate-bad">いぬ と ねこ は おみあいできません。<br>同じ動物どうし（いぬ×いぬ・ねこ×ねこ）で おみあいしてね。</span>';
-        return;
-      }
-      parsed = g; btn.disabled = false;
-      prev.innerHTML = '<span class="mate-ok">✓ ' + g.name + '（' + (g.species === 'dog' ? 'いぬ' : 'ねこ') + '）と おみあいできるよ</span>';
-    }
-    input.addEventListener('input', check);
-    if (prefill) { input.value = prefill; check(); } // リンク経由（?mate=）は自動で取り込み
-    else readClip(false);                            // 開いた瞬間にコピー済みなら自動取り込み
-    btn.addEventListener('click', function () {
-      if (!parsed) return;
-      var r = Engine.breedWith(parsed, now(), Math.random);
-      if (r.error) return showToast(r.error === 'species' ? 'いぬ と ねこ は おみあいできません' : 'おみあいできなかった…');
-      m.close();
-      lastArtKey = '';
-      render();
-      showMateResult(r);
-    });
-  }
-
-  function showMateResult(r) {
-    happyUntil = now() + 2000;
-    var b = Engine.breed(); // 生まれたおくるみ
-    var title = r.isMix ? 'ミックスの子が やってきた！' : (b.name + 'の あかちゃん！');
-    var html = '<div class="center pop">' +
-      '<div id="mrArt" class="hatch-art"></div>' +
-      '<h2>' + title + '</h2>' +
-      '<p class="sub">' + r.parents[0] + ' と ' + r.parents[1] + ' の子。<br>' +
-      (r.isMix ? '色・目・模様を 親から 受け継いだ、せかいに ひとつだけの ミックス。'
-               : '<b>' + r.inheritedBreed + '</b> の種類を 受け継いだよ！') +
-      (r.mutated ? '<br>✨ めずらしい とくちょうが あらわれた！' : '') + '</p>' +
-      (r.reward > 0 ? '<div style="font-weight:800;color:var(--coin-text)">巣立ちボーナス ＋' + r.reward + ' コイン' + (r.isNew ? '（図鑑はつ登録）' : '') + '</div>' : '') +
-      '<button id="mrOk" class="big-btn primary mt12" style="width:100%">おむかえする →</button>' +
-      '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
-    var m = openModal(html, { onClose: function () { lastArtKey = ''; render(); } });
-    Art.mount(m.root.querySelector('#mrArt'), Art.petSVG(b, 0, 'happy')); // おくるみ姿
-    m.root.querySelector('#mrOk').addEventListener('click', m.close);
-  }
-
   function copyText(text, cb) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(function () { cb(true); }, function () { cb(false); });
@@ -1291,7 +1127,7 @@
         ctx.fillText('★'.repeat(R.stars) + ' ' + R.label, W / 2, 1090);
       } else {
         ctx.fillStyle = '#d98ca8'; ctx.font = '50px sans-serif';
-        ctx.fillText('💞 おみあいっ子', W / 2, 1090);
+        ctx.fillText('💞 ミックスの子', W / 2, 1090);
       }
       // なかよし pt
       ctx.fillStyle = '#a08a6a'; ctx.font = '40px sans-serif';
@@ -1980,18 +1816,6 @@
         if (!wr) showReturn(rep);
       }
     }
-    // 招待リンク（?mate=CODE）で開かれたら、貼り付け不要で おみあい入力を自動で開く
-    try {
-      var mateLink = new URLSearchParams(location.search).get('mate');
-      if (mateLink) {
-        if (history.replaceState) history.replaceState(null, '', location.pathname); // 再読込での再オープン防止
-        var st0 = Engine.getState();
-        if (st0 && st0.current) setTimeout(function () {
-          if (Engine.canMate()) openMateInput(mateLink);
-          else showToast('おさそいを受け取ったよ！自分の子が 成体になったら おみあいできるよ');
-        }, 500);
-      }
-    } catch (e) { /* URL解析失敗は無視 */ }
     function onResume() {
       var rep = Engine.applyOffline(now());
       if ((rep && (rep.died || rep.ranAway)) || Engine.isGone()) { render(); showFarewell(); return; }

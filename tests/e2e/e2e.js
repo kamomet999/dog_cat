@@ -315,90 +315,6 @@ t('v1(無料版): 4種集めても購入導線は出ず「近日公開」表示�
   await closePage(page);
 });
 
-t('おとな→チョイス→おみあい: 種類を継いだ子・親は図鑑へ', async () => {
-  const page = await newPage(saveBase({ current: petBase({ xp: 800 }) })); // 成体
-  // 種類継承は確率。roll<0.40 で親A(柴)の種類を継ぐよう固定
-  await page.evaluate(() => { window.Math.random = () => 0.1; });
-  const code = await page.evaluate(() => window.Engine.mateCode());
-  assert.match(code, /^INU-/);
-  // おとな → チョイス画面 → 「子供を産ませる」
-  await page.click('#actBtn');
-  await page.waitForTimeout(300);
-  assert.ok(await page.$('#gcMate'), 'おとなチョイスが出る');
-  await page.click('#gcMate');
-  await page.waitForTimeout(300);
-  await page.click('#mateInput');
-  await page.waitForTimeout(300);
-  await page.fill('#codeIn', code);
-  await page.waitForTimeout(300);
-  assert.match(await text(page, '#codePrev'), /柴犬.*おみあいできる/);
-  await page.click('#doMate');
-  await page.waitForTimeout(500);
-  assert.match(await text(page, '.modal'), /柴犬 と 柴犬 の子/);
-  await page.click('#mrOk');
-  await page.waitForTimeout(300);
-  const st = await engineState(page);
-  assert.strictEqual(st.dex.shiba.count, 2, '親が巣立って図鑑+1');
-  assert.strictEqual(st.album.length, 0, '種類継承（純血）はアルバム外');
-  assert.ok(!st.current.mix, '子は純血');
-  await closePage(page);
-});
-
-t('おみあい: 異品種コードでミックス誕生→アルバム記録', async () => {
-  const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }));
-  await page.evaluate(() => { window.Math.random = () => 0.9; }); // roll≥0.50 → ミックス固定
-  // コーギーの成体コードを同一ページ内の別計算で生成（決定論）
-  const code = await page.evaluate(() => {
-    const real = window.Engine.getState();
-    window.Engine._state = { ...real, current: { ...real.current, breedId: 'corgi' } };
-    const c = window.Engine.mateCode();
-    window.Engine._state = real;
-    return c;
-  });
-  await page.click('#actBtn');
-  await page.waitForTimeout(300);
-  await page.click('#gcMate');
-  await page.waitForTimeout(300);
-  await page.click('#mateInput');
-  await page.waitForTimeout(300);
-  await page.fill('#codeIn', code);
-  await page.waitForTimeout(300);
-  await page.click('#doMate');
-  await page.waitForTimeout(500);
-  await page.click('#mrOk');
-  await page.waitForTimeout(300);
-  const st = await engineState(page);
-  assert.strictEqual(st.album.length, 1, 'アルバムに記録');
-  assert.ok(st.current.mix, '子はミックス');
-  // 図鑑にアルバム欄が出る
-  await page.click('#dexBtn');
-  await page.waitForTimeout(500);
-  assert.match(await text(page, '.modal'), /おみあいアルバム/);
-  await closePage(page);
-});
-
-t('おみあい: 猫コードは犬と不成立（プレビューで弾く）', async () => {
-  const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }));
-  const code = await page.evaluate(() => {
-    const real = window.Engine.getState();
-    window.Engine._state = { ...real, current: { ...real.current, breedId: 'kijitora' } };
-    const c = window.Engine.mateCode();
-    window.Engine._state = real;
-    return c;
-  });
-  await page.click('#actBtn');
-  await page.waitForTimeout(300);
-  await page.click('#gcMate');
-  await page.waitForTimeout(300);
-  await page.click('#mateInput');
-  await page.waitForTimeout(300);
-  await page.fill('#codeIn', code);
-  await page.waitForTimeout(300);
-  assert.match(await text(page, '#codePrev'), /同じ動物どうし/);
-  assert.ok(await page.getAttribute('#doMate', 'disabled') !== null, 'ボタン無効');
-  await closePage(page);
-});
-
 t('巣立ち: おとな→チョイス→新しい子をもらう→図鑑登録・次の子が来る', async () => {
   const page = await newPage(saveBase({ current: petBase({ xp: 800 }), dex: {} }));
   assert.match(await text(page, '#actBtn'), /おとなに なった/);
@@ -569,42 +485,6 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   assert.strictEqual(Math.floor(after.foodStock), Math.floor(before.foodStock), 'ストックが保持');
   assert.strictEqual(after.current.breedId, before.current.breedId);
   assert.strictEqual(after.version, 18);
-  await closePage(page);
-});
-
-t('おみあい: いぬ×ねこは「おみあいできません」／ いぬ×いぬはOK', async () => {
-  // ねこ(キジトラ)成体の おみあいコードを用意
-  const catPage = await newPage(saveBase({ current: petBase({ breedId: 'kijitora', xp: 800 }) }));
-  const catCode = await catPage.evaluate(() => window.Engine.mateCode());
-  await closePage(catPage);
-  assert.match(catCode, /^NEK-/, 'ねこコードは NEK-');
-  // いぬ(柴)成体で おみあい入力画面へ
-  const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }));
-  const dogCode = await page.evaluate(() => window.Engine.mateCode());
-  assert.match(dogCode, /^INU-/, 'いぬコードは INU-');
-  await page.click('#actBtn'); await page.waitForTimeout(200);
-  await page.click('#gcMate'); await page.waitForTimeout(200);
-  await page.click('#mateInput'); await page.waitForTimeout(200);
-  // 猫コードを「メッセージ全文」で貼っても抽出され、「おみあいできません」＋ボタン無効
-  const catMsg = 'うちの「サバトラ」と おみあいしない？🐾\nおみあいコード: ' + catCode + '\n#いぬねこ図鑑';
-  await page.fill('#codeIn', catMsg); await page.waitForTimeout(150);
-  assert.match(await text(page, '#codePrev'), /おみあいできません/);
-  assert.ok(await page.getAttribute('#doMate', 'disabled') !== null, 'いぬ×ねこは ボタン無効');
-  // 犬コード → OK＋ボタン有効
-  await page.fill('#codeIn', dogCode); await page.waitForTimeout(150);
-  assert.match(await text(page, '#codePrev'), /おみあいできるよ/);
-  assert.ok(await page.getAttribute('#doMate', 'disabled') === null, 'いぬ×いぬは ボタン有効');
-  await closePage(page);
-});
-
-t('おみあい: 招待リンク(?mate=)を開くと 自動で取り込み・貼り付け不要', async () => {
-  const aPage = await newPage(saveBase({ current: petBase({ breedId: 'corgi', xp: 800 }) }));
-  const codeA = await aPage.evaluate(() => window.Engine.mateCode());
-  await closePage(aPage);
-  const page = await newPage(saveBase({ current: petBase({ xp: 800 }) }), { query: '?mate=' + encodeURIComponent(codeA) });
-  await page.waitForTimeout(900); // start() の setTimeout(500ms) ＋余裕
-  assert.match(await text(page, '#codePrev'), /おみあいできるよ/, 'リンクから相手を自動取り込み');
-  assert.ok(await page.getAttribute('#doMate', 'disabled') === null, 'ボタン有効（貼り付け不要）');
   await closePage(page);
 });
 

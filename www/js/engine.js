@@ -374,17 +374,7 @@
     return { state: ns, coinGain: coinGain, xpGain: xpGain, died: died, ranAway: ranAway, autoFed: autoFed };
   }
 
-  // ====== おみあい（ブリード）: サーバーなし・コードのコピペで遺伝 ======
-  // docs/BREEDING_SPEC.md が正。成体どうしの特徴をランダム継承した「ミックス」を産む。
-  var MATE_VER = 2; // v2: 目スタイル(eyeStyle)を1バイト追加
-  var EARS = ['prick', 'flop', 'round', 'fold', 'bigprick'];
-  var PATTERNS = ['solid', 'tan', 'patch', 'spot', 'tabby', 'calico', 'tuxedo', 'point'];
-  var TAILS = ['normal', 'curl'];
-  var EYE_RARE = ['#f2c84a', '#e6e8ee']; // 金・銀（まれに出る希少な瞳）
-  var HYBRID_NATURE = 'じゆうじん'; // ミックス限定の新性格（5%）
-  var B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'; // Crockford（I/L/O/U を除く）
-
-  // 体の記号模様（個体ごとの特徴。レア度つき・おみあいで遺伝。none＝模様なし）
+  // 体の記号模様（個体ごとの特徴。レア度つき。none＝模様なし）
   var MARK_IDS = ['none', 'circle', 'triangle', 'heart', 'star', 'dbl', 'diamond'];
   var MARK_RARITY = { none: '', circle: 'コモン', triangle: 'コモン', heart: 'アンコモン', star: 'レア', dbl: 'レア', diamond: 'スーパーレア' };
   var MARK_WEIGHT = { none: 55, circle: 14, triangle: 14, heart: 9, star: 4, dbl: 3, diamond: 1 }; // 合計100
@@ -398,136 +388,14 @@
   var EYE_STYLES = ['batchiri', 'genki', 'downer', 'majime', 'ojou']; // バッチリ/元気/ダウナー/真面目/お嬢様
   function rollEye(rnd) { return EYE_STYLES[Math.floor((rnd || Math.random)() * EYE_STYLES.length) % EYE_STYLES.length]; }
 
-  function natureList() { return Object.keys(Breeds.NATURES); } // 15種（idx 0-14）
-  function idxOf(arr, v) { var i = arr.indexOf(v); return i < 0 ? 0 : i; }
-  function hex2rgb(h) {
-    h = (h || '#000000').replace('#', '');
-    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-    return [parseInt(h.slice(0, 2), 16) || 0, parseInt(h.slice(2, 4), 16) || 0, parseInt(h.slice(4, 6), 16) || 0];
-  }
-  function rgb2hex(r, g, b) {
-    function p(x) { return ('0' + (x & 255).toString(16)).slice(-2); }
-    return '#' + p(r) + p(g) + p(b);
-  }
-  function bytes2b32(bytes) {
-    var bits = 0, val = 0, out = '';
-    for (var i = 0; i < bytes.length; i++) {
-      val = (val << 8) | (bytes[i] & 255); bits += 8;
-      while (bits >= 5) { out += B32[(val >>> (bits - 5)) & 31]; bits -= 5; }
-    }
-    if (bits > 0) out += B32[(val << (5 - bits)) & 31];
-    return out;
-  }
-  function b32toBytes(str) {
-    var bits = 0, val = 0, out = [];
-    for (var i = 0; i < str.length; i++) {
-      var c = B32.indexOf(str[i]); if (c < 0) continue;
-      val = (val << 5) | c; bits += 5;
-      if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; }
-    }
-    return out;
-  }
-  // ペット（成体）から遺伝子 genome を取り出す。pure品種なら breedIdx、ミックスなら null
-  function genomeOf(state) {
-    var p = state.current;
-    if (p.mix) {
-      return { species: p.mix.species, breedIdx: null, nature: p.mix.nature, art: p.mix.art, name: 'ミックス', mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
-    }
-    var b = Breeds.get(p.breedId);
-    if (Breeds.isCross(b)) {
-      // 交配種を親にした場合（多段交配の入口）: いまは mix 親として扱う＝子は手続きミックス（tier2の名前付き結果は今後）
-      return { species: b.species, breedIdx: null, nature: b.nature, art: b.art, name: b.name, mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
-    }
-    return { species: b.species, breedIdx: Breeds.ALL.indexOf(b), nature: b.nature, art: b.art, name: b.name, mark: p.mark || 'none', eyeStyle: p.eyeStyle || 'batchiri' };
-  }
-  function genomeToBytes(g) {
-    var nat = natureList();
-    var natIdx = g.nature === HYBRID_NATURE ? 15 : nat.indexOf(g.nature);
-    if (natIdx < 0) natIdx = 0;
-    var ear = idxOf(EARS, g.art.ear);
-    var tail = idxOf(TAILS, g.art.tail || 'normal');
-    var pat = idxOf(PATTERNS, g.art.pattern);
-    var b = [];
-    b[0] = MATE_VER;
-    b[1] = (g.species === 'cat' ? 1 : 0) | (g.art.fluffy ? 2 : 0) | (ear << 2) | (tail << 5);
-    b[2] = (pat & 7) | ((natIdx & 15) << 3);
-    b[3] = g.breedIdx == null ? 255 : (g.breedIdx & 255);
-    // 記号模様(3bit)を空きビットに格納: b[1] bit6,7 と b[2] bit7（tailデコードは1bitに）
-    var mk = MARK_IDS.indexOf(g.mark || 'none'); if (mk < 0) mk = 0;
-    b[1] |= ((mk & 1) << 6) | (((mk >> 1) & 1) << 7);
-    b[2] |= ((mk >> 2) & 1) << 7;
-    var c1 = hex2rgb(g.art.color), c2 = hex2rgb(g.art.color2), ce = hex2rgb(g.art.eye);
-    b[4] = c1[0]; b[5] = c1[1]; b[6] = c1[2];
-    b[7] = c2[0]; b[8] = c2[1]; b[9] = c2[2];
-    b[10] = ce[0]; b[11] = ce[1]; b[12] = ce[2];
-    b[13] = idxOf(EYE_STYLES, g.eyeStyle || 'batchiri'); // 目スタイル(MATE_VER2)
-    var sum = 0; for (var i = 0; i < 14; i++) sum = (sum + b[i]) & 255;
-    b[14] = sum;
-    return b;
-  }
-  function bytesToGenome(b) {
-    if (!b || b.length < 15) return { error: 'format' };
-    if (b[0] !== MATE_VER) return { error: 'version' };
-    var sum = 0; for (var i = 0; i < 14; i++) sum = (sum + b[i]) & 255;
-    if (sum !== b[14]) return { error: 'checksum' };
-    var nat = natureList();
-    var natIdx = (b[2] >> 3) & 15;
-    var mk = ((b[1] >> 6) & 1) | (((b[1] >> 7) & 1) << 1) | (((b[2] >> 7) & 1) << 2);
-    return {
-      species: (b[1] & 1) ? 'cat' : 'dog',
-      breedIdx: b[3] === 255 ? null : b[3],
-      nature: natIdx === 15 ? HYBRID_NATURE : (nat[natIdx] || nat[0]),
-      mark: MARK_IDS[mk] || 'none',
-      eyeStyle: EYE_STYLES[b[13]] || 'batchiri',
-      art: {
-        base: (b[1] & 1) ? 'cat' : 'dog',
-        fluffy: !!(b[1] & 2),
-        ear: EARS[(b[1] >> 2) & 7] || 'prick',
-        tail: TAILS[(b[1] >> 5) & 1] || 'normal',
-        pattern: PATTERNS[b[2] & 7] || 'solid',
-        color: rgb2hex(b[4], b[5], b[6]),
-        color2: rgb2hex(b[7], b[8], b[9]),
-        eye: rgb2hex(b[10], b[11], b[12])
-      }
-    };
-  }
-  // 全品種の色プール（突然変異の引き先）
-  function colorPool() {
-    var out = [];
-    Breeds.ALL.forEach(function (b) { out.push(b.art.color); out.push(b.art.color2); });
-    return out;
-  }
-  // 1遺伝子の継承: prob で親A/B、mut で突然変異（mutate() の戻り値）
-  function inherit(rnd, a, bb, mut, mutChance, flags) {
-    if (rnd() < mutChance) { if (flags) flags.mutated = true; return mut(rnd); }
-    return rnd() < 0.5 ? a : bb;
-  }
-  // ミックスの genome から、描画・表示に使える合成「品種」オブジェクトを作る
+  // 旧セーブ互換: 過去に おみあいで生まれたミックス個体(current.mix)を描画するための合成品種オブジェクト
   function mixBreed(mix) {
     return {
       id: 'mix', mix: true, species: mix.species,
       name: mix.name || 'ミックス', rarity: 'mix', nature: mix.nature,
-      desc: mix.parents ? (mix.parents[0] + ' と ' + mix.parents[1] + ' の子') : 'おみあいで うまれた子',
+      desc: mix.parents ? (mix.parents[0] + ' と ' + mix.parents[1] + ' の子') : 'ミックスの子',
       art: mix.art
     };
-  }
-  function pick(rnd, arr) { return arr[Math.floor(rnd() * arr.length) % arr.length]; }
-  // 2つの genome から子の art と nature をランダム継承する
-  function mixGenes(rnd, A, Bp) {
-    var pool = colorPool();
-    var flags = { mutated: false };
-    var art = {
-      base: A.species,
-      color:  inherit(rnd, A.art.color,  Bp.art.color,  function (r) { return pick(r, pool); }, 0.08, flags),
-      color2: inherit(rnd, A.art.color2, Bp.art.color2, function (r) { return pick(r, pool); }, 0.08, flags),
-      ear:     inherit(rnd, A.art.ear,     Bp.art.ear,     function (r) { return pick(r, EARS); }, 0.05, flags),
-      pattern: inherit(rnd, A.art.pattern, Bp.art.pattern, function (r) { return pick(r, PATTERNS); }, 0.05, flags),
-      fluffy:  inherit(rnd, !!A.art.fluffy, !!Bp.art.fluffy, function (r) { return r() < 0.5; }, 0.05, flags),
-      tail:    inherit(rnd, A.art.tail || 'normal', Bp.art.tail || 'normal', function (r) { return pick(r, TAILS); }, 0.05, flags),
-      eye:     inherit(rnd, A.art.eye, Bp.art.eye, function (r) { return pick(r, EYE_RARE); }, 0.02, flags)
-    };
-    var nature = rnd() < 0.05 ? HYBRID_NATURE : (rnd() < 0.5 ? A.nature : Bp.nature);
-    return { art: art, nature: nature, mutated: flags.mutated };
   }
 
 
@@ -1060,15 +928,13 @@
       var s = this._state;
       if (!s || !s.current || stageOf(s.current.xp) < 3) return null;
       var dex = { ...s.dex };
-      var isNew = false, reward, breed, isCross = false;
+      var isNew = false, reward, breed;
       if (s.current.mix) {
-        // レシピ未定義のミックスは図鑑に登録しない（アルバムが記録）。巣立ちボーナスのみ
+        // 旧セーブ互換: 過去のミックス個体は図鑑に登録しない。巣立ちボーナスのみ
         breed = mixBreed(s.current.mix);
         reward = 60;
       } else {
-        // 原種も交配種も 同じ図鑑(dex)に登録する（分けない）
         breed = Breeds.get(s.current.breedId);
-        isCross = Breeds.isCross(breed);
         isNew = !dex[breed.id];
         reward = 20 + Breeds.RARITY[breed.rarity].stars * 40 + (isNew ? 100 : 0);
         var prev = dex[breed.id] || { count: 0, firstAt: now };
@@ -1090,136 +956,9 @@
       };
       this._state = ns;
       persist(ns);
-      return { breed: breed, isNew: isNew, reward: reward, next: next, isCross: isCross };
+      return { breed: breed, isNew: isNew, reward: reward, next: next };
     },
 
-    // ===== おみあい（ブリード）API =====
-    /** 成体どうしだけ おみあいできる */
-    canMate: function () { return this.stage() >= 3; },
-
-    /** 自分の成体の「おみあいコード」を発行（成体のみ・端末外送信なし） */
-    mateCode: function () {
-      var s = this._state;
-      if (!s || !s.current || stageOf(s.current.xp) < 3) return null;
-      var g = genomeOf(s);
-      var code = bytes2b32(genomeToBytes(g));
-      var prefix = g.species === 'cat' ? 'NEK' : 'INU';
-      var groups = code.match(/.{1,4}/g) || [code];
-      return prefix + '-' + groups.join('-');
-    },
-
-    /** 相手のコードを解読。{species, nature, art, name} または {error} */
-    decodeMate: function (code) {
-      if (!code || typeof code !== 'string') return { error: 'format' };
-      var up = code.toUpperCase();
-      // メッセージ全文（LINE等）を貼ってもOK: プレフィックス INU-/NEK- を起点にコード塊だけ抜き出す。
-      // 見つからなければ従来どおり最初の '-' 以降を本体扱い。b32toBytes は '-' や非base32文字を読み飛ばす。
-      var m = up.match(/(?:INU|NEK)-[0-9A-HJKMNP-TV-Z\-]+/);
-      var body = m ? m[0].slice(m[0].indexOf('-') + 1)
-                   : (up.indexOf('-') >= 0 ? up.slice(up.indexOf('-') + 1) : up);
-      var g = bytesToGenome(b32toBytes(body));
-      if (g.error) return g;
-      if (g.breedIdx != null && Breeds.ALL[g.breedIdx]) g.name = Breeds.ALL[g.breedIdx].name;
-      else g.name = 'ミックス';
-      return g;
-    },
-
-    /**
-     * おみあい成立: 自分の成体を巣立ち登録し、相手 partner との特徴を継いだミックスのおくるみを迎える。
-     * partner = decodeMate の結果。成功で { child, isMix, isNew, parents, mutated }。
-     */
-    breedWith: function (partner, now, rnd) {
-      rnd = rnd || Math.random;
-      var s = this._state;
-      if (!s || !s.current || stageOf(s.current.xp) < 3) return { error: 'not_adult' };
-      if (!partner || partner.error) return { error: 'bad_code' };
-      var mine = genomeOf(s);
-      if (mine.species !== partner.species) return { error: 'species' };
-
-      // 自分の成体を巣立たせる（pure品種なら図鑑に登録）
-      var dex = { ...s.dex };
-      var graduates = s.graduates;
-      var isNew = false, reward = 0;
-      if (mine.breedIdx != null) {
-        var pb = Breeds.ALL[mine.breedIdx];
-        isNew = !dex[pb.id];
-        reward = 20 + Breeds.RARITY[pb.rarity].stars * 40 + (isNew ? 100 : 0);
-        var prev = dex[pb.id] || { count: 0, firstAt: now };
-        dex[pb.id] = { count: prev.count + 1, firstAt: prev.firstAt || now, unseen: true };
-        graduates += 1;
-      }
-
-      // 種類(品種)を確率で継承: 両親とも純血種なら 40%親A / 40%親B / 20%ミックス。
-      // 先頭の1回の rnd() が分岐を決める（テストで決定論的に再現できるように）
-      var parents = [mine.name, partner.name];
-      var bothPure = mine.breedIdx != null && partner.breedIdx != null;
-      // 種類(品種)を確率で継承: 両親とも純血種なら 25%親A / 25%親B / 50%ミックス（遺伝が見えるミックス多め）。
-      var roll = bothPure ? rnd() : 1; // 片方でもミックス親なら必ずミックス
-      var childBreedIdx = null;
-      if (roll < 0.25) childBreedIdx = mine.breedIdx;
-      else if (roll < 0.50) childBreedIdx = partner.breedIdx;
-      var childIsMix = childBreedIdx == null;
-
-      // 交配種（クロスブリード）: 「ミックス枠」に落ち かつ 両親とも純血なら 樹形図レシピを引く（PLAN_v2 §9-B1）。
-      // レシピがあれば名前付き交配種が誕生＝実物コレクション。課金交配種は未課金だと原種に振替（課金ゲート）。
-      var crossBreed = null;
-      if (childIsMix && bothPure) {
-        var recipe = Breeds.crossOf(Breeds.ALL[mine.breedIdx].id, Breeds.ALL[partner.breedIdx].id);
-        if (recipe) {
-          if (recipe.premium && !s.premium) {
-            childBreedIdx = (rnd() < 0.5) ? mine.breedIdx : partner.breedIdx; // 未課金: 原種に振替
-            childIsMix = false;
-          } else {
-            crossBreed = recipe;   // 定義済み交配種が誕生
-            childIsMix = false;
-          }
-        }
-      }
-
-      var child, genes = null;
-      if (crossBreed) {
-        child = crossBreed;
-      } else if (childIsMix) {
-        // レシピ未定義のミックス: 色・目・模様・耳・ふわふわ・しっぽを 親から各50%で継承（突然変異あり）
-        genes = mixGenes(rnd, mine, partner);
-        child = mixBreed({ species: mine.species, nature: genes.nature, art: genes.art, parents: parents });
-      } else {
-        // 種類を継承した純血の子（どちらかの親の品種）
-        child = Breeds.ALL[childBreedIdx];
-      }
-      var inheritedBreed = childIsMix ? null : child.name;
-      var mutated = genes ? genes.mutated : false;
-
-      var newPet = freshPet(child.id, rnd); // child.id は 原種id / 交配種id / 'mix'
-      // 記号模様・目スタイルも遺伝: 親A/Bから50%、6%で突然変異
-      newPet.mark = inherit(rnd, mine.mark || 'none', partner.mark || 'none', rollMark, 0.06, null);
-      newPet.eyeStyle = inherit(rnd, mine.eyeStyle || 'batchiri', partner.eyeStyle || 'batchiri', rollEye, 0.06, null);
-      if (childIsMix) {
-        newPet.mix = { species: mine.species, nature: genes.nature, art: genes.art, parents: parents };
-      }
-
-      var album = s.album ? s.album.slice() : [];
-      if (childIsMix) {
-        album.unshift({ at: now, species: mine.species, nature: genes.nature, art: genes.art, parents: parents });
-      }
-
-      var ns = {
-        ...s,
-        current: newPet,
-        dex: dex,
-        graduates: graduates,
-        coin: s.coin + reward,
-        luck: clamp(s.luck + (childIsMix ? 0.04 : 0.06), 0, 2),
-        album: album,
-        lastSavedAt: now
-      };
-      this._state = ns;
-      persist(ns);
-      return { child: child, isMix: childIsMix, isCross: !!crossBreed, isNew: isNew, reward: reward, parents: parents, mutated: mutated, inheritedBreed: inheritedBreed };
-    },
-
-    /** ミックスのアルバム（新しい順） */
-    album: function () { return (this._state && this._state.album) || []; },
 
     /** ねんね中(stage0)のうちは別の子と会い直せる（コイン消費） */
     reroll: function (now, rnd, species) {
@@ -1248,9 +987,8 @@
     dexProgress: function () {
       var s = this._state;
       var premium = !!(s && s.premium);
-      // 原種と交配種を分けず、ひとつの図鑑として集計する
-      var universe = Breeds.ALL.concat(Breeds.CROSS);
-      function isFreeEntry(b) { return b.cross ? !b.premium : Breeds.isFree(b); }
+      var universe = Breeds.ALL;
+      function isFreeEntry(b) { return Breeds.isFree(b); }
       var freeTotal = universe.filter(isFreeEntry).length;
       var premiumTotal = universe.length - freeTotal;
       var total = premium ? universe.length : freeTotal;
