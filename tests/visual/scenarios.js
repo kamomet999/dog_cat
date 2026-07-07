@@ -232,9 +232,9 @@ module.exports = {
       save: saveBase({
         premium: true,
         dex: {
-          shiba:  { count: 3, firstAt: T0 - DAY * 3, unseen: false },
-          akita:  { count: 1, firstAt: T0 - DAY * 1, unseen: true },
-          persian:{ count: 1, firstAt: T0 - DAY * 2, unseen: false }
+          shiba:   { count: 3, firstAt: T0 - DAY * 3, unseen: false },
+          bulldog: { count: 1, firstAt: T0 - DAY * 1, unseen: true },
+          lykoi:   { count: 1, firstAt: T0 - DAY * 2, unseen: false }
         }
       }),
       fullPage: true,

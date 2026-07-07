@@ -109,14 +109,14 @@ test('抽選: 収集済み・直前と同じ品種は出にくい（同じ子ば
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v18 の初期状態ができる', () => {
+test('newGame で v19 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 18);
+  assert.strictEqual(s.version, 19);
   assert.strictEqual(s.points, 0);
   assert.strictEqual(s.crossDex, undefined, '交配種は原種と同じ図鑑（専用crossDexは持たない）');
   assert.strictEqual(s.premium, false);
-  eqJSON(s.album, []);
+  assert.strictEqual(s.album, undefined, 'おみあい撤去後は album を持たない');
   assert.strictEqual(s.foodStock, 6);
   assert.strictEqual(s.task, null);
   assert.ok(s.current);
@@ -197,7 +197,8 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 18);
+  assert.strictEqual(s.version, 19);
+  assert.strictEqual(s.album, undefined, 'v19でalbumは消える');
   assert.strictEqual(s.crossDex, undefined, '交配種は原種と同じ図鑑に統合（crossDexは持たない）');
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
@@ -673,6 +674,45 @@ test('てであげると 自動給餌にない なかよし(xp)ボーナス', ()
   assert.ok(p1.hunger > p0.hunger);
   assert.ok(p1.xp > p0.xp); // 手であげると なかよし(xp)が増える
   assert.strictEqual(p1.mood, undefined); // 機嫌は廃止
+});
+
+test('なかよしポイント: 手であげる・おすわり成功ぶんも口座にたまる（文言との一貫性）', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  w.Engine.tick(T0 + 6 * H);
+  const pts0 = w.Engine.points();
+  w.Engine.feed(T0 + 6 * H);
+  const pts1 = w.Engine.points();
+  assert.ok(pts1 > pts0, `手であげる: ${pts0} → ${pts1}`);
+  w.Engine.startWalk(30, T0 + 7 * H);
+  const r = w.Engine.checkWalk(T0 + 7 * H + 30 * MIN, true);
+  assert.strictEqual(r.result, 'success');
+  assert.ok(w.Engine.points() > pts1 + r.xpGain - 1, 'おすわり成功のxpも口座に入る');
+});
+
+test('v18→v19: 消えた品種は図鑑から除去・育成中の子は無料種へ引き継がれる', () => {
+  const storage = makeStorage();
+  const v18save = {
+    version: 18, coin: 10, points: 5, luck: 0, premium: false,
+    current: { breedId: 'pc164', xp: 300, hunger: 70, clean: 70, health: 100, sanpo: 100, runawayH: 0, away: false, careCount: 2, mark: 'none', eyeStyle: 'batchiri' },
+    dex: { shiba: { count: 1, firstAt: T0, unseen: false }, pd001: { count: 2, firstAt: T0, unseen: true } },
+    album: [{ nonsense: 1 }],
+    lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0, foodStock: 6, task: null, walk: null,
+    walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 },
+    taskStats: { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} },
+    allowApps: [], reminders: { enabled: false, times: [] },
+    wardrobe: { owned: {}, items: [] }, room: { bg: 'cream', items: [] }
+  };
+  storage.setItem('inuneko_dex_save_v1', JSON.stringify(v18save));
+  const w = freshWorld(storage);
+  const s = w.Engine.init();
+  assert.strictEqual(s.version, 19);
+  assert.strictEqual(s.album, undefined, 'albumは消える');
+  assert.ok(s.dex.shiba, '現存品種の図鑑は残る');
+  assert.strictEqual(s.dex.pd001, undefined, '消えた品種は図鑑から除去');
+  const b = w.Breeds.get(s.current.breedId);
+  assert.ok(b && w.Breeds.isFree(b), '消えた品種の子は無料種へ引き継ぎ');
+  assert.strictEqual(s.current.xp, 300, '育成の進捗は保持');
 });
 
 test('スマホを触らない時間で えさが少しずつ貯まる（passive 0.1/h）', () => {

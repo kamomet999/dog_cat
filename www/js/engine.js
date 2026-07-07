@@ -7,7 +7,7 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 18;
+  var VERSION = 19;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
   var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
@@ -83,8 +83,10 @@
     { pts: 60000, wear: 'rainbow' }
   ];
 
-  // おすそわけ: きせかえを友だちにコードで贈る（一方向・通信なし）。対象=通常＋レア装備すべて
-  var GIFT_ITEMS = WEAR_IDS.concat(MILESTONES.map(function (m) { return m.wear; }));
+  // おすそわけ: きせかえを友だちにコードで贈る（一方向・通信なし）。
+  // 対象=通常装備のみ。レア装備（MILESTONES）はコードが静的で使い回せてしまい
+  // 「なかよしポイント達成のしるし」の価値が崩れるため贈れない。
+  var GIFT_ITEMS = WEAR_IDS.slice();
   function giftChk(id) { var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 1000; return h; }
 
   // 成長に必要な累積なかよし度（xp）。index=到達stage
@@ -153,7 +155,6 @@
       allowApps: [],        // おすわり中に使ってよいアプリ（{name,url?}）。v1はオナー/ショートカット、v2でOS遮断対象
       reminders: { enabled: false, times: [] }, // 時間指定「さんぽしないの？」（"HH:MM" 配列）
       wardrobe: { owned: {}, items: [] }, // きせかえ（おさんぽ報酬で集める・自由配置）
-      album: [],            // おみあいで生まれたミックスの記録（30種図鑑とは別）
       room: defaultRoom()   // 部屋の模様替え（スロット→アイテムid。¥500で全アイテム解放）
     };
   }
@@ -283,6 +284,22 @@
       Object.keys(cd).forEach(function (id) { if (!mdex[id]) mdex[id] = cd[id]; });
       s = { ...s, version: 18, dex: mdex };
       delete s.crossDex;
+    }
+    if (s.version === 18) {
+      // 品種を60種（犬30・猫30）へ圧縮＋おみあい撤去の後始末。
+      // 消えた品種: 図鑑からは除去、育成中の子は旧idから決めた無料種として引き継ぐ（進捗は保持）
+      var d19 = {};
+      Object.keys(s.dex || {}).forEach(function (id) { if (Breeds.get(id)) d19[id] = s.dex[id]; });
+      var c19 = s.current;
+      if (c19 && !c19.mix && !Breeds.get(c19.breedId)) {
+        var pool19 = Breeds.ALL.filter(Breeds.isFree);
+        var h19 = 0;
+        String(c19.breedId).split('').forEach(function (ch) { h19 = (h19 * 31 + ch.charCodeAt(0)) % pool19.length; });
+        c19 = { ...c19, breedId: pool19[h19].id };
+      }
+      var s19 = { ...s, version: 19, dex: d19, current: c19 };
+      delete s19.album;
+      s = s19;
     }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
@@ -527,11 +544,17 @@
       // 前面（スマホ稼働中）の進行: デスタイマー（生存の減衰・死/家出）はここでのみ進む
       var r = advance(s, clamp(ms, 0, MAX_SIM), clamp(ms, 0, MAX_OFFLINE), { survive: true });
       this._state = { ...r.state, lastSavedAt: now };
-      persist(this._state);
+      // 毎秒呼ばれるので書き込みは5秒に1回に間引く（死/家出の節目は即保存。落ちても失うのは数秒ぶんの報酬のみ）
+      if (r.died || r.ranAway || !this._nextPersistAt || now >= this._nextPersistAt) {
+        persist(this._state);
+        this._nextPersistAt = now + 5000;
+      }
     },
 
     FOOD_HUNGER: FOOD_HUNGER,
     FOOD_COST: FOOD_COST,
+    /** おすわり minutes 分 成功時の餌数（UIの表示もこれを使う＝二重定義しない） */
+    walkFoodGain: walkFoodGain,
     TASK_KINDS: TASK_KINDS,
     TASK_OPTIONS: TASK_OPTIONS,
     TASK_MIN: TASK_MIN,
@@ -558,7 +581,8 @@
         hunger: clamp(p.hunger + FOOD_HUNGER, 0, 100),
         careCount: p.careCount + 1
       };
-      var ns = { ...s, current: np, foodStock: stock - 1, lastSavedAt: now };
+      // なかよしポイント（口座）も同額たまる（「お世話でたまる」の一貫性）
+      var ns = { ...s, current: np, foodStock: stock - 1, points: (s.points || 0) + HAND_FEED_BONUS.xp, lastSavedAt: now };
       this._state = ns;
       persist(ns);
       return { stageBefore: stageOf(p.xp), stageAfter: stageOf(np.xp), left: Math.floor(ns.foodStock) };
@@ -765,7 +789,7 @@
         clean:  clamp(p.clean  + (def.clean  || 0), 0, 100),
         careCount: p.careCount + 1
       };
-      var ns = { ...s, current: np, coin: s.coin + (def.coin || 0), lastSavedAt: now };
+      var ns = { ...s, current: np, coin: s.coin + (def.coin || 0), points: (s.points || 0) + (def.xp || 0), lastSavedAt: now };
       this._state = ns;
       persist(ns);
       return { stageBefore: stageOf(p.xp), stageAfter: stageOf(np.xp) };
@@ -888,6 +912,7 @@
           ...s,
           current: np,
           coin: s.coin + coinGain,
+          points: (s.points || 0) + xpGain, // おすわり成功ぶんも なかよしポイントへ
           luck: clamp(s.luck + WALK_LUCK, 0, 2),
           foodStock: Math.min(FOOD_STOCK_MAX, (s.foodStock == null ? 0 : s.foodStock) + foods),
           walk: null,
@@ -991,21 +1016,22 @@
       function isFreeEntry(b) { return Breeds.isFree(b); }
       var freeTotal = universe.filter(isFreeEntry).length;
       var premiumTotal = universe.length - freeTotal;
-      var total = premium ? universe.length : freeTotal;
       function speciesTotal(sp) { return universe.filter(function (b) { return b.species === sp && (premium || isFreeEntry(b)); }).length; }
-      var dogTotal = speciesTotal('dog');
-      var catTotal = speciesTotal('cat');
-      var found = 0, dogFound = 0, catFound = 0, newCount = 0, premiumFound = 0;
+      var found = 0, dogFound = 0, catFound = 0, newCount = 0, premiumFound = 0, dogPremFound = 0, catPremFound = 0;
       if (s) {
         Object.keys(s.dex).forEach(function (id) {
           var b = Breeds.get(id);
           if (!b) return;
           found++;
           if (b.species === 'dog') dogFound++; else catFound++;
-          if (!isFreeEntry(b)) premiumFound++;
+          if (!isFreeEntry(b)) { premiumFound++; if (b.species === 'dog') dogPremFound++; else catPremFound++; }
           if (s.dex[id].unseen) newCount++;
         });
       }
+      // 無課金の目標は無料種＋（過去に手に入れた）プレミアム種。found が total を超えないようにする
+      var total = premium ? universe.length : freeTotal + premiumFound;
+      var dogTotal = speciesTotal('dog') + (premium ? 0 : dogPremFound);
+      var catTotal = speciesTotal('cat') + (premium ? 0 : catPremFound);
       return {
         total: total, found: found, dogTotal: dogTotal, catTotal: catTotal,
         dogFound: dogFound, catFound: catFound, newCount: newCount,
