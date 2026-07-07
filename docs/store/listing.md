@@ -64,6 +64,8 @@ FEATURES
 ## スクリーンショット構成案（6.7" / 6.5" / 5.5" とAndroid共通）
 
 > 並びは `docs/DESIGN.md` §10（Value → Usage → Trust）を正とする。
+> **生成済み**: `npm run store:shots` → `docs/store/shots/android/`（1080×1920）・`ios/`（1290×2796）・
+> `feature-graphic.png`（1024×500）。文言や状態を変えたら `tools/gen_store_shots.js` を編集して再生成。
 
 1. ホーム画面 — **ペットの顔が最大要素（画面の1/3以上）**「スマホを置くと、育つ。」
 2. おすわり画面「スマホを置いた時間が ごはんになる」
