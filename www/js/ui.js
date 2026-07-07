@@ -351,7 +351,7 @@
       '<div class="intro-steps">' +
       '<div class="intro-step"><span class="ist-ico">🍖</span><span><b>おすわり</b><br>スマホを置くと エサが貯まる</span></div>' +
       '<div class="intro-step"><span class="ist-ico">🐾</span><span><b>お散歩</b><br>読書・勉強・運動の間、となりに</span></div>' +
-      '<div class="intro-step"><span class="ist-ico">📖</span><span><b>図鑑を集める</b><br>犬・猫 あわせて30種（広告ゼロ・登録なし）</span></div>' +
+      '<div class="intro-step"><span class="ist-ico">📖</span><span><b>図鑑を集める</b><br>犬・猫 あわせて30種。広告ゼロ・登録なし</span></div>' +
       '</div>' +
       '<button id="introGo" class="big-btn primary" style="width:100%">はじめる</button>' +
       '</div>';
@@ -1398,7 +1398,7 @@
     if (Engine.walk()) return;
     var btns = Engine.WALK_OPTIONS.map(function (min) {
       return '<button class="care-btn" data-min="' + min + '" style="padding:14px 4px">' +
-        '<span class="emo">' + (min <= 30 ? '🐾' : min <= 60 ? '🌳' : min <= 120 ? '⛰' : '🌙') + '</span>' +
+        '<span class="emo">' + (min <= 30 ? '☕️' : min <= 60 ? '🌳' : min <= 120 ? '⛰️' : '🌙') + '</span>' +
         '<span class="lbl">' + fmtMin(min) + '</span>' +
         '<span class="cost" style="color:var(--accent-d)">🍖 ×' + Engine.walkFoodGain(min) + '</span></button>';
     }).join('');
@@ -1687,7 +1687,7 @@
       '<p class="center muted">' + (info.stock > 0 ? days : 'エサがないよ。おすわりさせよう') + '</p>' +
       '<button id="handFeed" class="big-btn primary mt12" style="width:100%"' + (info.stock < 1 ? ' disabled' : '') + '>🤲 手であげる（なかよしアップ）</button>' +
       '<button id="buyFood" class="big-btn ghost mt12" style="width:100%"' + (st.coin < Engine.FOOD_COST ? ' disabled' : '') + '>🪙 エサを買う（' + Engine.FOOD_COST + 'コイン）</button>' +
-      '<p class="muted mt12">たくさん欲しいときは「🐾 おすわり」（スマホを置く）が一番。</p>';
+      '<p class="muted mt12">たくさん欲しいときは「🍖 おすわり」（スマホを置く）が一番。</p>';
     var m = openModal(html);
     var hf = m.root.querySelector('#handFeed');
     if (hf) hf.addEventListener('click', function () {
