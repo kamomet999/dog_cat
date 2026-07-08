@@ -595,6 +595,7 @@ test('衰弱からの回復（前面で衰弱→えさ補充で いのち が戻
   // 前面（スマホ稼働中）で 在庫切れ＋空腹を放置 → デスタイマーで衰弱
   const st = w.Engine.getState();
   st.current.hunger = 0; st.current.health = 100; st.foodStock = 0;
+  st.coin = 200; // えさ5個ぶんの購入資金（放置コイン6/hでは12hで貯まらないため明示付与）
   w.Engine.tick(T0 + 12 * H);
   const low = w.Engine.getState().current.health;
   assert.ok(low < 100 && low > 0, `衰弱している: ${low}`);

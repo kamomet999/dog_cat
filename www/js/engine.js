@@ -328,7 +328,8 @@
     // TEST段階: stage≥1 は高速成長（約30分で成体）。おくるみ(stage0)の目覚めは通常レート据え置き。
     var xpRate = (!stage0 && IS_TEST) ? TEST_XP_PER_H : 18;
     var xpGain = xpRate * rHours * hf * mixBoost;
-    var coinGain = (50 * rHours) * (0.4 + 0.6 * hf);
+    // 放置コインは 6/h（日収 約60〜140）。おすわり成功(60/h)が日収の主役になるバランス（2026-07-08 発案者決定: 旧50/hは「もらえすぎ」）
+    var coinGain = (6 * rHours) * (0.4 + 0.6 * hf);
 
     var hunger = p.hunger, clean = p.clean;
     var sanpo = p.sanpo == null ? 100 : p.sanpo;
