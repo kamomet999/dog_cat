@@ -69,6 +69,33 @@ function noEyesPrompt(b) {
     + `NO pattern. 1:1 square. No text, no watermark. Original character — do NOT copy any brand.`;
 }
 
+// 成長段階の絵（赤ちゃん/子ども）。成体スプライトを参照画像として渡し、同一キャラの幼い姿を描かせる。
+function babyPrompt(b) {
+  return `Use the attached illustration as the EXACT character reference: same ${b.name} (${b.species === 'dog' ? 'dog' : 'cat'}), `
+    + `same fur colors, same markings, same ears, same soft pastel picture-book / watercolor style, same warm dark-brown soft outline. `
+    + `Now draw the SAME character as a NEWBORN BABY (${b.species === 'dog' ? 'tiny puppy' : 'tiny kitten'}): `
+    + `much smaller and rounder than the reference, the head is about HALF of the total height, tiny plump body, `
+    + `very short stubby limbs tucked close, sitting front-facing, full body, centered. `
+    + `Huge innocent sparkly eyes placed slightly lower on the face, rosy blushing cheeks, tiny happy open mouth, `
+    + `maybe one little tuft of baby fur on top of the head. Softer and lighter overall than the adult. `
+    + `Adorable, clean, LINE-sticker friendliness, Pokemon-Sleep-like coziness. `
+    + `Place the character ALONE on a completely flat, uniform, solid pure chroma-green background `
+    + `(RGB 0,224,0) that fills the whole frame edge to edge — NO checkerboard, NO gradient, NO shadow, `
+    + `NO pattern. 1:1 square. No text, no watermark. Original character — do NOT copy any brand.`;
+}
+function childPrompt(b) {
+  return `Use the attached illustration as the EXACT character reference: same ${b.name} (${b.species === 'dog' ? 'dog' : 'cat'}), `
+    + `same fur colors, same markings, same ears, same soft pastel picture-book / watercolor style, same warm dark-brown soft outline. `
+    + `Now draw the SAME character as a HALF-GROWN YOUNG ${b.species === 'dog' ? 'puppy' : 'kitten'} (kid stage, between baby and adult): `
+    + `noticeably smaller and rounder than the reference, slightly bigger head-to-body ratio, `
+    + `sitting front-facing, full body, centered, playful lively expression with big round sparkly eyes and rosy cheeks, `
+    + `gentle happy smile, tiny visible paw pads. `
+    + `Adorable, clean, LINE-sticker friendliness, Pokemon-Sleep-like coziness. `
+    + `Place the character ALONE on a completely flat, uniform, solid pure chroma-green background `
+    + `(RGB 0,224,0) that fills the whole frame edge to edge — NO checkerboard, NO gradient, NO shadow, `
+    + `NO pattern. 1:1 square. No text, no watermark. Original character — do NOT copy any brand.`;
+}
+
 // おすわり画面用の「おすわり／まて」専用ポーズ（ホームの正面ポートレートとは別カット）。
 function sitPrompt(b) {
   const a = b.art;
@@ -189,16 +216,24 @@ async function genOne(b, key, opts) {
   opts = opts || {};
   const promptFn = opts.promptFn || prompt;
   const suffix = opts.suffix || '';
+  const parts = [];
+  // 参照画像（成体スプライト等）を渡すと同一キャラ性が保たれる（baby/child用）
+  if (opts.refSuffix != null) {
+    const ref = path.join(SPR, `${b.id}${opts.refSuffix}.png`);
+    if (!fs.existsSync(ref)) throw new Error(`${b.id}${suffix}: 参照 ${b.id}${opts.refSuffix}.png が無い`);
+    parts.push({ inlineData: { mimeType: 'image/png', data: fs.readFileSync(ref).toString('base64') } });
+  }
+  parts.push({ text: promptFn(b) });
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: promptFn(b) }] }] })
+    body: JSON.stringify({ contents: [{ parts }] })
   });
   if (!res.ok) throw new Error(`${b.id}${suffix}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  const img = parts.find(p => p.inlineData && /image/.test(p.inlineData.mimeType || ''));
+  const outParts = data?.candidates?.[0]?.content?.parts || [];
+  const img = outParts.find(p => p.inlineData && /image/.test(p.inlineData.mimeType || ''));
   if (!img) throw new Error(`${b.id}${suffix}: 画像パートが返らなかった`);
   const out = await removeBg(Buffer.from(img.inlineData.data, 'base64'));
   fs.writeFileSync(path.join(SPR, `${b.id}${suffix}.png`), out);
@@ -250,9 +285,12 @@ async function genOne(b, key, opts) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) { console.error('GEMINI_API_KEY が未設定です。例: GEMINI_API_KEY=xxx node tools/gen_sprites.mjs --only shiba'); process.exit(1); }
 
-  // --walk: さんぽ用の四足歩行ポーズ(<id>_walk.png) / --sit: おすわり専用ポーズ(<id>_sit.png) / 無指定は座り正面(<id>.png)。
+  // --walk: 四足歩行(<id>_walk) / --sit: おすわり(<id>_sit) / --baby: 赤ちゃん(<id>_baby) / --child: 子ども(<id>_child) / 無指定は座り正面(<id>)。
+  // baby/child は成体スプライトを参照画像に使う（同一キャラの幼い姿）。
   const POSE = has('--walk') ? { suffix: '_walk', promptFn: walkPrompt }
     : has('--sit') ? { suffix: '_sit', promptFn: sitPrompt }
+    : has('--baby') ? { suffix: '_baby', promptFn: babyPrompt, refSuffix: '' }
+    : has('--child') ? { suffix: '_child', promptFn: childPrompt, refSuffix: '' }
     : has('--noeyes') ? { suffix: '_noeye', promptFn: noEyesPrompt }
     : { suffix: '', promptFn: prompt };
 

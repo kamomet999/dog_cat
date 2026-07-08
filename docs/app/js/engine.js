@@ -105,8 +105,6 @@
     wash:  { clean: 42, xp: 0, coin: 3, label: 'おそうじ' }
   };
 
-  var REROLL_COST = 30;
-
   function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
   function dayIndex(now) { return Math.floor(now / 86400000); } // さんぽ継続日数の日付バケツ（UTC日。tz微調整はv2）
 
@@ -420,7 +418,6 @@
   var Engine = {
     SAVE_KEY: SAVE_KEY,
     CARE: CARE,
-    REROLL_COST: REROLL_COST,
     GROW: GROW,
     stageOf: stageOf,
     avgStatus: avgStatus,
@@ -658,6 +655,9 @@
       var gain = taskSanpoGain(t.minutes);
       var foods = taskFoodGain(t.minutes);
       var np = { ...p, sanpo: clamp((p.sanpo == null ? 100 : p.sanpo) + gain, 0, 100), runawayH: 0 };
+      // ストック上限で持ちきれない餌はコインに補填（おすわりと同じ扱い）
+      var stock1 = s.foodStock == null ? 0 : s.foodStock;
+      var overflowCoin = Math.round(Math.max(0, foods - (FOOD_STOCK_MAX - stock1)) * FOOD_COST);
       var bumped = bumpTaskStats(s.taskStats, t.kind, t.minutes, now);
       // きせかえドロップ: 確率で未所持のアクセサリを1つ入手（所持に追加・配置はUIで）
       var ward = cloneWardrobe(s);
@@ -668,12 +668,13 @@
       }
       var ns = {
         ...s, current: np, task: null,
-        foodStock: Math.min(FOOD_STOCK_MAX, (s.foodStock == null ? 0 : s.foodStock) + foods),
+        coin: s.coin + overflowCoin,
+        foodStock: Math.min(FOOD_STOCK_MAX, stock1 + foods),
         taskStats: bumped.stats, wardrobe: ward, lastSavedAt: now
       };
       this._state = ns;
       persist(ns);
-      return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain, foods: foods, days: bumped.stats.days, newDay: bumped.newDay, isBestDay: bumped.isBestDay, wear: wear };
+      return { result: 'done', kind: t.kind, minutes: t.minutes, gain: gain, foods: foods, overflowCoin: overflowCoin, days: bumped.stats.days, newDay: bumped.newDay, isBestDay: bumped.isBestDay, wear: wear };
     },
 
     // ===== 体の記号模様（個体の特徴・レア度つき） =====
@@ -909,13 +910,16 @@
         var stageBefore = stageOf(p.xp);
         var np = { ...p, xp: p.xp + xpGain };
         var foods = walkFoodGain(w.minutes);
+        // ストック上限で持ちきれない餌はコインに補填（1つ=購入価格FOOD_COST。報酬を黙って消さない）
+        var stock0 = s.foodStock == null ? 0 : s.foodStock;
+        var overflowCoin = Math.round(Math.max(0, foods - (FOOD_STOCK_MAX - stock0)) * FOOD_COST);
         var ns = {
           ...s,
           current: np,
-          coin: s.coin + coinGain,
+          coin: s.coin + coinGain + overflowCoin,
           points: (s.points || 0) + xpGain, // おすわり成功ぶんも なかよしポイントへ
           luck: clamp(s.luck + WALK_LUCK, 0, 2),
-          foodStock: Math.min(FOOD_STOCK_MAX, (s.foodStock == null ? 0 : s.foodStock) + foods),
+          foodStock: Math.min(FOOD_STOCK_MAX, stock0 + foods),
           walk: null,
           walkStats: {
             success: st.success + 1, fail: st.fail,
@@ -928,7 +932,7 @@
         persist(ns);
         res = {
           result: 'success', minutes: w.minutes, coinGain: coinGain,
-          foods: foods,
+          foods: foods, overflowCoin: overflowCoin,
           xpGain: Math.floor(xpGain), streak: streak,
           isBest: streak > st.best,
           stageBefore: stageBefore, stageAfter: stageOf(np.xp)
@@ -986,19 +990,8 @@
     },
 
 
-    /** ねんね中(stage0)のうちは別の子と会い直せる（コイン消費） */
-    reroll: function (now, rnd, species) {
-      rnd = rnd || Math.random;
-      var s = this._state;
-      if (!s || !s.current) return null;
-      if (stageOf(s.current.xp) !== 0) return { error: 'already_hatched' };
-      if (s.coin < REROLL_COST) return { error: 'no_coin' };
-      var next = Breeds.roll(rnd, s.luck, !!s.premium, species, { owned: s.dex, avoid: s.current.breedId });
-      var ns = { ...s, coin: s.coin - REROLL_COST, current: freshPet(next.id, rnd), lastSavedAt: now };
-      this._state = ns;
-      persist(ns);
-      return { next: next };
-    },
+    // ※「べつの子にあう」（おくるみ中のコイン引き直し）は 2026-07-08 に撤去。
+    //   おくるみは約1分で目覚めるため使える時間窓が実質なく、初回はコイン0で押せない＝死に機能だった。
 
     /** 図鑑の特定マスを「確認済み」にする（NEWドット消し） */
     markSeen: function (breedId) {

@@ -171,14 +171,9 @@
     if (Engine.canGraduate()) {
       act.className = 'big-btn primary';
       act.innerHTML = '🌱 おとなに なった！';
-    } else if (stage === 0) {
-      act.className = 'big-btn ghost';
-      var afford = st.coin >= Engine.REROLL_COST;
-      act.innerHTML = '🧺 べつの子にあう(' + Engine.REROLL_COST + ')';
-      act.disabled = !afford;
     } else {
       act.className = 'big-btn ghost';
-      act.innerHTML = '🍼 そだてちゅう';
+      act.innerHTML = stage === 0 ? '💤 ねんねちゅう' : '🍼 そだてちゅう';
       act.disabled = true;
     }
     var prog = Engine.dexProgress();
@@ -267,20 +262,7 @@
   }
 
   function onAct() {
-    if (Engine.canGraduate()) {
-      openGrownChoice(); // おとな → 図鑑に登録して あたらしい子を おむかえ（巣立ち）
-      return;
-    }
-    if (Engine.stage() === 0) {
-      if ((Engine.getState().coin || 0) < Engine.REROLL_COST) return showToast('コインがたりないよ');
-      chooseSpecies(function (sp) {
-        var rr = Engine.reroll(now(), Math.random, sp);
-        if (!rr || rr.error) return showToast(rr && rr.error === 'no_coin' ? 'コインがたりないよ' : '');
-        lastArtKey = '';
-        render();
-        showToast('🧺 あたらしい子を おむかえ！');
-      });
-    }
+    if (Engine.canGraduate()) openGrownChoice(); // おとな → 図鑑に登録して あたらしい子を おむかえ（巣立ち）
   }
 
   // おとなになった子: 図鑑に登録して、あたらしい子を おむかえ（巣立ち）
@@ -719,14 +701,22 @@
     var mk = p && p.mark;
     if (!mk || mk === 'none' || Engine.stage() === 0 || !MARK_SYM[mk]) return;
     var breed = Engine.breed();
-    // マスク用スプライト（ホームで表示中の体の形）。無い(ミックス等)ときはマスクなし。
-    var spr = (breed && breed.id && !breed.mix)
-      ? (Art.hasSprite(breed.id + '_noeye') ? breed.id + '_noeye' : (Art.hasSprite(breed.id) ? breed.id : null)) : null;
+    // マスク用スプライト＝ホームで表示中の絵（成長段階の絵・縮尺に追従）。無い(ミックス等)ときはマスクなし。
+    var info = Art.stageSpriteInfo ? Art.stageSpriteInfo(breed, Engine.stage()) : null;
+    var spr = info ? ((info.scale === 1 && Art.hasSprite(info.id + '_noeye')) ? info.id + '_noeye' : info.id) : null;
     var seed = ((breed && breed.id || '') + mk).split('').reduce(function (a, c) { return a + c.charCodeAt(0); }, 0);
     var pos = MARK_POS[seed % MARK_POS.length];
     var layer = document.createElement('div');
-    layer.className = 'pet-mark'; // petArt全体を覆い、スプライト形にマスク＝体外はカット
+    layer.className = 'pet-mark'; // 表示中の絵と同じ領域を覆い、スプライト形にマスク＝体外はカット
     if (spr) { var u = "url('assets/sprites/" + spr + ".png')"; layer.style.webkitMaskImage = u; layer.style.maskImage = u; }
+    if (info && info.scale < 1) {
+      // 縮小表示（下寄せ・中央）に合わせてマスク層も同じ矩形へ
+      layer.style.inset = 'auto';
+      layer.style.bottom = '0';
+      layer.style.left = ((1 - info.scale) / 2 * 100) + '%';
+      layer.style.width = (info.scale * 100) + '%';
+      layer.style.height = (info.scale * 100) + '%';
+    }
     var sym = document.createElement('span');
     sym.className = 'pet-mark-sym';
     sym.textContent = MARK_SYM[mk];
@@ -1483,7 +1473,8 @@
       '<div class="hatch-name">' + b.name + '</div>' +
       '<h2 style="margin-top:6px">' + fmtMin(r.minutes) + ' スマホを置けた</h2>' +
       '<p class="sub" style="margin-bottom:8px">連続成功 <b>' + r.streak + '</b> 回め' + (r.isBest && r.streak > 1 ? '（自己新記録！）' : '') + '</p>' +
-      '<div style="font-weight:800;color:var(--coin-text)">🍖 エサ ×' + r.foods + '　🪙 ＋' + r.coinGain + '　なかよし ＋' + r.xpGain + '</div>' +
+      '<div style="font-weight:800;color:var(--coin-text)">🍖 エサ ×' + r.foods + '　🪙 ＋' + (r.coinGain + (r.overflowCoin || 0)) + '　なかよし ＋' + r.xpGain + '</div>' +
+      (r.overflowCoin ? '<p class="muted" style="font-size:11px;margin:4px 0 0">エサ箱がいっぱいなので、もちきれない分は 🪙' + r.overflowCoin + ' にかえたよ</p>' : '') +
       (r.stageAfter > r.stageBefore ? '<p style="font-weight:800;margin:8px 0 0">✨ おすわりの間に大きくなった！</p>' : '') +
       '<button id="walkOk" class="big-btn primary mt12" style="width:100%">ただいま！</button>' +
       '<div class="watermark">いぬねこ図鑑 🐾</div></div>';
@@ -1668,7 +1659,7 @@
       happyUntil = now() + 1500;
       lastArtKey = '';
       render();
-      showToast('🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + '）');
+      showToast('🐾 おさんぽ おわり！えらい！（さんぽ +' + r.gain + ' / 🍖 +' + r.foods + (r.overflowCoin ? '→あふれた分は 🪙' + r.overflowCoin : '') + '）');
       if (r.wear && WEAR[r.wear]) setTimeout(function () { showWearDrop(r.wear); }, 700); // 入手アナウンス＋着せる確認
     } else {
       if (sceneOpen) { var tm = ov.querySelector('#sanpoTimer'); if (tm) tm.textContent = fmtMMSS(Math.max(0, t.endsAt - now())); }

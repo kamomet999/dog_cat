@@ -716,9 +716,22 @@
   var SPRITES = {};
   function registerSprites(map) { if (map) Object.keys(map).forEach(function (k) { SPRITES[k] = map[k]; }); }
   function hasSprite(id) { return !!SPRITES[id]; }
-  function spriteImg(id) {
-    return '<img class="pet-img" src="assets/sprites/' + id + '.png" alt="" ' +
+  /** ホーム正面ポーズで使うスプライトと縮尺（模様マスク等もこれに合わせる）。スプライト無し品種は null */
+  function stageSpriteInfo(breed, stage) {
+    if (!breed || !breed.id || breed.mix || !SPRITES[breed.id]) return null;
+    var id = breed.id, scale = 1;
+    if (stage === 1) { if (SPRITES[id + '_baby']) { id += '_baby'; scale = 0.8; } else scale = 0.62; }
+    else if (stage === 2) { if (SPRITES[id + '_child']) { id += '_child'; scale = 0.92; } else scale = 0.82; }
+    return { id: id, scale: scale };
+  }
+
+  function spriteImg(id, scale) {
+    var img = '<img class="pet-img" src="assets/sprites/' + id + '.png" alt="" ' +
       'style="width:100%;height:100%;object-fit:contain;display:block">';
+    if (!scale || scale >= 1) return img;
+    // 成長段階で小さく見せる（接地感を保つため下寄せ）
+    return '<div style="width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center">' +
+      '<div style="width:' + (scale * 100) + '%;height:' + (scale * 100) + '%">' + img + '</div></div>';
   }
 
   // 目レイヤー（目なしベース <id>_noeye に重ねる5スタイル）。512座標＝スプライトと同じ。
@@ -753,8 +766,10 @@
     }
     // おすわり画面は専用の座りポーズ(<id>_sit)があれば使う（無ければ下の正面スプライトにフォールバック）
     if (pose === 'sit' && breed && breed.id && !breed.mix && SPRITES[breed.id + '_sit']) return spriteImg(breed.id + '_sit');
-    // おすわり等の正面ポーズは座り姿スプライトを使う
-    if (breed && breed.id && !breed.mix && SPRITES[breed.id]) return spriteImg(breed.id);
+    // 正面ポーズ: 成長段階の専用絵(<id>_baby / <id>_child)があれば使う。
+    // 無い間も赤ちゃん/子どもはサイズで差をつける（gen_sprites.mjs --baby/--child で生成したら自動で切り替わる）
+    var sInfo = stageSpriteInfo(breed, stage);
+    if (sInfo) return spriteImg(sInfo.id, sInfo.scale);
     // pixelate はベクターの絵をそのまま使う（ドット化は Art.mount のキャンバス側で行う）
     mood = mood || 'normal';
     if (STYLE.renderer === 'pixel') return pixelSVG(breed, stage, mood);
@@ -825,7 +840,7 @@
     return '<span class="art-slot" data-pa="' + breedId + '" style="display:block;width:100%;height:100%"></span>';
   }
 
-  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle, mount: mount, hydrate: hydrate, slot: slot, registerSprites: registerSprites, hasSprite: hasSprite, spriteImg: spriteImg, eyeLayerSVG: eyeLayerSVG };
+  global.Art = { petSVG: petSVG, bundleSVG: bundleSVG, thumbSVG: thumbSVG, setStyle: setStyle, mount: mount, hydrate: hydrate, slot: slot, registerSprites: registerSprites, hasSprite: hasSprite, spriteImg: spriteImg, stageSpriteInfo: stageSpriteInfo, eyeLayerSVG: eyeLayerSVG };
   // 起動時に空マニフェストを許容（manifest.js が無くてもSVGで動く）
   if (global.INUNEKO_SPRITES) registerSprites(global.INUNEKO_SPRITES);
 })(typeof window !== 'undefined' ? window : this);

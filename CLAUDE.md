@@ -75,6 +75,7 @@ codemagic.yaml            CI（android-debug / android-release / ios-release）
 ### アート
 - 本番アートは**スプライトPNG**（`assets/sprites/` ＋ manifest.js）。**手続きSVG(art.js)は作り込まない**（フォールバック専用）
 - 品種を増減したらスプライトの有無を確認（`tools/gen_sprites.mjs`）。差し替えは `CHARACTER_DESIGN.md` を仕様書として画像生成で行う
+- 成長段階の絵は `<id>_baby` / `<id>_child`（`gen_sprites.mjs --baby / --child`。成体絵を参照画像に使う）。無い品種は縮小表示で代用される
 
 ## 開発ワークフロー
 

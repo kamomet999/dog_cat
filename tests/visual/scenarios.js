@@ -181,6 +181,8 @@ module.exports = {
       save: saveBase({ current: petBase({ xp: 300, mark: 'star' }) }),
       steps: [{ wait: 300 }]
     },
+    // 成長段階の見た目差（babyスプライトが無い間は縮小表示・生成後は専用絵）
+    { name: 'home-baby', save: saveBase({ current: petBase({ xp: 10 }) }), steps: [{ wait: 300 }] },
     { name: 'home-eye-batchiri', save: saveBase({ current: petBase({ xp: 300, eyeStyle: 'batchiri' }) }), steps: [{ wait: 300 }] },
     { name: 'home-eye-downer',   save: saveBase({ current: petBase({ xp: 300, eyeStyle: 'downer' }) }),   steps: [{ wait: 300 }] },
     { name: 'home-eye-ojou',     save: saveBase({ current: petBase({ xp: 300, eyeStyle: 'ojou' }) }),     steps: [{ wait: 300 }] },

@@ -677,6 +677,35 @@ test('てであげると 自動給餌にない なかよし(xp)ボーナス', ()
   assert.strictEqual(p1.mood, undefined); // 機嫌は廃止
 });
 
+test('えさ補填: ストック上限で持ちきれない獲得エサはコイン(1つ=20)にかわる', () => {
+  const w = freshWorld();
+  w.Engine.newGame('dog', T0, rnd0);
+  // おすわり: 上限21のところ在庫19で+4 → 2あふれ → +40コイン
+  let st = w.Engine.getState();
+  st.foodStock = 19;
+  const coin0 = st.coin;
+  w.Engine.startWalk(60, T0);
+  const r = w.Engine.checkWalk(T0 + 60 * MIN, true);
+  assert.strictEqual(r.result, 'success');
+  assert.strictEqual(r.foods, 4);
+  assert.strictEqual(r.overflowCoin, 40, 'あふれ2つ=40コイン');
+  assert.strictEqual(w.Engine.getState().foodStock, 21, '在庫は上限で止まる');
+  assert.ok(w.Engine.getState().coin >= coin0 + r.coinGain + 40, 'コインに補填されている');
+  // さんぽ課題: 在庫21(満タン)で+1 → 全部あふれ → +20コイン
+  const coin1 = w.Engine.getState().coin;
+  w.Engine.startTask('ほんよみ', 30, T0 + 2 * H);
+  const d = w.Engine.checkTask(T0 + 2 * H + 30 * MIN, rnd0);
+  assert.strictEqual(d.overflowCoin, 20);
+  assert.strictEqual(w.Engine.getState().foodStock, 21);
+  assert.ok(w.Engine.getState().coin >= coin1 + 20);
+  // 在庫に余裕があれば補填は発生しない
+  const w2 = freshWorld();
+  w2.Engine.newGame('dog', T0, rnd0);
+  w2.Engine.startWalk(30, T0);
+  const r2 = w2.Engine.checkWalk(T0 + 30 * MIN, true);
+  assert.strictEqual(r2.overflowCoin, 0);
+});
+
 test('なかよしポイント: 手であげる・おすわり成功ぶんも口座にたまる（文言との一貫性）', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
