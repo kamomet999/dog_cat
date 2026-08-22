@@ -24,8 +24,10 @@ const T0 = 1751850000000; // 固定時刻（決定論）
 
 // ---- 撮影に使うセーブ（見栄え重視の健康な状態） ----
 function pet(over) {
+  // 成体（xp>=760）で撮る: 絵が原寸で最大になり「ペットの顔が画面の1/3以上」(DESIGN.md §10)を満たす。
+  // 子ども以下は成長段階で縮小表示されるため、ヒーローカットには使わない。
   return Object.assign({
-    breedId: 'shiba', xp: 300, hunger: 86, clean: 90,
+    breedId: 'shiba', xp: 900, hunger: 86, clean: 90,
     health: 100, sanpo: 82, runawayH: 0, away: false, careCount: 12,
     mark: 'none', eyeStyle: 'batchiri'
   }, over || {});
@@ -69,7 +71,7 @@ const SHOTS = [
   {
     name: '4-kisekae', copy: 'その子だけの おしゃれ', sub: 'おさんぽの ごほうびで あつまる',
     save: save({
-      wardrobe: { owned: { ribbon: 1, straw: 1, scarf: 1, flower: 1 }, items: [{ id: 'straw', x: 0.5, y: 0.1 }, { id: 'scarf', x: 0.5, y: 0.56 }] },
+      wardrobe: { owned: { ribbon: 1, straw: 1, scarf: 1, flower: 1 }, items: [{ id: 'straw', x: 0.5, y: 0.16 }, { id: 'scarf', x: 0.5, y: 0.58 }] },
       room: { bg: 'sakura', items: [{ id: 'l_plant', x: 0.14, y: 0.62 }, { id: 'r_bear', x: 0.86, y: 0.66 }] }
     }),
     steps: [{ wait: 900 }]

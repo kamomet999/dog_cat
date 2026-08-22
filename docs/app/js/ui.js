@@ -668,11 +668,24 @@
   var RARE_WEAR_IDS = Engine.MILESTONES.map(function (m) { return m.wear; });
   // 装備中のアクセサリをペットの上に重ねる（home stage）
   // 着けているアクセサリを ペットの上に自由配置(x,y=0..1)で重ねる
+  // 重ねレイヤー（きせかえ・模様）を「表示中のペット絵」と同じ大きさ・位置にそろえる。
+  // 成長段階の絵は下寄せ中央で縮小して描くので、レイヤーも bottom-center 基準で同率に縮める。
+  // base は要素がもともと必要とする transform（.pet-wear の translateX(-50%) など）。
+  function fitToPetArt(el, info, base) {
+    var s = (info && info.scale > 0 && info.scale < 1) ? info.scale : 1;
+    el.style.transformOrigin = 'bottom center';
+    el.style.transform = (base || '') + (s < 1 ? ' scale(' + s + ')' : '');
+  }
+  function petArtInfo() {
+    return Art.stageSpriteInfo ? Art.stageSpriteInfo(Engine.breed(), Engine.stage()) : null;
+  }
+
   function renderWear() {
     var el = $('petWear'); if (!el) return;
     var items = Engine.wardrobe().items || [];
     if (!items.length || Engine.stage() === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = 'block';
+    fitToPetArt(el, petArtInfo(), 'translateX(-50%)'); // .pet-wear は left:50% ＋ 中央寄せ transform が前提
     el.innerHTML = items.map(function (p) {
       var it = WEAR[p.id]; if (!it) return '';
       return '<span class="pet-wear-item" style="left:' + (p.x * 100) + '%;top:' + (p.y * 100) + '%">' + it.e + '</span>';
@@ -709,14 +722,7 @@
     var layer = document.createElement('div');
     layer.className = 'pet-mark'; // 表示中の絵と同じ領域を覆い、スプライト形にマスク＝体外はカット
     if (spr) { var u = "url('assets/sprites/" + spr + ".png')"; layer.style.webkitMaskImage = u; layer.style.maskImage = u; }
-    if (info && info.scale < 1) {
-      // 縮小表示（下寄せ・中央）に合わせてマスク層も同じ矩形へ
-      layer.style.inset = 'auto';
-      layer.style.bottom = '0';
-      layer.style.left = ((1 - info.scale) / 2 * 100) + '%';
-      layer.style.width = (info.scale * 100) + '%';
-      layer.style.height = (info.scale * 100) + '%';
-    }
+    fitToPetArt(layer, info);
     var sym = document.createElement('span');
     sym.className = 'pet-mark-sym';
     sym.textContent = MARK_SYM[mk];
@@ -782,6 +788,11 @@
     var edit = m.root.querySelector('#wearEdit');
     var petBox = m.root.querySelector('#wearEditPet');
     if (petBox && Engine.stage() > 0) Art.mount(petBox, Art.petSVG(Engine.breed(), Engine.stage(), 'happy'));
+    // アクセサリはペット絵と同じ矩形の中に置く（成長段階で絵が縮むので座標系を合わせる）
+    var wearLayer = document.createElement('div');
+    wearLayer.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%';
+    fitToPetArt(wearLayer, petArtInfo());
+    edit.appendChild(wearLayer);
     function paintWear() {
       // ペット絵は残し、アクセサリだけ差し替え
       Array.prototype.forEach.call(edit.querySelectorAll('.wear-edit-item'), function (n) { n.remove(); });
@@ -792,7 +803,7 @@
         span.setAttribute('data-index', i);
         span.style.left = (p.x * 100) + '%'; span.style.top = (p.y * 100) + '%';
         span.innerHTML = it.e + '<button class="room-edit-x" data-del="' + i + '" aria-label="ぬぐ">×</button>';
-        edit.appendChild(span);
+        wearLayer.appendChild(span);
       });
     }
     paintWear();
@@ -826,7 +837,7 @@
     });
     edit.addEventListener('pointermove', function (e) {
       if (!drag) return;
-      var rect = edit.getBoundingClientRect();
+      var rect = wearLayer.getBoundingClientRect(); // 座標系はペット絵の矩形
       var x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       var y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
       drag.el.style.left = (x * 100) + '%'; drag.el.style.top = (y * 100) + '%';

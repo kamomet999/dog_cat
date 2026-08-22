@@ -176,6 +176,18 @@ module.exports = {
       steps: [{ wait: 300 }]
     },
     {
+      // 成体（縮小なし）で着せた状態。赤ちゃん版と見比べて、かざりが絵と一緒に縮むことを確認する
+      name: 'home-dressed-adult',
+      save: saveBase({ current: petBase({ xp: 800 }), wardrobe: { owned: { crown: 1, glasses: 1 }, items: [{ id: 'crown', x: 0.5, y: 0.1 }, { id: 'glasses', x: 0.5, y: 0.38 }] } }),
+      steps: [{ wait: 300 }]
+    },
+    {
+      // 赤ちゃん（縮小表示）で着せた状態。かざりが宙に浮かないこと（縮小レイヤー追従）の回帰チェック
+      name: 'home-dressed-baby',
+      save: saveBase({ current: petBase({ xp: 10 }), wardrobe: { owned: { crown: 1, glasses: 1 }, items: [{ id: 'crown', x: 0.5, y: 0.1 }, { id: 'glasses', x: 0.5, y: 0.38 }] } }),
+      steps: [{ wait: 300 }]
+    },
+    {
       // 体に記号模様（★レア）がある個体
       name: 'home-mark',
       save: saveBase({ current: petBase({ xp: 300, mark: 'star' }) }),
