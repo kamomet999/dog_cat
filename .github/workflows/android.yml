@@ -1,0 +1,53 @@
+# Androidアプリを組み立てて、できあがったAPKを成果物として置く。
+# Codemagic にログインしなくても、GitHub 上だけでビルドの成否を確認できる。
+# 成功すると Actions の実行画面の「Artifacts」から inuneko-debug-apk をダウンロードできる。
+name: Android デバッグAPK
+
+on:
+  push:
+    branches: ["claude/**", "main"]
+    paths-ignore: ["docs/**", "**/*.md"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Capacitor 8 は JDK 21（android/app/capacitor.build.gradle が VERSION_21 を要求）
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # compileSdk 36 を含む Android SDK を用意（ライセンス同意まで済ませる）
+      - uses: android-actions/setup-android@v3
+
+      - name: 依存インストール
+        run: npm ci
+
+      - name: エンジン単体テスト
+        run: npm test
+
+      - name: Androidリソース参照の検証
+        run: python3 tools/check_android_res.py
+
+      - name: Capacitor 同期
+        run: npx cap sync android
+
+      - name: APK ビルド
+        run: cd android && ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: inuneko-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
