@@ -20,21 +20,35 @@
 
 ---
 
-## 1. Codemagic でビルドを通す（最初にここ）
+## 1. ビルド（✅ 済み。GitHub Actions で自動化した）
 
-⚠ **Capacitor 8 / targetSdk 36 へ移行した直後なので、最初の `android-debug` がその検証を兼ねる。**
+**Codemagic にログインしなくても、GitHub 上だけでビルドできるようにした。**
+`.github/workflows/android.yml` が、コードを push するたびに自動で
+「単体テスト → リソース検証 → Capacitor同期 → APKビルド」を実行する。
 
-1. Codemagic に GitHub でログイン → `kamomet999/dog_cat` を追加
-2. ブランチはリリース対象のものを選ぶ
-3. **`android-debug`** ワークフローを Start new build
-   - 通れば APK が成果物に出る → 自分の Android 実機に入れて動作確認
-   - ⚠ 落ちた場合の見どころ: Java 21 が使われているか／`compileSdk 36` が SDK に入っているか／`tools/check_android_res.py` のリソース検証で止まっていないか
-4. APK が動いたら **`android-release`**（AAB）へ進む
-   - 事前に Codemagic → Teams → Code signing identities → Android で
-     「Generate new keystore」→ 参照名を **`inuneko_upload_key`** にする（`codemagic.yaml` がこの名前を参照）
-   - ⚠ このキーストアは**紛失すると二度とアプリを更新できない**。ダウンロードしてオフラインにも保管する
+### できあがった APK を自分のスマホに入れる
+1. https://github.com/kamomet999/dog_cat/actions を開く
+2. 一番上の「Android デバッグAPK」の実行結果（緑チェック）をクリック
+3. ページ下部の **Artifacts** → **inuneko-debug-apk** をクリック → zip がダウンロードされる
+4. zip を展開すると `app-debug.apk` が出てくる
+5. Android 実機に転送してタップ → 「提供元不明のアプリ」を許可してインストール
+   （スマホのブラウザでGitHubにログインして 1〜3 をやると、そのまま端末に落とせて早い）
 
----
+※ 2026-09-26 の実行で **Capacitor 8 / targetSdk 36 でのビルド成功を確認済み**。
+
+### 製品版（AAB）の署名について
+Play に出すには署名済みの **AAB** が要る。署名鍵（キーストア）の扱いは2通り:
+
+- **A. Codemagic に任せる**（おすすめ・鍵の管理が楽）
+  1. codemagic.io に GitHub でログイン → `kamomet999/dog_cat` を追加
+  2. Teams → Code signing identities → Android → 「Generate new keystore」
+     参照名を **`inuneko_upload_key`** にする（`codemagic.yaml` がこの名前を見ている）
+  3. `android-release` ワークフローを実行 → AAB ができる
+- **B. GitHub Actions でやる**: 自分でキーストアを作り、base64 にして GitHub の
+  Secrets に登録する。手間は増えるが Codemagic を使わずに完結する。
+
+⚠ **どちらの場合も、キーストアを紛失すると二度とアプリを更新できない。**
+必ずダウンロードしてオフラインにも保管すること。
 
 ## 2. Google Play Console
 

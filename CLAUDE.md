@@ -18,7 +18,9 @@
   - Android: compileSdk/targetSdk **36**・minSdk 24・AGP 8.13.0・Gradle 8.13・**JDK 21**
     （Google Play は 2026-08-31 以降 **targetSdk 36 必須**。API 36 に届くのは Capacitor 8 のみ）
   - iOS: deployment target **15.0**（Capacitor 8 の下限）
-- **Codemagic** クラウドビルド（`codemagic.yaml`）。**ローカルにXcode/Android SDKは不要**
+- ビルドは2系統。**ローカルにXcode/Android SDKは不要**
+  - **GitHub Actions**（`.github/workflows/android.yml`）= push のたびに APK を自動ビルド。ログイン不要でログも追える
+  - **Codemagic**（`codemagic.yaml`）= 署名付き AAB / iOS の TestFlight 配信用
 - アートは**画像スプライトPNG**（`www/assets/sprites/`。全60種×正面/目なし/おすわり/歩き）。`www/js/art.js` はスプライト登録簿（manifest.js）に無い場合の手続き的SVGフォールバック
 
 > 重要な前提（ユーザー決定）: **Macは無い**。だからCapacitor＋クラウドビルド構成。
@@ -112,7 +114,8 @@ npm run snap -- home food    # シナリオ名で絞り込み
 | 期間 | やること | 状態 |
 |---|---|---|
 | 〜9/26 | 本体・アート・60種・経済調整・**Capacitor 8 / targetSdk 36 対応**（Play の必須要件） | ✅ 完了 |
-| 9/26 | ① Codemagic で `android-debug` を実行し **ビルドが通ることを確認**（Cap 8 移行後の初ビルド＝ここで検証される）<br>② テスター募集を開始（`docs/store/closed-testing.md` の文面） | ⬜ |
+| 9/26 | ① **ビルド検証 完了**（GitHub Actions `.github/workflows/android.yml` で APK 生成に成功。Cap 8 / targetSdk 36 でコンパイルが通ることを確認） | ✅ |
+| 9/26 | ② 実機インストール（Actions の Artifacts から APK を取得）／③ **テスター募集を開始**（`docs/store/closed-testing.md` の文面） | ⬜ |
 | 9/27–9/29 | 実機プレイテスト（生存バランスの肌感※・通知・おすそわけ・エッジツーエッジの見た目） | ⬜ |
 | 9/29 | `android-release` で AAB → **Play Console クローズドテスト開始**（12人×14日） | ⬜ |
 | 9/29–10/13 | テスト期間。フィードバックを回収し、直したことを記録（製品版申請フォームで必要） | ⬜ |
