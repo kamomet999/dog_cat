@@ -13,6 +13,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # APK を Release に載せるために書き込み権限が要る
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -57,3 +60,29 @@ jobs:
           name: inuneko-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      # スマホから「タップするだけ」で入れられるように、APKを固定URLのReleaseに置く。
+      # zipに包まれず、GitHubへのログインも不要。テスターへの配布もこのリンクでできる。
+      # 固定URL: https://github.com/kamomet999/dog_cat/releases/download/test-latest/inuneko-test.apk
+      - name: APK を Release に公開（test-latest を上書き）
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eux
+          cp "$(ls android/app/build/outputs/apk/debug/*.apk | head -1)" inuneko-test.apk
+          gh release view test-latest >/dev/null 2>&1 || gh release create test-latest \
+            --title "テスト用ビルド（最新）" \
+            --prerelease \
+            --notes "実機テスト用のAndroidアプリです。ストア公開前の動作確認用。
+
+          ## 入れかた（Androidスマホ）
+          1. 下の **inuneko-test.apk** をタップしてダウンロード
+          2. ダウンロード通知をタップ
+          3. 「この提供元のアプリのインストールを許可」と出たら許可
+          4. インストール → ホーム画面に「いぬねこ図鑑」が追加されます
+
+          ※ 「不明なアプリ」の警告が出ることがありますが、開発中のアプリのためです。
+          ※ iPhone には入りません（Android専用）。
+          ※ このAPKはビルドのたびに最新へ置き換わります。"
+          gh release upload test-latest inuneko-test.apk --clobber
