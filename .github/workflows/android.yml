@@ -27,8 +27,14 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # compileSdk 36 を含む Android SDK を用意（ライセンス同意まで済ませる）
-      - uses: android-actions/setup-android@v3
+      # compileSdk 36 を用意。ランナーには Android SDK が同梱済みなので必要な分だけ追加する
+      # （android-actions/setup-android@v3 は廃止済みの 'tools' を探して失敗するため使わない）
+      - name: Android SDK (API 36)
+        run: |
+          set -eux
+          SDKMGR=$(ls "$ANDROID_SDK_ROOT"/cmdline-tools/*/bin/sdkmanager | head -1)
+          yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
+          "$SDKMGR" "platforms;android-36" "build-tools;36.0.0" "platform-tools"
 
       - name: 依存インストール
         run: npm ci
