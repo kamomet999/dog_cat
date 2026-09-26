@@ -26,7 +26,16 @@
 `.github/workflows/android.yml` が、コードを push するたびに自動で
 「単体テスト → リソース検証 → Capacitor同期 → APKビルド」を実行する。
 
-### できあがった APK を自分のスマホに入れる
+### できあがった APK を自分のスマホに入れる（かんたん版）
+
+**Androidスマホで次のリンクを開いてタップするだけ**（GitHubへのログインも解凍も不要）:
+
+https://github.com/kamomet999/dog_cat/releases/download/test-latest/inuneko-test.apk
+
+ビルドのたびにこのリンクの中身が最新へ置き換わる。**テスターにもこのリンクをそのまま送れる**
+（Play のクローズドテストが始まる前に触ってもらいたいときに使う）。
+
+### 別の入手方法（Actions の成果物から）
 1. https://github.com/kamomet999/dog_cat/actions を開く
 2. 一番上の「Android デバッグAPK」の実行結果（緑チェック）をクリック
 3. ページ下部の **Artifacts** → **inuneko-debug-apk** をクリック → zip がダウンロードされる
