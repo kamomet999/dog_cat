@@ -13,6 +13,9 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Android 15+ はエッジツーエッジが強制される。Capacitor が WebView に余白を入れるので、
+             その余白に出る色をアプリの地色に合わせて継ぎ目を消す -->
+        <item name="android:windowBackground">@color/appBackground</item>
     </style>
 
 

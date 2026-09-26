@@ -14,7 +14,10 @@
 ## 技術スタック（確定。むやみに変えない）
 
 - **素のJS/CSS**（フレームワークなし）。`www/` がアプリ本体
-- **Capacitor 6** でiOS/Androidネイティブ化（appId `com.kamomet.inuneko`）
+- **Capacitor 8** でiOS/Androidネイティブ化（appId `com.kamomet.inuneko`）
+  - Android: compileSdk/targetSdk **36**・minSdk 24・AGP 8.13.0・Gradle 8.13・**JDK 21**
+    （Google Play は 2026-08-31 以降 **targetSdk 36 必須**。API 36 に届くのは Capacitor 8 のみ）
+  - iOS: deployment target **15.0**（Capacitor 8 の下限）
 - **Codemagic** クラウドビルド（`codemagic.yaml`）。**ローカルにXcode/Android SDKは不要**
 - アートは**画像スプライトPNG**（`www/assets/sprites/`。全60種×正面/目なし/おすわり/歩き）。`www/js/art.js` はスプライト登録簿（manifest.js）に無い場合の手続き的SVGフォールバック
 
@@ -101,17 +104,23 @@ npm run snap -- home food    # シナリオ名で絞り込み
 - コミット末尾に作業リンクを付ける。**PRはユーザーが明示的に頼んだ時だけ作る**
 - push失敗時のみ指数バックオフで最大4回リトライ
 
-## 公開スケジュール（2026-07-07 再構築。プログラム完成済み＝以降はリリース作業）
+## 公開スケジュール（2026-09-26 再構築。7月版は未着手のまま期限切れ＝作り直し）
+
+プログラムは完成済み。**残りはすべてコード外の作業**（Codemagic / Play Console / App Store Connect）。
+ボトルネックは Google の「12人×14日」テストなので、**テスター集めを最優先で今日から**動かす。
 
 | 期間 | やること | 状態 |
 |---|---|---|
-| 〜7/07 | プログラム本体・スプライトアート・品種60種化・コードレビュー対応 | ✅ 完了 |
-| 7/08–7/10 | Codemagic 実機ビルド（android-debug → 自分の端末で確認）／実機プレイテスト開始（生存バランスの肌感※・通知・おすそわけコード共有） | ⬜ |
-| 7/09–7/11 | ストア素材／掲載文の最終化 → **生成済み**（`npm run store:shots` → `docs/store/shots/`。差し替えも同コマンド）。テスター運用は `docs/store/closed-testing.md` | ✅ |
-| 7/11 目標 | **Google Play クローズドテスト開始**（12人×14日 → 最短 7/25 終了）。テスター募集は即着手 | ⬜ |
-| 7/14 目標 | **Apple 審査提出**（ios-release ビルド → App Store Connect）。通過し次第公開 | ⬜ |
-| 7月下旬 | Google 製品版公開（クローズドテスト完了後） | ⬜ |
-| v1.1（8月〜） | IAP接続（RevenueCat または StoreKit/Play Billing）→ プレミアム図鑑（¥500）解禁。実装は `IAP_ENABLED` トグルで済んでいる | ⬜ |
+| 〜9/26 | 本体・アート・60種・経済調整・**Capacitor 8 / targetSdk 36 対応**（Play の必須要件） | ✅ 完了 |
+| 9/26 | ① Codemagic で `android-debug` を実行し **ビルドが通ることを確認**（Cap 8 移行後の初ビルド＝ここで検証される）<br>② テスター募集を開始（`docs/store/closed-testing.md` の文面） | ⬜ |
+| 9/27–9/29 | 実機プレイテスト（生存バランスの肌感※・通知・おすそわけ・エッジツーエッジの見た目） | ⬜ |
+| 9/29 | `android-release` で AAB → **Play Console クローズドテスト開始**（12人×14日） | ⬜ |
+| 9/29–10/13 | テスト期間。フィードバックを回収し、直したことを記録（製品版申請フォームで必要） | ⬜ |
+| 10/1 目安 | **Apple 審査提出**（`ios-release` → App Store Connect）。Google と独立なので待たずに出す | ⬜ |
+| 10/14 目安 | **Google 製品版公開**（14日完了後） | ⬜ |
+| v1.1 | IAP接続（RevenueCat / StoreKit / Play Billing）→ プレミアム図鑑（¥500）解禁。`IAP_ENABLED` を true に | ⬜ |
+
+手順の詳細は **`docs/store/release-runbook.md`**（クリック単位の手順書）。
 
 ※生存バランスの注意: 減衰は**前面（アプリ使用中）時間ベース**。「ごはん4〜5日・家出10日」はカレンダー日数ではないことを実機で体感確認する。
 

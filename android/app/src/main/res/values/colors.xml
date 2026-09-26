@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ブランド色。www/css/styles.css の :root と一致させる（DESIGN.md §2 が正）。
+     styles.xml が参照するため必須。未定義だと AAPT2 のリンクでビルドが失敗する。 -->
+<resources>
+    <!-- bg1 -->
+    <color name="colorPrimary">#fdf6ec</color>
+    <!-- bg2: システムバー側の地色 -->
+    <color name="colorPrimaryDark">#f6e7d8</color>
+    <!-- accent -->
+    <color name="colorAccent">#ff9a76</color>
+    <!-- WebView外の余白（エッジツーエッジ時の上下）に出る色 -->
+    <color name="appBackground">#fdf6ec</color>
+</resources>

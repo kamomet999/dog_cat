@@ -22,13 +22,15 @@ workflows:
     max_build_duration: 30
     instance_type: linux_x2
     environment:
-      java: 17
+      java: 21
       node: 22
     scripts:
       - name: 依存インストール
         script: npm ci
       - name: エンジン単体テスト
         script: npm test
+      - name: Androidリソース参照の検証
+        script: python3 tools/check_android_res.py
       - name: Capacitor 同期
         script: npx cap sync android
       - name: APK ビルド
@@ -43,13 +45,15 @@ workflows:
     environment:
       android_signing:
         - inuneko_upload_key
-      java: 17
+      java: 21
       node: 22
     scripts:
       - name: 依存インストール
         script: npm ci
       - name: エンジン単体テスト
         script: npm test
+      - name: Androidリソース参照の検証
+        script: python3 tools/check_android_res.py
       - name: Capacitor 同期
         script: npx cap sync android
       - name: AAB ビルド

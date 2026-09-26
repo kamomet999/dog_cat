@@ -987,7 +987,7 @@
       ? '<br><span style="font-size:11px">' + Object.keys(byKind).map(function (k) { return (TASK_EMO[k] || '🐾') + escapeHtml(k) + ' ' + Math.floor(byKind[k] / 60) + 'h' + (byKind[k] % 60) + 'm'; }).join('　') + '</span>'
       : '';
     var html = '<h2>⚙ せってい</h2>' +
-      '<p class="sub" id="verLabel">「いぬねこ図鑑」 β12（2026-07-07）— スマホを離れて、育てる いぬねこ</p>' +
+      '<p class="sub" id="verLabel">「いぬねこ図鑑」 1.0（2026-09-26）— スマホを離れて、育てる いぬねこ</p>' +
       '<p class="muted">スマホを離れているあいだは <b>いのちは減りません</b>（むしろ たまった在庫で 回復します）。おなかが減るのは、<b>アプリを開いて使っているときだけ</b>。だから 放っておくほど、この子は安心して育ちます。あわてず ゆっくりで いいよ。</p>' +
       '<hr class="soft">' +
       '<div class="dex-section-title">🍖 おすわり</div>' +

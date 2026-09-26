@@ -37,6 +37,9 @@
   var AUTO_FEED_AT = 40;        // おなかがこれ未満になったら自動給餌
   // ----- えさ（食料の源泉はスマホを置いた時間。GAME_DESIGN.md §2.5）-----
   var FOOD_COST = 20;                  // コインでの購入（コイン=放置時間の蓄積→これも間接デトックス由来）
+  // ストック上限であふれた分の補填レート。購入価格(20)のままだと「エサ満タン＝毎回コインが大量」になり
+  // 放置コインを絞った意味が消えるため、気持ちだけ受け取る少額にする（2026-09 発案者決定の案Aを完遂）
+  var FOOD_OVERFLOW_COIN = 5;
   var HAND_FEED_BONUS = { xp: 6 };     // 自動給餌でなく「てであげる」と仲が深まる（なかよし＝xp）
   function walkFoodGain(minutes) { return minutes >= 180 ? 12 : minutes >= 120 ? 8 : minutes >= 60 ? 4 : 2; } // おすわり（長いほど増量）
   function taskFoodGain(minutes) { return Math.max(1, Math.round(minutes / 30)); } // さんぽ課題でも餌（取り組んだぶん・控えめ）
@@ -657,7 +660,7 @@
       var np = { ...p, sanpo: clamp((p.sanpo == null ? 100 : p.sanpo) + gain, 0, 100), runawayH: 0 };
       // ストック上限で持ちきれない餌はコインに補填（おすわりと同じ扱い）
       var stock1 = s.foodStock == null ? 0 : s.foodStock;
-      var overflowCoin = Math.round(Math.max(0, foods - (FOOD_STOCK_MAX - stock1)) * FOOD_COST);
+      var overflowCoin = Math.round(Math.max(0, foods - (FOOD_STOCK_MAX - stock1)) * FOOD_OVERFLOW_COIN);
       var bumped = bumpTaskStats(s.taskStats, t.kind, t.minutes, now);
       // きせかえドロップ: 確率で未所持のアクセサリを1つ入手（所持に追加・配置はUIで）
       var ward = cloneWardrobe(s);
@@ -912,7 +915,7 @@
         var foods = walkFoodGain(w.minutes);
         // ストック上限で持ちきれない餌はコインに補填（1つ=購入価格FOOD_COST。報酬を黙って消さない）
         var stock0 = s.foodStock == null ? 0 : s.foodStock;
-        var overflowCoin = Math.round(Math.max(0, foods - (FOOD_STOCK_MAX - stock0)) * FOOD_COST);
+        var overflowCoin = Math.round(Math.max(0, foods - (FOOD_STOCK_MAX - stock0)) * FOOD_OVERFLOW_COIN);
         var ns = {
           ...s,
           current: np,
