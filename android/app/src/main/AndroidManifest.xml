@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -8,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
@@ -32,4 +33,19 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      @capacitor/local-notifications が宣言する SCHEDULE_EXACT_ALARM を取り除く。
+
+      理由: この権限は目覚まし・カレンダーなど「正確な時刻が中核機能」のアプリ向けで、
+      Play の審査で用途の申告を求められる。本アプリの通知（おさんぽ終了・ごはん・
+      毎日のリマインド）は分単位の正確さを必要としない。
+      また Android 14 以降この権限は初期状態で拒否されるため、宣言していても大半の
+      ユーザーには効いていない。
+      権限が無い場合、プラグインは setAndAllowWhileIdle（おおよその時刻）に自動で
+      フォールバックするので通知自体は届く。
+    -->
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        tools:node="remove" />
 </manifest>
