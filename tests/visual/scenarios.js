@@ -32,6 +32,26 @@ function adultSave(over) {
   return saveBase(Object.assign({ current: petBase({ xp: 800 }) }, over || {}));
 }
 
+// ストア掲載用スクリーンショットの素材（docs/store/listing.md の構成に対応）。
+// 検証用シナリオと違い「見栄えのする状態」を作るのが目的なので、
+// 図鑑は多めに集まった状態、許可アプリは他社商標を含まない名前にしてある。
+const STORE_DOGS = [
+  'shiba', 'golden', 'chihuahua', 'poodle', 'dachshund', 'pomeranian',
+  'pug', 'corgi', 'husky', 'bulldog', 'dalmatian', 'beagle',
+  'samoyed', 'labrador', 'jackrussell', 'yorkie', 'bichon', 'spitz'
+];
+const STORE_CATS = [
+  'kijitora', 'calico', 'black', 'white', 'chatora', 'hachiware',
+  'siamese', 'russianblue', 'scottish', 'mainecoon', 'munchkin', 'ragdoll'
+];
+function storeDex() {
+  const dex = {};
+  STORE_DOGS.concat(STORE_CATS).forEach(function (id, i) {
+    dex[id] = { count: 1 + (i % 3), firstAt: T0 - DAY * (30 - i), unseen: false };
+  });
+  return dex;
+}
+
 module.exports = {
   T0,
   scenarios: [
@@ -332,6 +352,57 @@ module.exports = {
       // さんぽ0が長期化 → 家出
       save: saveBase({ current: petBase({ sanpo: 0, runawayH: 80, away: true }) }),
       steps: [{ wait: 600 }]
+    },
+
+    // ---------------- ストア掲載用（docs/store/listing.md §スクリーンショット構成案）----------------
+    {
+      // ①ホーム画面: ペットの顔が最大要素。「スマホを置くと、育つ。」
+      name: 'store-1-home',
+      save: saveBase({ dex: storeDex(), graduates: 12, coin: 1240, foodStock: 9 })
+    },
+    {
+      // ②おすわり画面: 「スマホを置いた時間が ごはんになる」
+      // 許可アプリは他社商標を避けた一般名詞にする（ストア掲載画像で指摘されないため）
+      name: 'store-2-osuwari',
+      save: saveBase({
+        dex: storeDex(),
+        allowApps: [{ name: 'でんわ' }, { name: 'めざまし' }, { name: 'おんがく' }]
+      }),
+      steps: [
+        { click: '#walkBtn' }, { wait: 300 },
+        { click: '[data-min="60"]' }, { wait: 350 }
+      ]
+    },
+    {
+      // ③図鑑画面: 「犬猫60種を あつめよう」
+      // 検証用の dex シナリオは 2/60 でほぼシルエットのため、掲載には使えない
+      name: 'store-3-dex',
+      save: saveBase({ dex: storeDex(), graduates: 12 }),
+      steps: [{ click: '#dexBtn' }, { wait: 400 }]
+    },
+    {
+      // ④きせかえ画面: 「その子だけの おしゃれ」
+      name: 'store-4-wardrobe',
+      save: saveBase({
+        dex: storeDex(),
+        wardrobe: {
+          owned: { ribbon: 2, crown: 1, glasses: 1, star: 3, mush: 1 },
+          items: [{ id: 'crown', x: 0.5, y: 0.12 }, { id: 'glasses', x: 0.5, y: 0.36 }]
+        }
+      }),
+      steps: [{ click: '#wearBtn' }, { wait: 300 }]
+    },
+    {
+      // ⑤「基本むりょうであそべる。こうこくも、ないよ」が写るもの。
+      // この一文は図鑑モーダルの最下部にあるため、ホーム画面では写らない。
+      // 他の4枚と同じ 780x1688 に揃えるため fullPage にはしない。
+      name: 'store-5-free',
+      save: saveBase({ dex: storeDex(), graduates: 12 }),
+      steps: [
+        { click: '#dexBtn' }, { wait: 450 },
+        { eval: () => { const m = document.querySelector('.modal'); if (m) m.scrollTop = 99999; } },
+        { wait: 300 }
+      ]
     }
   ]
 };
