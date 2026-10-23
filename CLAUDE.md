@@ -8,15 +8,42 @@
 放置型のたまごっち風育成アプリ。**スマホを触っていない時間でペットが育つ**（デジタルデトックス。Forest のフォーク思想）。
 犬・猫の図鑑を集める遊びが中核。広告ゼロ・登録不要。**基本無料＋¥500買い切りで全公式品種を解放**（フリーミアム。`docs/MONETIZATION.md` が正）。
 延命・復活の課金は永久になし（コレクション拡張のみ課金）。
-- 締切: **プログラム完成 6/22**。ストア公開はその後（Apple=審査通過で即／Google=12人×14日テストで7月上旬）
+- 締切: **プログラム完成 6/22**。ストア公開はその後
+- 配信先: **Android (Google Play) のみ**。**iOSはやらない**（2026-10 ユーザー決定）
 - リポジトリ: `kamomet999/dog_cat` ／ 開発ブランチ: `claude/bold-cerf-sy7uqt`
 
 ## 技術スタック（確定。むやみに変えない）
 
 - **素のJS/CSS**（フレームワークなし）。`www/` がアプリ本体
-- **Capacitor 6** でiOS/Androidネイティブ化（appId `com.kamomet.inuneko`）
+- **Capacitor 8** でAndroidネイティブ化（appId `com.kamomet.inuneko`）
 - **Codemagic** クラウドビルド（`codemagic.yaml`）。**ローカルにXcode/Android SDKは不要**
 - アートは**手続き的SVG**（`www/js/art.js`）。後述のとおり現在は**プレースホルダ凍結中**
+
+### Capacitor 6 → 8（2026-10 実施）
+
+Google Play が **2026-08-31 から新規・更新ともに targetSdk 36 を必須化**したため、
+targetSdk 34 の Capacitor 6 構成ではストアに出せなくなった。公式の `npx cap migrate` を
+6→7→8 と段階実行して移行済み（直接 8 への移行はツールが拒否する）。
+
+Android のビルド要件が上がっている。**下げないこと**:
+- `minSdk 24` / `compileSdk・targetSdk 36`
+- AGP 8.13.0 / Gradle wrapper 8.14.3
+- **JDK 21**（`codemagic.yaml` の `java:` も 21。17 に戻すとビルドが落ちる）
+
+検証済み（2026-10-23）: `npm test` 41/41、`npm run e2e` 26/26、
+`./gradlew assembleDebug` 成功、APK の targetSdk が 36 であることを `aapt2` で確認。
+
+`ios/` は Capacitor 8 へ移行済みの状態で残してあるが**未検証**。iOS を再開するなら
+Xcode 26 以上と Apple Developer Program が要る。`codemagic.yaml` の `ios-release`
+ワークフローも同様に未検証のまま残置。
+
+### 通知の権限（Android）
+
+`android/app/src/main/AndroidManifest.xml` で `SCHEDULE_EXACT_ALARM` を
+`tools:node="remove"` により**意図的に外している**。@capacitor/local-notifications が
+持ち込むが、Play 審査で用途申告を求められる一方、本アプリの通知は分単位の正確さを
+必要としないため。権限が無いとプラグインは `setAndAllowWhileIdle`（おおよその時刻）に
+自動フォールバックするので通知は届く。**復活させないこと。**
 
 > 重要な前提（ユーザー決定）: **Macは無い**。だからCapacitor＋クラウドビルド構成。
 > 「ネイティブSwiftUIに乗り換える」案はMac必須・Android断念・作り直し・締切断念を伴うため**却下済み**。
