@@ -184,13 +184,13 @@ body {
   font-family: inherit; font-size: 11px; font-weight: 700; color: var(--ink-soft); cursor: pointer;
 }
 
-/* いのち（生存ゲージ） */
-.life-row {
+/* なつき度（ハートのゲージ） */
+.bond-row {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   margin-top: 8px; font-size: 13px; letter-spacing: 1px; min-height: 18px;
 }
-.life-label { font-size: 11px; font-weight: 800; color: var(--ink-soft); }
-.life-warn { font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+.bond-label { font-size: 11px; font-weight: 800; color: var(--ink-soft); }
+.bond-warn { font-size: 11px; font-weight: 700; color: var(--ink-soft); }
 
 /* ---- ステータス ---- */
 .stats { display: grid; gap: 10px; }

@@ -7,28 +7,29 @@
   'use strict';
 
   var SAVE_KEY = 'inuneko_dex_save_v1';
-  var VERSION = 18;
+  var VERSION = 19;
   var H = 3600000; // 1時間(ms)
   var MAX_OFFLINE = 24 * H; // 報酬（コイン・なかよし）の上限
-  var MAX_SIM = 72 * H;     // 生存シミュレーションの上限（3日分は結果と向き合う）
+  var MAX_SIM = 72 * H;     // 進行シミュレーションの上限（3日分は結果と向き合う）
 
-  // ▼▼ バランス: 通常は本番設定（成体まで数日／放置だけでは死なない＝“育てた重み”と“責めない”を守る）。
+  // ▼▼ バランス: 通常は本番設定（成体まで数日／放置だけでは いなくならない＝“育てた重み”と“責めない”を守る）。
   // 手動プレイテスト用に「はや回し」を隠しトグルで有効化できる（localStorageに永続）。出荷既定はOFF。
   var DEV_FAST_KEY = 'inuneko_dev_fast_v1';
   var IS_TEST = false;
   var TEST_XP_PER_H = 2400; // はや回し時のみ: 成体xp760まで快適度しだいで約25〜35分
-  var TEST_DECAY_MUL = 14;  // はや回し時のみ: 生存の時計も速める（放置で“死ぬ気がする”か確認用）
+  var TEST_DECAY_MUL = 14;  // はや回し時のみ: なつき度・さんぽの時計も速める（結末までを確認する用）
   try { if (typeof global !== 'undefined' && global.localStorage && global.localStorage.getItem(DEV_FAST_KEY) === '1') IS_TEST = true; } catch (e) {}
   // E2E/単体テストは必ず通常バランス（決定論検証。はや回しフラグより優先）
   if (typeof global !== 'undefined' && global.__INUNEKO_NORMAL_BALANCE__) IS_TEST = false;
   // ▲▲
 
-  // ----- いのちと家出（生存システム。docs/GAME_DESIGN.md が正）-----
-  // ごはん（えさ）を切らすと おほしさま（死・リミット短め／ストックが日数バッファ）。
+  // ----- なつき度と家出（docs/GAME_DESIGN.md が正）-----
+  // 死の結末は置かない。世話を怠ると「この子が いなくなる」だけ（DESIGN.md 原則2「責めない」）。
+  // ごはん（えさ）を切らすと なつき度が下がり、0で よそのおうちへ行ってしまう（リミット短め／ストックが日数バッファ）。
   // さんぽ（学習・運動などのいい時間）を怠ると 家出（リミット長め）。
   var SANPO_DECAY = 100 / 168;  // さんぽゲージの自然減衰 /h（1週間で空＝リミット長め）
-  var STARVE_DRAIN = 100 / 24;  // おなか0のあいだの いのち消耗 /h（空腹12h+24h=ストック切れから36hでおわかれ）
-  var HEALTH_REGEN = 100 / 48;  // おなか>30のときの いのち回復 /h
+  var BOND_DRAIN = 100 / 24;    // おなか0のあいだの なつき度の低下 /h（空腹12h+24h=ストック切れから36hで出ていく）
+  var BOND_REGEN = 100 / 48;    // おなか>30のときの なつき度の回復 /h
   var RUNAWAY_H = 72;           // さんぽゲージ0がこの時間つづくと家出（7日+3日=計10日で出ていく）
   // えさ: スマホを触らない時間で貯まり、自動で与えられる
   var FOOD_PER_HOUR = 0.1;      // アプリを閉じている時間の弱い補給（2.4えさ/日。主獲得は「おすわり」セッション）
@@ -124,7 +125,7 @@
       breedId: breedId,
       xp: 0,
       hunger: 72, clean: 78,
-      health: 100, sanpo: 100,
+      bond: 100, sanpo: 100,
       runawayH: 0, away: false,
       careCount: 0,
       mark: rollMark(rnd),
@@ -143,7 +144,7 @@
       dex: {},              // 図鑑（原種も交配種も同じ）。id -> { count, firstAt, unseen }
       lastSavedAt: now,
       graduates: 0,
-      deaths: 0,            // おほしさまになった子の数
+      strays: 0,            // よそのおうちへ行った子の数（なつき度0）
       runaways: 0,          // 家出していった子の数
       foodStock: STARTER_STOCK, // えさストック（小数あり。表示は切り捨て）
       task: null,           // { startedAt, endsAt, minutes, kind } さんぽ（課題）中のみ
@@ -190,8 +191,8 @@
       s = {
         ...s,
         version: 3,
-        deaths: 0,
-        current: s.current ? { ...s.current, health: 100, detox: 100 } : null
+        strays: 0,
+        current: s.current ? { ...s.current, bond: 100, detox: 100 } : null
       };
     }
     if (s.version === 3) {
@@ -284,6 +285,14 @@
       s = { ...s, version: 18, dex: mdex };
       delete s.crossDex;
     }
+    if (s.version === 18) {
+      // 「いのち」→「なつき度」(bond)。死の結末を廃止し、なつき度0は「よそのおうちへ行ってしまう」に変更
+      var c18 = s.current ? { ...s.current, bond: s.current.bond == null ? (s.current.health == null ? 100 : s.current.health) : s.current.bond } : null;
+      if (c18) delete c18.health;
+      var s19 = { ...s, version: 19, current: c18, strays: (s.strays || 0) + (s.deaths || 0) };
+      delete s19.deaths;
+      s = s19;
+    }
     return s.version === VERSION ? s : null; // 未知のバージョンは初期化扱い
   }
 
@@ -295,16 +304,16 @@
 
   // ----- 時間進行（純粋計算）-----
   // state を simMs 分シミュレーションし、報酬は rewardMs 分だけ与えた新しい state を返す。
-  // 生存（いのち）は区分線形なので 0.25h 刻みで決定論的に積分する。
-  // opts.survive=true（前面=スマホ稼働中）のときだけ 生存の減衰・死/家出が進む。
+  // なつき度は区分線形なので 0.25h 刻みで決定論的に積分する。
+  // opts.survive=true（前面=スマホ稼働中）のときだけ 減衰・おわかれ（よそのおうちへ/家出）が進む。
   // 離れている間（applyOffline）は減らさない＝「スマホを使わない限り いなくならない」(GAME_DESIGN.md §4)。
   function advance(state, simMs, rewardMs, opts) {
     if (rewardMs === undefined) rewardMs = simMs;
-    if (simMs <= 0 || !state.current) return { state: state, coinGain: 0, xpGain: 0, died: false };
-    var survive = !!(opts && opts.survive); // デスタイマーは前面(tick)でのみ稼働
+    if (simMs <= 0 || !state.current) return { state: state, coinGain: 0, xpGain: 0, strayed: false };
+    var survive = !!(opts && opts.survive); // 減衰（おわかれのタイマー）は前面(tick)でのみ稼働
     var p = state.current;
-    var stage0 = stageOf(p.xp) === 0; // おくるみは保護（生存消耗なし）
-    var hf = clamp(avgStatus(p) / 100, 0.15, 1); // 快適度（瀕死でも0.15は育つ）
+    var stage0 = stageOf(p.xp) === 0; // おくるみは保護（なつき度は減らない）
+    var hf = clamp(avgStatus(p) / 100, 0.15, 1); // 快適度（しょんぼりでも0.15は育つ）
 
     var rHours = rewardMs / H;
     var mixBoost = p.mix ? 1.2 : 1; // 雑種強勢: ミックスは成長+20%（BREEDING_SPEC §3）
@@ -315,14 +324,14 @@
 
     var hunger = p.hunger, clean = p.clean;
     var sanpo = p.sanpo == null ? 100 : p.sanpo;
-    var health = p.health == null ? 100 : p.health;
+    var bond = p.bond == null ? 100 : p.bond;
     var runawayH = p.runawayH || 0;
     var away = !!p.away;
     var stock = state.foodStock == null ? STARTER_STOCK : state.foodStock;
     var earnLeft = rewardMs / H;   // えさ獲得はスマホを置いていた時間（報酬と同じ24h上限）
     var autoFed = 0;
     var remaining = simMs / H;
-    while (remaining > 0 && health > 0 && !away) {
+    while (remaining > 0 && bond > 0 && !away) {
       var dt = remaining < 0.25 ? remaining : 0.25;
       remaining -= dt;
       // えさ獲得＝「スマホを置いた（アプリを閉じた）時間」。前面(survive)では貯まらない
@@ -331,8 +340,8 @@
         stock = Math.min(FOOD_STOCK_MAX, stock + FOOD_PER_HOUR * edt);
         earnLeft -= edt;
       }
-      var dmul = IS_TEST ? TEST_DECAY_MUL : 1; // はや回し時のみ 生存の時計を速める
-      // 生存の減衰は「スマホ稼働中（前面）」だけ。離れている間は おなか・きれい・さんぽは減らない
+      var dmul = IS_TEST ? TEST_DECAY_MUL : 1; // はや回し時のみ 減衰の時計を速める
+      // 減衰は「スマホ稼働中（前面）」だけ。離れている間は おなか・きれい・さんぽは減らない
       if (survive) {
         hunger = clamp(hunger - DECAY.hunger * dt * dmul, 0, 100);
         clean  = clamp(clean  - DECAY.clean  * dt * dmul, 0, 100);
@@ -345,9 +354,9 @@
         autoFed++;
       }
       if (!stage0) {
-        // いのち＝ごはん。飢えで減るのは前面のときだけ。満たされていれば いつでも回復する（休息）
-        if (survive && hunger <= 0) health = clamp(health - STARVE_DRAIN * dt * dmul, 0, 100);
-        else if (hunger > 30) health = clamp(health + HEALTH_REGEN * dt * dmul, 0, 100);
+        // なつき度＝ごはん。飢えで下がるのは前面のときだけ。満たされていれば いつでも回復する（甘えに来る）
+        if (survive && hunger <= 0) bond = clamp(bond - BOND_DRAIN * dt * dmul, 0, 100);
+        else if (hunger > 30) bond = clamp(bond + BOND_REGEN * dt * dmul, 0, 100);
         // 家出＝さんぽ（いい時間）。前面でゲージ0がつづくと旅に出る。離れている間は進まない
         if (survive) {
           if (sanpo <= 0) {
@@ -359,19 +368,19 @@
         }
       }
     }
-    var died = !stage0 && health <= 0;
-    var ranAway = !stage0 && away && !died;
+    var strayed = !stage0 && bond <= 0;
+    var ranAway = !stage0 && away && !strayed;
 
     var np = {
       ...p,
       xp: p.xp + xpGain,
       hunger: hunger, clean: clean,
-      sanpo: sanpo, health: health,
+      sanpo: sanpo, bond: bond,
       runawayH: runawayH, away: away
     };
     // なかよしポイント（口座・無限に貯まる。成体後も加算され、達成でレア装備が解放される）
     var ns = { ...state, current: np, coin: state.coin + coinGain, foodStock: stock, points: (state.points || 0) + xpGain };
-    return { state: ns, coinGain: coinGain, xpGain: xpGain, died: died, ranAway: ranAway, autoFed: autoFed };
+    return { state: ns, coinGain: coinGain, xpGain: xpGain, strayed: strayed, ranAway: ranAway, autoFed: autoFed };
   }
 
   // 体の記号模様（個体ごとの特徴。レア度つき。none＝模様なし）
@@ -500,7 +509,7 @@
       var msSim = clamp(raw, 0, MAX_SIM);
       var beforeStage = stageOf(s.current.xp);
       var beforeStatus = { ...s.current };
-      // 離れていた間: 生存は減らさない（むしろ在庫で回復）。育ち・コイン・えさだけ進む
+      // 離れていた間: なつき度は減らさない（むしろ在庫で回復）。育ち・コイン・えさだけ進む
       var r = advance(s, msSim, msReward, { survive: false });
       var ns = { ...r.state, lastSavedAt: now };
       this._state = ns;
@@ -512,7 +521,7 @@
         beforeStage: beforeStage,
         afterStage: stageOf(ns.current.xp),
         before: beforeStatus,
-        died: r.died,
+        strayed: r.strayed,
         ranAway: r.ranAway,
         autoFed: r.autoFed || 0
       };
@@ -524,7 +533,7 @@
       if (!s || !s.current) return;
       var ms = now - s.lastSavedAt;
       if (ms < 0) ms = 0;
-      // 前面（スマホ稼働中）の進行: デスタイマー（生存の減衰・死/家出）はここでのみ進む
+      // 前面（スマホ稼働中）の進行: 減衰・おわかれのタイマーはここでのみ進む
       var r = advance(s, clamp(ms, 0, MAX_SIM), clamp(ms, 0, MAX_OFFLINE), { survive: true });
       this._state = { ...r.state, lastSavedAt: now };
       persist(this._state);
@@ -671,7 +680,7 @@
       if (got.length) { var ns = { ...s, wardrobe: ward, lastSavedAt: now || s.lastSavedAt }; this._state = ns; persist(ns); }
       return got;
     },
-    /** 成長/生存の「はや回し」トグル（手動テスト用。localStorageに永続。出荷既定OFF） */
+    /** 成長/減衰の「はや回し」トグル（手動テスト用。localStorageに永続。出荷既定OFF） */
     setTest: function (b) {
       IS_TEST = !!b;
       try { if (global.localStorage) { if (b) global.localStorage.setItem(DEV_FAST_KEY, '1'); else global.localStorage.removeItem(DEV_FAST_KEY); } } catch (e) {}
@@ -780,34 +789,34 @@
 
     canGraduate: function () { return this.stage() >= 3; },
 
-    // ===== いのちと家出（生存システム） =====
-    /** いのちが尽きているか＝ごはんの怠り（おくるみは死なない） */
-    isDead: function () {
+    // ===== なつき度と家出（おわかれの結末） =====
+    /** なつき度が尽きて よそのおうちへ行ってしまったか＝ごはんの怠り（おくるみは いなくならない） */
+    isStray: function () {
       var s = this._state;
-      return !!(s && s.current && stageOf(s.current.xp) >= 1 && s.current.health <= 0);
+      return !!(s && s.current && stageOf(s.current.xp) >= 1 && s.current.bond <= 0);
     },
 
-    /** 家出してしまったか＝おさんぽの怠り */
+    /** 旅に出てしまったか＝おさんぽの怠り */
     isAway: function () {
       var s = this._state;
-      return !!(s && s.current && stageOf(s.current.xp) >= 1 && s.current.away && s.current.health > 0);
+      return !!(s && s.current && stageOf(s.current.xp) >= 1 && s.current.away && s.current.bond > 0);
     },
 
     /** もういない（どちらかの結末を迎えた） */
-    isGone: function () { return this.isDead() || this.isAway(); },
+    isGone: function () { return this.isStray() || this.isAway(); },
 
-    /** おわかれ/見送り → あたらしい子（おくるみ）をおむかえ。図鑑には登録されない */
+    /** おわかれ → あたらしい子（おくるみ）をおむかえ。図鑑には登録されない */
     farewell: function (now, rnd, species) {
       rnd = rnd || Math.random;
       var s = this._state;
       if (!s || !s.current) return null;
-      var cause = s.current.health <= 0 ? 'star' : (s.current.away ? 'away' : null);
+      var cause = s.current.bond <= 0 ? 'stray' : (s.current.away ? 'away' : null);
       if (!cause) return null;
       var breed = Breeds.get(s.current.breedId);
       var next = Breeds.roll(rnd, s.luck, !!s.premium, species, { owned: s.dex, avoid: s.current.breedId });
       var ns = {
         ...s,
-        deaths: (s.deaths || 0) + (cause === 'star' ? 1 : 0),
+        strays: (s.strays || 0) + (cause === 'stray' ? 1 : 0),
         runaways: (s.runaways || 0) + (cause === 'away' ? 1 : 0),
         current: freshPet(next.id, rnd),
         walk: null,
@@ -819,9 +828,9 @@
     },
 
     /** 危険の予測（通知スケジュール用）。
-        新設計では「離れている間（スマホを使わない間）は いのちが減らない」ため、
+        新設計では「離れている間（スマホを使わない間）は なつき度が減らない」ため、
         留守中の危険予告は存在しない＝常に空（責めない／途切れる予告をしない・DESIGN.md 原則2）。
-        デスタイマーはアプリ前面（スマホ稼働中）でのみ進む。 */
+        減衰はアプリ前面（スマホ稼働中）でのみ進む。 */
     dangerForecast: function () { return []; },
 
     // ===== おさんぽ（Forest型セッション） =====

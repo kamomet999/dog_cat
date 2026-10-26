@@ -13,7 +13,7 @@ function petBase(over) {
   // v8: 指標は3つ（hunger/sanpo/clean）。xp 300 = 子ども（GROW[2]=200, GROW[3]=760）
   return Object.assign({
     breedId: 'shiba', xp: 300, hunger: 64, clean: 60,
-    health: 100, sanpo: 60, runawayH: 0, away: false, careCount: 12
+    bond: 100, sanpo: 60, runawayH: 0, away: false, careCount: 12
   }, over || {});
 }
 function saveBase(over) {
@@ -21,7 +21,7 @@ function saveBase(over) {
     version: 9, premium: false, coin: 180, luck: 0.05,
     current: petBase(),
     dex: { shiba: { count: 3, firstAt: T0 - DAY * 3, unseen: false } },
-    lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0,
+    lastSavedAt: T0, graduates: 1, strays: 0, runaways: 0,
     foodStock: 6, task: null, walk: null,
     walkStats: { success: 5, fail: 1, streak: 2, best: 3, totalMin: 240 },
     album: []
@@ -195,11 +195,11 @@ module.exports = {
     { name: 'home-eye-pug',      save: saveBase({ current: petBase({ breedId: 'pug', xp: 300, eyeStyle: 'batchiri', mark: 'none' }) }), steps: [{ wait: 300 }] },
     { name: 'home-eye-bichon',   save: saveBase({ current: petBase({ breedId: 'bichon', xp: 300, eyeStyle: 'batchiri', mark: 'none' }), dex: { bichon: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
     { name: 'home-eye-cat',      save: saveBase({ current: petBase({ breedId: 'siamese', xp: 300, eyeStyle: 'genki' }), dex: { siamese: { count: 1, firstAt: 1, unseen: false } } }), steps: [{ wait: 300 }] },
-    { name: "home-mix", save: saveBase({ current: { breedId:"mix", mix:{species:"dog", nature:"げんきいっぱい", parents:["柴犬","ハスキー"], art:{base:"dog", color:"#8fb0d6", color2:"#fdf6ec", pattern:"spot", ear:"flop", eye:"#caa23a", fluffy:true, tail:"curl"}}, xp:300, hunger:64, clean:60, health:100, sanpo:60, runawayH:0, away:false, careCount:12, mark:"star", eyeStyle:"genki" } }), steps:[{wait:300}] },
-    { name: "mix-dog-tan", save: saveBase({ current: { breedId:"mix", mix:{species:"dog", nature:"のんびりや", parents:["柴犬","ダックス"], art:{base:"dog", color:"#caa06a", color2:"#fff4e2", pattern:"tan", ear:"flop", eye:"#5a3b22", fluffy:false, tail:"normal"}}, xp:300, hunger:64, clean:60, health:100, sanpo:60, careCount:12, mark:"heart", eyeStyle:"batchiri" } }), steps:[{wait:300}] },
-    { name: "mix-cat-calico", save: saveBase({ current: { breedId:"mix", mix:{species:"cat", nature:"きまぐれ", parents:["三毛猫","ペルシャ"], art:{base:"cat", color:"#e8a24a", color2:"#f5ede0", pattern:"calico", ear:"prick", eye:"#6fae6f", fluffy:true, tail:"normal"}}, xp:300, hunger:64, clean:60, health:100, sanpo:60, careCount:12, mark:"diamond", eyeStyle:"ojou" } }), steps:[{wait:300}] },
-    { name: "mix-cat-gray", save: saveBase({ current: { breedId:"mix", mix:{species:"cat", nature:"クール", parents:["ロシアンブルー","アメショ"], art:{base:"cat", color:"#9aa6b0", color2:"#eef1f4", pattern:"tabby", ear:"prick", eye:"#caa23a", fluffy:false, tail:"normal"}}, xp:300, hunger:64, clean:60, health:100, sanpo:60, careCount:12, mark:"circle", eyeStyle:"downer" } }), steps:[{wait:300}] },
-    { name: "mix-dog-dark", save: saveBase({ current: { breedId:"mix", mix:{species:"dog", nature:"がんばりや", parents:["黒柴","コーギー"], art:{base:"dog", color:"#4a4640", color2:"#d9b27a", pattern:"patch", ear:"prick", eye:"#caa23a", fluffy:true, tail:"curl"}}, xp:300, hunger:64, clean:60, health:100, sanpo:60, careCount:12, mark:"star", eyeStyle:"majime" } }), steps:[{wait:300}] },
+    { name: "home-mix", save: saveBase({ current: { breedId:"mix", mix:{species:"dog", nature:"げんきいっぱい", parents:["柴犬","ハスキー"], art:{base:"dog", color:"#8fb0d6", color2:"#fdf6ec", pattern:"spot", ear:"flop", eye:"#caa23a", fluffy:true, tail:"curl"}}, xp:300, hunger:64, clean:60, bond:100, sanpo:60, runawayH:0, away:false, careCount:12, mark:"star", eyeStyle:"genki" } }), steps:[{wait:300}] },
+    { name: "mix-dog-tan", save: saveBase({ current: { breedId:"mix", mix:{species:"dog", nature:"のんびりや", parents:["柴犬","ダックス"], art:{base:"dog", color:"#caa06a", color2:"#fff4e2", pattern:"tan", ear:"flop", eye:"#5a3b22", fluffy:false, tail:"normal"}}, xp:300, hunger:64, clean:60, bond:100, sanpo:60, careCount:12, mark:"heart", eyeStyle:"batchiri" } }), steps:[{wait:300}] },
+    { name: "mix-cat-calico", save: saveBase({ current: { breedId:"mix", mix:{species:"cat", nature:"きまぐれ", parents:["三毛猫","ペルシャ"], art:{base:"cat", color:"#e8a24a", color2:"#f5ede0", pattern:"calico", ear:"prick", eye:"#6fae6f", fluffy:true, tail:"normal"}}, xp:300, hunger:64, clean:60, bond:100, sanpo:60, careCount:12, mark:"diamond", eyeStyle:"ojou" } }), steps:[{wait:300}] },
+    { name: "mix-cat-gray", save: saveBase({ current: { breedId:"mix", mix:{species:"cat", nature:"クール", parents:["ロシアンブルー","アメショ"], art:{base:"cat", color:"#9aa6b0", color2:"#eef1f4", pattern:"tabby", ear:"prick", eye:"#caa23a", fluffy:false, tail:"normal"}}, xp:300, hunger:64, clean:60, bond:100, sanpo:60, careCount:12, mark:"circle", eyeStyle:"downer" } }), steps:[{wait:300}] },
+    { name: "mix-dog-dark", save: saveBase({ current: { breedId:"mix", mix:{species:"dog", nature:"がんばりや", parents:["黒柴","コーギー"], art:{base:"dog", color:"#4a4640", color2:"#d9b27a", pattern:"patch", ear:"prick", eye:"#caa23a", fluffy:true, tail:"curl"}}, xp:300, hunger:64, clean:60, bond:100, sanpo:60, careCount:12, mark:"star", eyeStyle:"majime" } }), steps:[{wait:300}] },
     {
       name: 'dex',
       save: saveBase({
@@ -322,9 +322,9 @@ module.exports = {
       steps: [{ wait: 600 }]
     },
     {
-      name: 'farewell-star',
-      // おなか0・いのち0 → おほしさま
-      save: saveBase({ current: petBase({ hunger: 0, health: 0 }), foodStock: 0 }),
+      name: 'farewell-stray',
+      // おなか0・なつき度0 → おうちを出ていく
+      save: saveBase({ current: petBase({ hunger: 0, bond: 0 }), foodStock: 0 }),
       steps: [{ wait: 600 }]
     },
     {

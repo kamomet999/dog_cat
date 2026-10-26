@@ -109,10 +109,10 @@ test('抽選: 収集済み・直前と同じ品種は出にくい（同じ子ば
 
 console.log('# 新規ゲームとセーブ');
 
-test('newGame で v18 の初期状態ができる', () => {
+test('newGame で v19 の初期状態ができる', () => {
   const w = freshWorld();
   const s = w.Engine.newGame('dog', T0, rnd0);
-  assert.strictEqual(s.version, 18);
+  assert.strictEqual(s.version, 19);
   assert.strictEqual(s.points, 0);
   assert.strictEqual(s.crossDex, undefined, '交配種は原種と同じ図鑑（専用crossDexは持たない）');
   assert.strictEqual(s.premium, false);
@@ -121,9 +121,9 @@ test('newGame で v18 の初期状態ができる', () => {
   assert.strictEqual(s.task, null);
   assert.ok(s.current);
   assert.ok(w.Breeds.isFree(w.Breeds.get(s.current.breedId))); // 初回は必ず無料種
-  assert.strictEqual(s.current.health, 100);
+  assert.strictEqual(s.current.bond, 100);
   assert.strictEqual(s.current.sanpo, 100);
-  assert.strictEqual(s.deaths, 0);
+  assert.strictEqual(s.strays, 0);
   assert.strictEqual(s.runaways, 0);
   assert.strictEqual(s.walk, null);
   eqJSON(s.walkStats, { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 });
@@ -197,17 +197,17 @@ test('v1セーブが 最新版 にマイグレーションされる', () => {
   storage.setItem('inuneko_dex_save_v1', JSON.stringify(v1save));
   const w = freshWorld(storage);
   const s = w.Engine.init();
-  assert.strictEqual(s.version, 18);
+  assert.strictEqual(s.version, 19);
   assert.strictEqual(s.crossDex, undefined, '交配種は原種と同じ図鑑に統合（crossDexは持たない）');
   assert.strictEqual(s.premium, false); // 既存ユーザーは無料ティアへ移行
   assert.strictEqual(s.coin, 42);
   assert.strictEqual(s.foodStock, 6); // v4のitems(5+1)がv5でストックに統合
   assert.strictEqual(s.walk, null);
   assert.strictEqual(s.task, null);
-  assert.strictEqual(s.current.health, 100);
+  assert.strictEqual(s.current.bond, 100);
   assert.strictEqual(s.current.sanpo, 100);
   assert.strictEqual(s.current.detox, undefined);
-  assert.strictEqual(s.deaths, 0);
+  assert.strictEqual(s.strays, 0);
   assert.strictEqual(s.room.bg, 'cream'); // v9で部屋が既定値で付与される
   assert.strictEqual(s.taskStats.days, 0); // v10でさんぽダッシュボードが付与される
   eqJSON(s.allowApps, []);
@@ -374,7 +374,30 @@ test('おさんぽ中の二重開始は拒否される', () => {
   assert.strictEqual(w.Engine.startWalk(30, T0 + 1000), null);
 });
 
-console.log('# いのち（生存システム）');
+console.log('# なつき度（おわかれの結末）');
+
+test('v18セーブが v19 に移行する（health→bond・deaths→strays）', () => {
+  const storage = makeStorage();
+  const v18 = {
+    version: 18, coin: 10, points: 0, luck: 0, premium: false, graduates: 0,
+    deaths: 2, runaways: 1, foodStock: 6, dex: {}, lastSavedAt: T0,
+    current: { breedId: 'shiba', xp: 300, hunger: 50, clean: 50, health: 42, sanpo: 60, runawayH: 0, away: false, careCount: 3, mark: 'none', eyeStyle: 'batchiri' },
+    walk: null, task: null,
+    walkStats: { success: 0, fail: 0, streak: 0, best: 0, totalMin: 0 },
+    taskStats: { success: 0, days: 0, bestDays: 0, lastDay: null, totalMin: 0, byKind: {} },
+    allowApps: [], reminders: { enabled: false, times: [] },
+    wardrobe: { owned: {}, items: [] }, album: [], room: { bg: 'cream', items: [] }
+  };
+  storage.setItem('inuneko_dex_save_v1', JSON.stringify(v18));
+  const s = freshWorld(storage).Engine.init();
+  assert.strictEqual(s.version, 19);
+  assert.strictEqual(s.current.bond, 42, 'いのちの値が なつき度に引き継がれる');
+  assert.strictEqual(s.current.health, undefined, '旧フィールドは消える');
+  assert.strictEqual(s.strays, 2, 'おほしさまの件数が「おうちを出た子」に引き継がれる');
+  assert.strictEqual(s.deaths, undefined);
+  assert.strictEqual(s.runaways, 1);
+});
+
 
 /** stage1 まで育てるヘルパ（おそうじは成長しなくなったので、なかよしを直接与える） */
 function toStage1(w, t) {
@@ -383,21 +406,21 @@ function toStage1(w, t) {
   assert.ok(w.Engine.stage() >= 1);
 }
 
-test('スマホを使わない（離れている）かぎり、どれだけ放置しても死なない・家出しない', () => {
+test('スマホを使わない（離れている）かぎり、どれだけ放置しても いなくならない', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   toStage1(w, T0);
   // おなかを空にして在庫も0＝最悪条件にしても、離れている間は減らない
   const st = w.Engine.getState();
-  st.current.hunger = 0; st.current.sanpo = 0; st.current.health = 100; st.foodStock = 0;
-  // 何度 長期不在しても いのちは減らない（デスタイマーは前面でのみ進むため）
+  st.current.hunger = 0; st.current.sanpo = 0; st.current.bond = 100; st.foodStock = 0;
+  // 何度 長期不在しても なつき度は減らない（減衰は前面でのみ進むため）
   for (let d = 1; d <= 10; d++) {
     const rep = w.Engine.applyOffline(T0 + d * 72 * H);
-    assert.strictEqual(rep.died, false, `${d}回目でも死なない`);
+    assert.strictEqual(rep.strayed, false, `${d}回目でも いなくならない`);
     assert.strictEqual(rep.ranAway, false, `${d}回目でも家出しない`);
     assert.ok(!w.Engine.isGone());
   }
-  assert.strictEqual(w.Engine.getState().current.health, 100, '留守の間に減っていない');
+  assert.strictEqual(w.Engine.getState().current.bond, 100, '留守の間に減っていない');
 });
 
 test('24時間の放置では自動給餌が効いて元気なまま', () => {
@@ -405,19 +428,19 @@ test('24時間の放置では自動給餌が効いて元気なまま', () => {
   w.Engine.newGame('dog', T0, rnd0);
   toStage1(w, T0);
   const rep = w.Engine.applyOffline(T0 + 24 * H);
-  assert.strictEqual(rep.died, false);
-  const h = w.Engine.getState().current.health;
-  assert.ok(h > 50, `health=${h}`);
+  assert.strictEqual(rep.strayed, false);
+  const h = w.Engine.getState().current.bond;
+  assert.ok(h > 50, `bond=${h}`);
   // ストックは消費と微獲得で増減している
   assert.ok(w.Engine.getState().foodStock < 6 + 3);
 });
 
-test('おくるみ（stage0）は死なない', () => {
+test('おくるみ（stage0）は いなくならない', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   const rep = w.Engine.applyOffline(T0 + 72 * H);
-  assert.strictEqual(rep.died, false);
-  assert.strictEqual(w.Engine.getState().current.health, 100);
+  assert.strictEqual(rep.strayed, false);
+  assert.strictEqual(w.Engine.getState().current.bond, 100);
 });
 
 test('ごはんが足りていても さんぽ（いい時間）をサボると約10日で家出', () => {
@@ -436,13 +459,13 @@ test('ごはんが足りていても さんぽ（いい時間）をサボると�
   }
   assert.ok(gone, 'さんぽなしで居なくなるはず');
   assert.ok(days >= 9 && days <= 11, `リミットは約10日: ${days}日`);
-  assert.ok(w.Engine.isAway(), '結末は家出（死ではない）');
-  assert.ok(!w.Engine.isDead());
+  assert.ok(w.Engine.isAway(), '結末は旅立ち（おうちを出ていくではない）');
+  assert.ok(!w.Engine.isStray());
   // 家出の見送り → runaways が増える
   const r = w.Engine.farewell(t, rnd0);
   assert.strictEqual(r.cause, 'away');
   assert.strictEqual(w.Engine.getState().runaways, 1);
-  assert.strictEqual(w.Engine.getState().deaths, 0);
+  assert.strictEqual(w.Engine.getState().strays, 0);
   assert.ok(!w.Engine.isGone());
 });
 
@@ -555,7 +578,7 @@ test('維持シナリオ: 毎日30分のごはんさがし＋2日に1回のさ�
   let t = T0;
   for (let d = 0; d < 10; d++) {
     t += 22 * H;
-    w.Engine.applyOffline(t);             // 22hはスマホを離れている＝いのちは減らない（むしろ安全）
+    w.Engine.applyOffline(t);             // 22hはスマホを離れている＝なつき度は減らない（むしろ安全）
     w.Engine.startWalk(30, t);            // ごはんさがし（えさ+2）
     w.Engine.checkWalk(t + 30 * MIN, true);
     t += 30 * MIN;
@@ -569,7 +592,7 @@ test('維持シナリオ: 毎日30分のごはんさがし＋2日に1回のさ�
   }
   assert.ok(!w.Engine.isGone(), '世話していれば居なくならない');
   const st = w.Engine.getState();
-  assert.ok(st.current.health > 80, `いのち: ${st.current.health}`);
+  assert.ok(st.current.bond > 80, `なつき度: ${st.current.bond}`);
   assert.ok(st.current.sanpo > 30, `さんぽゲージ: ${st.current.sanpo}`);
   assert.ok(st.foodStock > 1, `えさ: ${st.foodStock}`);
 });
@@ -587,22 +610,22 @@ test('ごはんさがし（ふせセッション）成功でえさを持ちか�
   assert.strictEqual(r2.foods, 8);
 });
 
-test('衰弱からの回復（前面で衰弱→えさ補充で いのち が戻る）', () => {
+test('なつき度の回復（前面で下がる→えさ補充で なつき度 が戻る）', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   toStage1(w, T0);
-  // 前面（スマホ稼働中）で 在庫切れ＋空腹を放置 → デスタイマーで衰弱
+  // 前面（スマホ稼働中）で 在庫切れ＋空腹を放置 → なつき度が下がる
   const st = w.Engine.getState();
-  st.current.hunger = 0; st.current.health = 100; st.foodStock = 0;
+  st.current.hunger = 0; st.current.bond = 100; st.foodStock = 0;
   w.Engine.tick(T0 + 12 * H);
-  const low = w.Engine.getState().current.health;
+  const low = w.Engine.getState().current.bond;
   assert.ok(low < 100 && low > 0, `衰弱している: ${low}`);
   let t = T0 + 12 * H;
   for (let i = 0; i < 5; i++) w.Engine.buyFood(t); // えさを補充
   w.Engine.feed(t); // てであげる
   t += 24 * H;
   w.Engine.tick(t); // 満腹で1日 → 回復
-  const now2 = w.Engine.getState().current.health;
+  const now2 = w.Engine.getState().current.bond;
   assert.ok(now2 > low, `${low} -> ${now2}`);
 });
 
@@ -618,7 +641,7 @@ test('離れている間: 報酬(コイン)は24h上限・生存(さんぽ)は�
   assert.strictEqual(b.Engine.getState().current.sanpo, 100);
 });
 
-test('前面(tick)では デスタイマーが進む（おなかが減る）', () => {
+test('前面(tick)では 時間が進む（おなかが減る）', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   toStage1(w, T0);
@@ -627,21 +650,21 @@ test('前面(tick)では デスタイマーが進む（おなかが減る）', (
   assert.ok(w.Engine.getState().current.hunger < h0, '前面では おなかが減る');
 });
 
-test('farewell で deaths が増え、あたらしい子（健康）が来る', () => {
+test('farewell で strays が増え、あたらしい子（健康）が来る', () => {
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   toStage1(w, T0);
-  // 前面で 在庫切れ＋空腹を放置 → デスタイマーで餓死（離れている間は死なないので tick で）
+  // 前面で 在庫切れ＋空腹を放置 → なつき度0で おうちを出ていく（離れている間は進まないので tick で）
   const st = w.Engine.getState();
-  st.current.hunger = 0; st.current.health = 100; st.foodStock = 0;
-  w.Engine.tick(T0 + 30 * H); // いのち100→0（STARVE 100/24・約24hで尽きる）
-  assert.ok(w.Engine.isDead());
+  st.current.hunger = 0; st.current.bond = 100; st.foodStock = 0;
+  w.Engine.tick(T0 + 30 * H); // なつき度100→0（BOND_DRAIN 100/24・約24hで尽きる）
+  assert.ok(w.Engine.isStray());
   const r = w.Engine.farewell(T0 + 30 * H, rnd0);
   assert.ok(r && r.next);
   const s = w.Engine.getState();
-  assert.strictEqual(s.deaths, 1);
-  assert.strictEqual(s.current.health, 100);
-  assert.ok(!w.Engine.isDead());
+  assert.strictEqual(s.strays, 1);
+  assert.strictEqual(s.current.bond, 100);
+  assert.ok(!w.Engine.isStray());
 });
 
 test('えさストック: てであげる消費・在庫切れ・コイン購入', () => {
@@ -689,7 +712,7 @@ test('dangerForecast は空（離れている間は危険がない＝責めな�
   const w = freshWorld();
   w.Engine.newGame('dog', T0, rnd0);
   toStage1(w, T0);
-  // 留守中は いのちが減らない設計なので、危険予告は出さない（vm跨ぎのため length で判定）
+  // 留守中は なつき度が減らない設計なので、危険予告は出さない（vm跨ぎのため length で判定）
   assert.strictEqual(w.Engine.dangerForecast(T0).length, 0);
 });
 

@@ -41,7 +41,7 @@
     if (now() < happyUntil) return 'happy';
     var st = Engine.getState();
     if (!st || !st.current) return 'normal';
-    if (st.current.health != null && st.current.health < 40) return 'sad'; // 衰弱
+    if (st.current.bond != null && st.current.bond < 40) return 'sad'; // なつき度が下がってしょんぼり
     var a = Engine.avgStatus(st.current);
     if (a < 32) return 'sad';
     if (a >= 70) return 'happy';
@@ -103,22 +103,22 @@
       bar.style.width = v + '%';
       bar.style.background = barColor(v);
     });
-    renderLife(p);
+    renderBond(p);
   }
 
-  // いのち（5ハート・health/20）。stage0のおくるみは保護中なので表示しない
-  function renderLife(p) {
-    var el = $('lifeRow');
+  // なつき度（5ハート・bond/20）。stage0のおくるみは保護中なので表示しない
+  function renderBond(p) {
+    var el = $('bondRow');
     if (!el) return;
     if (Engine.stage() === 0) { el.innerHTML = ''; return; }
-    var h = p.health == null ? 100 : p.health;
+    var h = p.bond == null ? 100 : p.bond;
     var full = Math.max(0, Math.min(5, Math.ceil(h / 20)));
     var hearts = '';
     for (var i = 0; i < 5; i++) hearts += i < full ? '❤️' : '🤍';
     var sp = p.sanpo == null ? 100 : p.sanpo;
-    var warn = h < 50 ? '具合が悪そう…' : (sp <= 0 ? '遠くへ行きたそうにしている…' : '');
-    el.innerHTML = '<span class="life-label">いのち</span><span>' + hearts + '</span>' +
-      (warn ? '<span class="life-warn">' + warn + '</span>' : '');
+    var warn = h < 50 ? 'さみしそうにしている…' : (sp <= 0 ? '遠くへ行きたそうにしている…' : '');
+    el.innerHTML = '<span class="bond-label">なつき</span><span>' + hearts + '</span>' +
+      (warn ? '<span class="bond-warn">' + warn + '</span>' : '');
   }
 
   function renderGrow() {
@@ -395,7 +395,7 @@
     { sel: '#petArt', title: 'いまは ねんね中', text: 'タップすると <b>いろんなしぐさ</b> で よろこぶよ（成長はしない）。<br>ごはんや時間で、もうすぐ目を覚ます。', place: 'below' },
     { sel: '#walkBtn', title: '① おすわり＝スマホを置く', text: '“スマホを置く” と この子は おすわりして待つよ。<b>見なかった時間が そのまま エサ</b>（📱→🍚 長いほど たくさん）。これが一番大事！', place: 'above' },
     { sel: '#taskBtn', title: '② お散歩＝勉強・運動の時間', text: '読書・英語・運動・ダイエットの間、となりにいてくれる。<b>取り組むと エサも少しもらえる</b>“いい時間”。', place: 'above' },
-    { sel: '#stats', title: 'お腹・きれい・いのち', text: 'おなかが減るのは <b>アプリを使っているとき</b>だけ。<span class="calm">スマホを離れている間は いのちは減らない</span>から、毎日ひらかなくても・忘れても だいじょうぶ。', place: 'below' },
+    { sel: '#stats', title: 'お腹・きれい・なつき', text: 'おなかが減るのは <b>アプリを使っているとき</b>だけ。<span class="calm">スマホを離れている間は なつき度は減らない</span>から、毎日ひらかなくても・忘れても だいじょうぶ。', place: 'below' },
     { sel: '#dexBtn', title: '③ 図鑑を集める', text: '育てた子は ここに登録。犬・猫あわせて 60種を あつめよう！', place: 'above' }
   ];
 
@@ -986,8 +986,8 @@
       ? '<br><span style="font-size:11px">' + Object.keys(byKind).map(function (k) { return (TASK_EMO[k] || '🐾') + k + ' ' + Math.floor(byKind[k] / 60) + 'h' + (byKind[k] % 60) + 'm'; }).join('　') + '</span>'
       : '';
     var html = '<h2>⚙ せってい</h2>' +
-      '<p class="sub" id="verLabel">「いぬねこ図鑑」 β11（2026-06-15）— スマホを離れて、育てる いぬねこ</p>' +
-      '<p class="muted">スマホを離れているあいだは <b>いのちは減りません</b>（むしろ たまった在庫で 回復します）。おなかが減るのは、<b>アプリを開いて使っているときだけ</b>。だから 放っておくほど、この子は安心して育ちます。あわてず ゆっくりで いいよ。</p>' +
+      '<p class="sub" id="verLabel">「いぬねこ図鑑」 β12（2026-10-26）— スマホを離れて、育てる いぬねこ</p>' +
+      '<p class="muted">スマホを離れているあいだは <b>なつき度は減りません</b>（むしろ たまった在庫で 回復します）。おなかが減るのは、<b>アプリを開いて使っているときだけ</b>。だから 放っておくほど、この子は安心して育ちます。あわてず ゆっくりで いいよ。</p>' +
       '<hr class="soft">' +
       '<div class="dex-section-title">🐾 おすわり</div>' +
       '<p class="muted">成功：<b>' + ws.success + '</b> 回（れんぞく最高 <b>' + ws.best + '</b>）／ ロック合計：<b>' + Math.floor(ws.totalMin / 60) + '</b> 時間 ' + (ws.totalMin % 60) + ' 分</p>' +
@@ -1011,7 +1011,7 @@
       '<button id="allowSet" class="big-btn ghost mt12" style="width:100%">📱 おすわり中に使ってOKなアプリ</button>' +
       '<button id="remindSet" class="big-btn ghost mt12" style="width:100%">⏰ さんぽリマインド時刻</button>' +
       '<p class="muted">これまで巣立たせた数：<b>' + st.graduates + '</b> ／ 図鑑：<b>' + Engine.dexProgress().found + '</b> 種' +
-      ((st.deaths || 0) > 0 ? ' ／ おほしさまになった子：<b>' + st.deaths + '</b>' : '') +
+      ((st.strays || 0) > 0 ? ' ／ おうちを でた子：<b>' + st.strays + '</b>' : '') +
       ((st.runaways || 0) > 0 ? ' ／ たびに でた子：<b>' + st.runaways + '</b>' : '') + '</p>' +
       '<hr class="soft">' +
       (Engine.isPremium()
@@ -1025,7 +1025,7 @@
       '<div id="devBox" style="display:none;margin-top:14px">' +
         '<hr class="soft">' +
         '<div class="dex-section-title">🛠 開発者</div>' +
-        '<p class="muted" style="font-size:11px">「はや回し」は手動テスト用。ONにすると 成長と いのちの減りが速くなる（出荷は必ずOFF）。</p>' +
+        '<p class="muted" style="font-size:11px">「はや回し」は手動テスト用。ONにすると 成長と なつき度の減りが速くなる（出荷は必ずOFF）。</p>' +
         '<button id="devFast" class="big-btn ghost" style="width:100%">はや回し：' + (Engine.isTest() ? 'ON（テスト中）' : 'OFF（通常）') + '</button>' +
       '</div>';
     var m = openModal(html);
@@ -1355,7 +1355,7 @@
     if (!rep || rep.elapsedMs < 60000) return;
     var p = Engine.getState().current;
     var msgs = [];
-    if (p.health != null && p.health < 50) msgs.push('ちょっと よわってるみたい。ごはんを あげれば すぐ 元気になるよ🍚');
+    if (p.bond != null && p.bond < 50) msgs.push('すこし よそよそしいかも。ごはんを あげれば また なついてくれるよ🍚');
     else if (p.hunger < 25) msgs.push('おなか すいてるみたい。ごはんを あげよう🍚');
     if (p.clean < 25) msgs.push('よかったら お風呂にも いれてあげて🛁');
     if (p.sanpo != null && p.sanpo < 25) msgs.push('そろそろ いっしょに「いい時間」を 過ごせると うれしいな🐾');
@@ -1728,9 +1728,9 @@
         '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">新しい子を迎える</button>' +
         '</div>'
       : '<div class="center">' +
-        '<h2>' + b.name + 'は<br>おほしさまに なりました</h2>' +
-        '<p class="sub">ゆっくり ねむりにつきました。<br>いっしょに過ごした時間は、ちゃんと のこっているよ。<br>また あたらしい子と、のんびり いこうね。</p>' +
-        '<div style="font-size:56px;margin:10px">🌟</div>' +
+        '<h2>' + b.name + 'は<br>おうちを 出ていきました</h2>' +
+        '<p class="sub">ごはんの ない日が つづいて、<br>たべものを さがしに 行ったみたい。<br>いっしょに過ごした時間は、ちゃんと のこっているよ。<br>また あたらしい子と、のんびり いこうね。</p>' +
+        '<div style="font-size:56px;margin:10px">🐾</div>' +
         '<button id="fwBtn" class="big-btn primary mt12" style="width:100%">新しい子を迎える</button>' +
         '</div>';
     var m = openModal(html, { closable: false });
@@ -1807,7 +1807,7 @@
     } else {
       var rep = Engine.applyOffline(now());
       render();
-      if ((rep && (rep.died || rep.ranAway)) || Engine.isGone()) {
+      if ((rep && (rep.strayed || rep.ranAway)) || Engine.isGone()) {
         showFarewell();
       } else {
         syncTask();
@@ -1818,7 +1818,7 @@
     }
     function onResume() {
       var rep = Engine.applyOffline(now());
-      if ((rep && (rep.died || rep.ranAway)) || Engine.isGone()) { render(); showFarewell(); return; }
+      if ((rep && (rep.strayed || rep.ranAway)) || Engine.isGone()) { render(); showFarewell(); return; }
       syncWalk();
       syncTask();
       render();
@@ -1830,7 +1830,7 @@
       var MSG = {
         hunger: { id: 2001, title: 'えさが なくなりそう…🍚', body: 'スマホを おいて おすわりさせよう' },
         sanpo:  { id: 2002, title: 'いっしょの じかんが ほしいな🐾', body: 'どくしょや うんどうの あいだ、となりに いさせて。とおくへ いっちゃう まえに' },
-        health: { id: 2003, title: 'ぐあいが わるいみたい…💧', body: 'えさを わすれないで。おねがい' }
+        bond: { id: 2003, title: 'さみしがって いるみたい…🐾', body: 'えさを わすれないで。おねがい' }
       };
       var plan = Engine.dangerForecast(now()).map(function (e) {
         var m = MSG[e.type];

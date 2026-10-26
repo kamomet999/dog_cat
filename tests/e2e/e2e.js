@@ -37,7 +37,7 @@ function serve() {
 function petBase(over) {
   return Object.assign({
     breedId: 'shiba', xp: 300, hunger: 64, clean: 60,
-    health: 100, sanpo: 60, runawayH: 0, away: false, careCount: 12
+    bond: 100, sanpo: 60, runawayH: 0, away: false, careCount: 12
   }, over || {});
 }
 function saveBase(over) {
@@ -45,7 +45,7 @@ function saveBase(over) {
     version: 9, premium: false, coin: 180, luck: 0.05,
     current: petBase(),
     dex: { shiba: { count: 1, firstAt: T0 - 86400000, unseen: false } },
-    lastSavedAt: T0, graduates: 1, deaths: 0, runaways: 0,
+    lastSavedAt: T0, graduates: 1, strays: 0, runaways: 0,
     foodStock: 6, task: null, walk: null,
     walkStats: { success: 5, fail: 1, streak: 2, best: 3, totalMin: 240 },
     album: []
@@ -108,7 +108,7 @@ t('初回フロー: intro→種選択→チュートリアル5歩→ホーム到
   }
   assert.ok(!(await page.$('#tutNext')), 'チュートリアルが閉じた');
   const st = await engineState(page);
-  assert.strictEqual(st.version, 18);
+  assert.strictEqual(st.version, 19);
   assert.ok(st.current, 'ペットがいる');
   assert.strictEqual((await text(page, '#petName')).trim(), 'ねんねちゅう…');
   const tut = await page.evaluate(k => localStorage.getItem(k), TUT);
@@ -212,7 +212,7 @@ t('お散歩(カスタム): 「ピアノ」25分が通り、範囲外(200分)は
 });
 
 t('オフライン復帰: 26時間後に「おかえりなさい」・コイン獲得・自動給餌の報告', async () => {
-  // おなかが空いていても、留守中は たまった在庫で自動給餌されて救われる（死なない）
+  // おなかが空いていても、留守中は たまった在庫で自動給餌されて救われる（いなくならない）
   const page = await newPage(saveBase({ lastSavedAt: T0 - 26 * H, current: petBase({ hunger: 20 }) }));
   assert.match(await text(page, '.modal h2'), /おかえりなさい/);
   const body = await text(page, '.modal');
@@ -225,29 +225,29 @@ t('オフライン復帰: 26時間後に「おかえりなさい」・コイン�
   await closePage(page);
 });
 
-t('離れている間は死なない: 在庫切れ＋空腹でも長期放置で生きて帰る', async () => {
-  // 10日(240h)放置・在庫0・空腹0でも、留守中は デスタイマーが止まる＝おほしさまにならない
-  const page = await newPage(saveBase({ lastSavedAt: T0 - 240 * H, foodStock: 0, current: petBase({ hunger: 0, health: 60 }) }));
-  assert.doesNotMatch((await text(page, '.modal h2')) || '', /おほしさま|旅に出/, '放置では結末を迎えない');
+t('離れている間は いなくならない: 在庫切れ＋空腹でも長期放置で待っている', async () => {
+  // 10日(240h)放置・在庫0・空腹0でも、留守中は 減衰が止まる＝なつき度は下がらない
+  const page = await newPage(saveBase({ lastSavedAt: T0 - 240 * H, foodStock: 0, current: petBase({ hunger: 0, bond: 60 }) }));
+  assert.doesNotMatch((await text(page, '.modal h2')) || '', /出ていき|旅に出/, '放置では結末を迎えない');
   const st = await engineState(page);
-  assert.ok(st.current.health > 0, '生きて帰る');
+  assert.ok(st.current.bond > 0, 'なつき度は残っている');
   assert.ok(!st.current.away, '家出もしていない');
   await closePage(page);
 });
 
-t('おわかれ(おほしさま): 餓死→看取り→新しい子・deaths+1', async () => {
-  const page = await newPage(saveBase({ current: petBase({ hunger: 0, health: 0 }), foodStock: 0 }));
+t('おわかれ(おうちを出ていく): ごはん切れ→見送り→新しい子・strays+1', async () => {
+  const page = await newPage(saveBase({ current: petBase({ hunger: 0, bond: 0 }), foodStock: 0 }));
   await page.waitForTimeout(800);
-  assert.match(await text(page, '.modal h2'), /おほしさまに/);
+  assert.match(await text(page, '.modal h2'), /おうちを 出ていきました/);
   await page.click('#fwBtn');
   await page.waitForTimeout(250);
   await page.click('[data-sp="cat"]'); // 犬猫を選べる（新しい子）
   await page.waitForTimeout(400);
   const st = await engineState(page);
-  assert.strictEqual(st.deaths, 1);
+  assert.strictEqual(st.strays, 1);
   const sp = await page.evaluate(() => window.Breeds.get(window.Engine.getState().current.breedId).species);
   assert.strictEqual(sp, 'cat', '選んだ種(ねこ)で 新しい子が来る');
-  assert.strictEqual(st.current.health, 100, '新しい子は健康');
+  assert.strictEqual(st.current.bond, 100, '新しい子は なつき度まんたん');
   assert.match(await text(page, '#toast'), /赤ちゃんが やってきた/);
   await closePage(page);
 });
@@ -484,7 +484,7 @@ t('永続化: 操作→リロードしても状態が残る', async () => {
   const after = await engineState(page);
   assert.strictEqual(Math.floor(after.foodStock), Math.floor(before.foodStock), 'ストックが保持');
   assert.strictEqual(after.current.breedId, before.current.breedId);
-  assert.strictEqual(after.version, 18);
+  assert.strictEqual(after.version, 19);
   await closePage(page);
 });
 
@@ -534,7 +534,7 @@ t('開発者トグル: 版表記5タップで「はや回し」が出て切り�
   await closePage(page);
 });
 
-t('旧セーブ(v1)読み込み: 最新v18へ移行して起動できる', async () => {
+t('旧セーブ(v1)読み込み: 最新v19へ移行して起動できる', async () => {
   const v1 = {
     version: 1, coin: 42, luck: 0.1,
     current: { breedId: 'shiba', xp: 30, hunger: 50, mood: 50, clean: 50, energy: 50, careCount: 3 },
@@ -546,9 +546,9 @@ t('旧セーブ(v1)読み込み: 最新v18へ移行して起動できる', async
   const ok = await page.$('#okBtn');
   if (ok) { await ok.click(); await page.waitForTimeout(300); }
   const st = await engineState(page);
-  assert.strictEqual(st.version, 18);
+  assert.strictEqual(st.version, 19);
   assert.strictEqual(st.current.mood, undefined, 'moodは消える');
-  assert.ok(st.current.sanpo != null && st.current.health != null);
+  assert.ok(st.current.sanpo != null && st.current.bond != null);
   await closePage(page);
 });
 
